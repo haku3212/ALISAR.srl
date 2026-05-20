@@ -1,81 +1,88 @@
-import React, { useState, useEffect } from 'react';
-import { Drill, Plus, Settings2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Drill, Plus, Edit2, Trash2 } from 'lucide-react';
 import { dataService } from '../services/api';
+import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
+import Modal from './common/Modal';
+import FormInput from './common/FormInput';
 
 const Maquinaria = () => {
-  const [maquinas, setMaquinas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
+    dataService.getMaquinaria,
+    dataService.createMaquinaria,
+    dataService.updateMaquinaria,
+    dataService.deleteMaquinaria
+  );
 
-  useEffect(() => {
-    fetchMaquinaria();
-  }, []);
+  const [showModal, setShowModal] = useState(false);
+  const [search, setSearch] = useState('');
+  const [formData, setFormData] = useState({ nombre: '', tipo: '', estado: 'Operativo', ultimaRevision: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
-  const fetchMaquinaria = async () => {
+  const filtered = useMemo(() => {
+    return data.filter(m =>
+      m.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      m.tipo.toLowerCase().includes(search.toLowerCase()) ||
+      m.estado.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [data, search]);
+
+  const validate = () => {
+    const errors = {};
+    if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
+    if (!formData.tipo.trim()) errors.tipo = 'Tipo requerido';
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
     try {
-      setLoading(true);
-      const response = await dataService.getMaquinaria();
-      setMaquinas(response.data || []);
-      setError(null);
-    } catch (err) {
-      setError('No se pudo cargar la maquinaria. ' + (err.response?.data?.msg || ''));
+      setSubmitting(true);
+      if (editingId) {
+        await update(editingId, formData);
+      } else {
+        await create(formData);
+      }
+      setFormData({ nombre: '', tipo: '', estado: 'Operativo', ultimaRevision: '' });
+      setShowModal(false);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
+  };
+
+  const handleEdit = (maquina) => {
+    setFormData(maquina);
+    setEditingId(maquina.id);
+    setShowModal(true);
+  };
+
+  const handleNew = () => {
+    setFormData({ nombre: '', tipo: '', estado: 'Operativo', ultimaRevision: '' });
+    setEditingId(null);
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingId(null);
   };
 
   if (loading) return <LoadingSpinner />;
 
-  const styles = {
-    container: { padding: '32px', color: '#e0e0e0' },
-    header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '30px'
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-      background: '#111411',
-      borderRadius: '12px',
-      overflow: 'hidden'
-    },
-    th: {
-      textAlign: 'left',
-      padding: '16px',
-      borderBottom: '1px solid #1f241f',
-      color: '#666',
-      fontSize: '12px',
-      textTransform: 'uppercase',
-      fontWeight: '600'
-    },
-    td: {
-      padding: '16px',
-      borderBottom: '1px solid #1f241f',
-      fontSize: '14px'
-    },
-    badge: (estado) => ({
-      padding: '6px 12px',
-      borderRadius: '6px',
-      fontSize: '12px',
-      background: estado === 'Operativo' ? '#1a221a' : '#221a1a',
-      color: estado === 'Operativo' ? '#4ade80' : '#f87171',
-      fontWeight: '600',
-      display: 'inline-block'
-    })
-  };
-
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
+    <div style={{ padding: '32px', color: '#e0e0e0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ margin: 0, color: '#fff' }}>Gestión de Maquinaria</h1>
-          <p style={{ color: '#666', fontSize: '14px', margin: '8px 0 0 0' }}>Control de activos de la planta beneficiadora</p>
+          <p style={{ color: '#666', fontSize: '14px', margin: '8px 0 0 0' }}>Control de activos de la planta</p>
         </div>
-        <button style={{
+        <button onClick={handleNew} style={{
           background: '#4ade80',
           color: '#000',
           border: 'none',
@@ -87,13 +94,31 @@ const Maquinaria = () => {
           gap: '8px',
           cursor: 'pointer'
         }}>
-          <Plus size={18} /> Registrar Equipo
+          <Plus size={18} /> Nuevo Equipo
         </button>
       </div>
 
-      {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
+      {error && <ErrorMessage message={error} onDismiss={() => {}} />}
 
-      {maquinas.length === 0 ? (
+      <input
+        type="text"
+        placeholder="Buscar por nombre, tipo o estado..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          marginBottom: '24px',
+          borderRadius: '8px',
+          border: '1px solid #1f241f',
+          background: '#111411',
+          color: '#e0e0e0',
+          outline: 'none',
+          boxSizing: 'border-box'
+        }}
+      />
+
+      {filtered.length === 0 ? (
         <div style={{
           textAlign: 'center',
           padding: '48px 32px',
@@ -102,41 +127,45 @@ const Maquinaria = () => {
           border: '1px solid #1f241f',
           color: '#666'
         }}>
-          <p>No hay maquinaria registrada</p>
+          <p>{search ? 'No hay resultados' : 'No hay maquinaria registrada'}</p>
         </div>
       ) : (
-        <table style={styles.table}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#111411', borderRadius: '12px', overflow: 'hidden' }}>
           <thead>
             <tr>
-              <th style={styles.th}>Equipo</th>
-              <th style={styles.th}>Categoría</th>
-              <th style={styles.th}>Estado</th>
-              <th style={styles.th}>Última Revisión</th>
-              <th style={styles.th}>Acciones</th>
+              <th style={{ textAlign: 'left', padding: '16px', borderBottom: '1px solid #1f241f', color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Equipo</th>
+              <th style={{ textAlign: 'left', padding: '16px', borderBottom: '1px solid #1f241f', color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Tipo</th>
+              <th style={{ textAlign: 'left', padding: '16px', borderBottom: '1px solid #1f241f', color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Estado</th>
+              <th style={{ textAlign: 'left', padding: '16px', borderBottom: '1px solid #1f241f', color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {maquinas.map((m) => (
-              <tr key={m.id} style={{ transition: 'background 0.2s' }}>
-                <td style={styles.td}>
+            {filtered.map((m) => (
+              <tr key={m.id}>
+                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Drill size={16} color="#4ade80" />
-                    {m.nombre}
+                    <Drill size={16} color="#4ade80" /> {m.nombre}
                   </div>
                 </td>
-                <td style={styles.td}>{m.tipo}</td>
-                <td style={styles.td}>
-                  <span style={styles.badge(m.estado)}>{m.estado}</span>
-                </td>
-                <td style={styles.td}>{m.ultimaRevision}</td>
-                <td style={styles.td}>
-                  <button style={{
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#666'
+                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f' }}>{m.tipo}</td>
+                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f' }}>
+                  <span style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    background: m.estado === 'Operativo' ? '#1a221a' : '#221a1a',
+                    color: m.estado === 'Operativo' ? '#4ade80' : '#f87171',
+                    fontWeight: '600'
                   }}>
-                    <Settings2 size={18} />
+                    {m.estado}
+                  </span>
+                </td>
+                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f', display: 'flex', gap: '12px' }}>
+                  <button onClick={() => handleEdit(m)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
+                    <Edit2 size={18} />
+                  </button>
+                  <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
+                    <Trash2 size={18} />
                   </button>
                 </td>
               </tr>
@@ -144,6 +173,33 @@ const Maquinaria = () => {
           </tbody>
         </table>
       )}
+
+      <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Maquinaria' : 'Nuevo Equipo'}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <FormInput label="Nombre" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} error={formErrors.nombre} required disabled={submitting} />
+          <FormInput label="Tipo" value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} error={formErrors.tipo} required disabled={submitting} />
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#e0e0e0', fontSize: '14px' }}>Estado</label>
+            <select value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })} disabled={submitting} style={{
+              width: '100%',
+              padding: '10px 12px',
+              borderRadius: '8px',
+              border: '1px solid #1f241f',
+              background: '#111411',
+              color: '#e0e0e0',
+              outline: 'none'
+            }}>
+              <option>Operativo</option>
+              <option>Mantenimiento</option>
+              <option>Inactivo</option>
+            </select>
+          </div>
+          <FormInput label="Última Revisión" type="date" value={formData.ultimaRevision} onChange={(e) => setFormData({ ...formData, ultimaRevision: e.target.value })} disabled={submitting} />
+          <button type="submit" disabled={submitting} style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+            {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 };

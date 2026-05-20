@@ -1,102 +1,125 @@
-import React, { useState, useEffect } from 'react';
-import { HardHat, MapPin, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { HardHat, MapPin, Plus, Edit2, Trash2 } from 'lucide-react';
 import { dataService } from '../services/api';
+import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
+import FormInput from './common/FormInput';
 
 const Obras = () => {
-  const [obras, setObras] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
+    dataService.getObras,
+    dataService.createObra,
+    dataService.updateObra,
+    dataService.deleteObra
+  );
+
   const [showModal, setShowModal] = useState(false);
+  const [search, setSearch] = useState('');
   const [formData, setFormData] = useState({ nombre: '', avance: 0, presupuesto: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
-  useEffect(() => {
-    fetchObras();
-  }, []);
+  const filtered = useMemo(() => {
+    return data.filter(o =>
+      o.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      o.presupuesto.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [data, search]);
 
-  const fetchObras = async () => {
-    try {
-      setLoading(true);
-      const response = await dataService.getObras();
-      setObras(response.data || []);
-      setError(null);
-    } catch (err) {
-      setError('No se pudieron cargar las obras. ' + (err.response?.data?.msg || ''));
-    } finally {
-      setLoading(false);
-    }
+  const validate = () => {
+    const errors = {};
+    if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
+    if (!formData.presupuesto.trim()) errors.presupuesto = 'Presupuesto requerido';
+    if (formData.avance === '' || formData.avance < 0 || formData.avance > 100) errors.avance = 'Avance debe ser 0-100';
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.nombre || !formData.presupuesto || formData.avance === '') {
-      setError('Todos los campos son requeridos');
-      return;
-    }
+    if (!validate()) return;
 
     try {
       setSubmitting(true);
-      await dataService.createObra({
-        nombre: formData.nombre,
-        avance: parseInt(formData.avance),
-        presupuesto: formData.presupuesto
-      });
+      if (editingId) {
+        await update(editingId, formData);
+      } else {
+        await create(formData);
+      }
       setFormData({ nombre: '', avance: 0, presupuesto: '' });
       setShowModal(false);
-      await fetchObras();
-    } catch (err) {
-      setError('Error al crear obra: ' + (err.response?.data?.msg || ''));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('¿Deseas eliminar esta obra?')) {
-      try {
-        await dataService.deleteObra(id);
-        await fetchObras();
-      } catch (err) {
-        setError('Error al eliminar obra');
-      }
-    }
+  const handleEdit = (obra) => {
+    setFormData(obra);
+    setEditingId(obra.id);
+    setShowModal(true);
+  };
+
+  const handleNew = () => {
+    setFormData({ nombre: '', avance: 0, presupuesto: '' });
+    setEditingId(null);
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingId(null);
   };
 
   if (loading) return <LoadingSpinner />;
 
   return (
     <div style={{ padding: '32px', color: '#e0e0e0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ color: '#fff', margin: 0 }}>Control de Obras</h1>
           <p style={{ color: '#666', fontSize: '14px', margin: '8px 0 0 0' }}>Seguimiento de ejecución y presupuestos</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          style={{
-            background: '#4ade80',
-            color: '#000',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
+        <button onClick={handleNew} style={{
+          background: '#4ade80',
+          color: '#000',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          fontWeight: 'bold',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer'
+        }}>
           <Plus size={18} /> Nueva Obra
         </button>
       </div>
 
-      {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
+      {error && <ErrorMessage message={error} onDismiss={() => {}} />}
+
+      <input
+        type="text"
+        placeholder="Buscar por nombre o presupuesto..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          marginBottom: '24px',
+          borderRadius: '8px',
+          border: '1px solid #1f241f',
+          background: '#111411',
+          color: '#e0e0e0',
+          outline: 'none',
+          boxSizing: 'border-box'
+        }}
+      />
 
       <div style={{ display: 'grid', gap: '16px' }}>
-        {obras.length === 0 ? (
+        {filtered.length === 0 ? (
           <div style={{
             textAlign: 'center',
             padding: '48px 32px',
@@ -105,10 +128,10 @@ const Obras = () => {
             border: '1px solid #1f241f',
             color: '#666'
           }}>
-            <p>No hay obras registradas</p>
+            <p>{search ? 'No hay resultados' : 'No hay obras registradas'}</p>
           </div>
         ) : (
-          obras.map(obra => (
+          filtered.map(obra => (
             <div key={obra.id} style={{
               background: '#111411',
               border: '1px solid #1f241f',
@@ -125,17 +148,14 @@ const Obras = () => {
                     <MapPin size={12} style={{ display: 'inline' }} /> Beni, Bolivia
                   </p>
                 </div>
-                <button
-                  onClick={() => handleDelete(obra.id)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#f87171',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Trash2 size={18} />
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => handleEdit(obra)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
+                    <Edit2 size={18} />
+                  </button>
+                  <button onClick={() => deleteItem(obra.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
@@ -168,96 +188,13 @@ const Obras = () => {
         )}
       </div>
 
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Registrar Nueva Obra">
+      <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Obra' : 'Nueva Obra'}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#e0e0e0', fontSize: '14px' }}>
-              Nombre de Obra
-            </label>
-            <input
-              type="text"
-              value={formData.nombre}
-              onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: '1px solid #1f241f',
-                background: '#111411',
-                color: '#e0e0e0',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-              disabled={submitting}
-              required
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#e0e0e0', fontSize: '14px' }}>
-              Avance (%)
-            </label>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={formData.avance}
-              onChange={(e) => setFormData({ ...formData, avance: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: '1px solid #1f241f',
-                background: '#111411',
-                color: '#e0e0e0',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-              disabled={submitting}
-              required
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#e0e0e0', fontSize: '14px' }}>
-              Presupuesto
-            </label>
-            <input
-              type="text"
-              value={formData.presupuesto}
-              onChange={(e) => setFormData({ ...formData, presupuesto: e.target.value })}
-              placeholder="Ej: 150,000 Bs"
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: '1px solid #1f241f',
-                background: '#111411',
-                color: '#e0e0e0',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-              disabled={submitting}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              background: '#4ade80',
-              color: '#000',
-              border: 'none',
-              padding: '10px',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              opacity: submitting ? 0.6 : 1,
-              marginTop: '8px'
-            }}
-          >
-            {submitting ? 'Registrando...' : 'Registrar Obra'}
+          <FormInput label="Nombre" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} error={formErrors.nombre} required disabled={submitting} />
+          <FormInput label="Avance (%)" type="number" value={formData.avance} onChange={(e) => setFormData({ ...formData, avance: parseInt(e.target.value) })} error={formErrors.avance} required min="0" max="100" disabled={submitting} />
+          <FormInput label="Presupuesto" value={formData.presupuesto} onChange={(e) => setFormData({ ...formData, presupuesto: e.target.value })} error={formErrors.presupuesto} required placeholder="Ej: 150,000 Bs" disabled={submitting} />
+          <button type="submit" disabled={submitting} style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+            {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
           </button>
         </form>
       </Modal>

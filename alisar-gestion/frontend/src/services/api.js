@@ -60,7 +60,13 @@ export const dataService = {
   getMaquinaria: () => api.get('/maquinaria'),
   createMaquinaria: (data) => api.post('/maquinaria', data),
   updateMaquinaria: (id, data) => api.put(`/maquinaria/${id}`, data),
-  deleteMaquinaria: (id) => api.delete(`/maquinaria/${id}`)
+  deleteMaquinaria: (id) => api.delete(`/maquinaria/${id}`),
+
+  // Madera
+  getMadera: () => api.get('/madera'),
+  createMadera: (data) => api.post('/madera', data),
+  updateMadera: (id, data) => api.put(`/madera/${id}`, data),
+  deleteMadera: (id) => api.delete(`/madera/${id}`)
 };
 
 export default api;

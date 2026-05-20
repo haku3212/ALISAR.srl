@@ -1,60 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, Phone } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Users, UserPlus, Phone, Edit2, Trash2, X } from 'lucide-react';
 import { dataService } from '../services/api';
+import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
+import Modal from './common/Modal';
+import FormInput from './common/FormInput';
 
 const Personal = () => {
-  const [personal, setPersonal] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem, refresh } = useCRUD(
+    dataService.getPersonal,
+    dataService.createPersonal,
+    dataService.updatePersonal,
+    dataService.deletePersonal
+  );
 
-  useEffect(() => {
-    fetchPersonal();
-  }, []);
+  const [showModal, setShowModal] = useState(false);
+  const [search, setSearch] = useState('');
+  const [formData, setFormData] = useState({ nombre: '', cargo: '', celular: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
-  const fetchPersonal = async () => {
+  const filtered = useMemo(() => {
+    return data.filter(p =>
+      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      p.cargo.toLowerCase().includes(search.toLowerCase()) ||
+      p.celular.includes(search)
+    );
+  }, [data, search]);
+
+  const validate = () => {
+    const errors = {};
+    if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
+    if (!formData.cargo.trim()) errors.cargo = 'Cargo requerido';
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
     try {
-      setLoading(true);
-      const response = await dataService.getPersonal();
-      setPersonal(response.data || []);
-      setError(null);
-    } catch (err) {
-      setError('No se pudo cargar el personal. ' + (err.response?.data?.msg || ''));
+      setSubmitting(true);
+      if (editingId) {
+        await update(editingId, formData);
+      } else {
+        await create(formData);
+      }
+      setFormData({ nombre: '', cargo: '', celular: '' });
+      setShowModal(false);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
+  };
+
+  const handleEdit = (person) => {
+    setFormData(person);
+    setEditingId(person.id);
+    setShowModal(true);
+  };
+
+  const handleNew = () => {
+    setFormData({ nombre: '', cargo: '', celular: '' });
+    setEditingId(null);
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setFormData({ nombre: '', cargo: '', celular: '' });
   };
 
   if (loading) return <LoadingSpinner />;
 
-  const styles = {
-    card: {
-      background: '#111411',
-      border: '1px solid #1f241f',
-      borderRadius: '12px',
-      padding: '20px',
-      marginBottom: '12px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      transition: 'all 0.2s'
-    },
-    status: (s) => ({
-      color: s === 'Activo' ? '#4ade80' : '#f87171',
-      fontSize: '12px',
-      fontWeight: 'bold'
-    })
-  };
-
   return (
     <div style={{ padding: '32px', color: '#e0e0e0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ color: '#fff', margin: 0 }}>Recursos Humanos</h1>
           <p style={{ color: '#666', fontSize: '14px', margin: '8px 0 0 0' }}>Gestión de personal operativo</p>
         </div>
-        <button style={{
+        <button onClick={handleNew} style={{
           background: '#4ade80',
           color: '#000',
           border: 'none',
@@ -66,14 +95,32 @@ const Personal = () => {
           gap: '8px',
           cursor: 'pointer'
         }}>
-          <UserPlus size={18} /> Nuevo Empleado
+          <UserPlus size={18} /> Nuevo
         </button>
       </div>
 
-      {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
+      {error && <ErrorMessage message={error} onDismiss={() => {}} />}
+
+      <input
+        type="text"
+        placeholder="Buscar por nombre, cargo o celular..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          marginBottom: '24px',
+          borderRadius: '8px',
+          border: '1px solid #1f241f',
+          background: '#111411',
+          color: '#e0e0e0',
+          outline: 'none',
+          boxSizing: 'border-box'
+        }}
+      />
 
       <div>
-        {personal.length === 0 ? (
+        {filtered.length === 0 ? (
           <div style={{
             textAlign: 'center',
             padding: '48px 32px',
@@ -82,37 +129,101 @@ const Personal = () => {
             border: '1px solid #1f241f',
             color: '#666'
           }}>
-            <p>No hay personal registrado</p>
+            <p>{search ? 'No hay resultados' : 'No hay personal registrado'}</p>
           </div>
         ) : (
-          personal.map(e => (
-            <div key={e.id} style={styles.card}>
+          filtered.map(p => (
+            <div key={p.id} style={{
+              background: '#111411',
+              border: '1px solid #1f241f',
+              borderRadius: '12px',
+              padding: '20px',
+              marginBottom: '12px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }}>
-                <div style={{
-                  background: '#1a221a',
-                  padding: '10px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
+                <div style={{ background: '#1a221a', padding: '10px', borderRadius: '50%' }}>
                   <Users size={20} color="#4ade80" />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, color: '#e0e0e0' }}>{e.nombre}</h3>
-                  <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '13px' }}>{e.cargo}</p>
+                  <h3 style={{ margin: 0, color: '#e0e0e0' }}>{p.nombre}</h3>
+                  <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '13px' }}>{p.cargo}</p>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <p style={{ margin: 0, fontSize: '14px', color: '#999', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
-                  <Phone size={14} /> {e.celular}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'right' }}>
+                <p style={{ margin: 0, fontSize: '14px', color: '#999', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Phone size={14} /> {p.celular}
                 </p>
-                <span style={styles.status(e.estado)}>{e.estado || 'Activo'}</span>
+                <button onClick={() => handleEdit(p)} style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#60a5fa',
+                  cursor: 'pointer'
+                }}>
+                  <Edit2 size={18} />
+                </button>
+                <button onClick={() => deleteItem(p.id)} style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#f87171',
+                  cursor: 'pointer'
+                }}>
+                  <Trash2 size={18} />
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Personal' : 'Nuevo Personal'}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <FormInput
+            label="Nombre"
+            name="nombre"
+            value={formData.nombre}
+            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+            error={formErrors.nombre}
+            required
+            disabled={submitting}
+          />
+          <FormInput
+            label="Cargo"
+            name="cargo"
+            value={formData.cargo}
+            onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
+            error={formErrors.cargo}
+            required
+            disabled={submitting}
+          />
+          <FormInput
+            label="Celular"
+            name="celular"
+            value={formData.celular}
+            onChange={(e) => setFormData({ ...formData, celular: e.target.value })}
+            disabled={submitting}
+          />
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{
+              background: '#4ade80',
+              color: '#000',
+              border: 'none',
+              padding: '10px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.6 : 1,
+              marginTop: '8px'
+            }}
+          >
+            {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 };

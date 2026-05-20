@@ -51,6 +51,13 @@ let db;
             celular TEXT,
             estado TEXT DEFAULT 'Activo'
         );
+        CREATE TABLE IF NOT EXISTS madera (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            especie TEXT NOT NULL,
+            piezas INTEGER,
+            volumen TEXT,
+            campamento TEXT
+        );
     `);
 
     // Inserción de datos semilla para Personal si la tabla está vacía
@@ -67,6 +74,23 @@ let db;
         await db.run("INSERT INTO obras (nombre, avance, presupuesto) VALUES ('Mantenimiento Tramo Vial Riberalta', 45, '150,000 Bs')");
         await db.run("INSERT INTO obras (nombre, avance, presupuesto) VALUES ('Apertura de Sendas Campamento 1', 12, '85,000 Bs')");
         console.log("🌱 Datos de obras inicializados.");
+    }
+
+    // Inserción de datos semilla para Maquinaria
+    const checkMaquinaria = await db.get('SELECT COUNT(*) as total FROM maquinaria');
+    if (checkMaquinaria.total === 0) {
+        await db.run("INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Motoniveladora CAT 140H', 'Motoniveladora', 'Operativo', '2025-10-15')");
+        await db.run("INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Excavadora Komatsu PC200', 'Excavadora', 'Mantenimiento', '2025-09-20')");
+        await db.run("INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Volquete Scania 6x4', 'Volquete', 'Operativo', '2025-11-01')");
+        console.log("🌱 Datos de maquinaria inicializados.");
+    }
+
+    // Inserción de datos semilla para Madera
+    const checkMadera = await db.get('SELECT COUNT(*) as total FROM madera');
+    if (checkMadera.total === 0) {
+        await db.run("INSERT INTO madera (especie, piezas, volumen, campamento) VALUES ('Almendrillo', 45, '12.5 m3', 'Sena')");
+        await db.run("INSERT INTO madera (especie, piezas, volumen, campamento) VALUES ('Tajibo', 30, '8.2 m3', 'Bella Unión')");
+        console.log("🌱 Datos de madera inicializados.");
     }
 
     console.log("✅ Base de Datos SQLite sincronizada correctamente.");
@@ -170,6 +194,135 @@ app.delete('/api/maquinaria/:id', verifyToken, async (req, res) => {
     try {
         await db.run('DELETE FROM maquinaria WHERE id = ?', [req.params.id]);
         res.json({ status: "Maquinaria eliminada con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+// PUT endpoints para actualizar registros
+app.put('/api/personal/:id', verifyToken, async (req, res) => {
+    const { nombre, cargo, celular } = req.body;
+
+    if (!nombre || !cargo) {
+        return res.status(400).json({ msg: 'Campos requeridos: nombre, cargo' });
+    }
+
+    try {
+        await db.run('UPDATE personal SET nombre = ?, cargo = ?, celular = ? WHERE id = ?',
+            [nombre, cargo, celular, req.params.id]);
+        res.json({ status: "Personal actualizado con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.put('/api/obras/:id', verifyToken, async (req, res) => {
+    const { nombre, avance, presupuesto } = req.body;
+
+    if (!nombre || avance === undefined || !presupuesto) {
+        return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
+    }
+
+    if (isNaN(avance) || avance < 0 || avance > 100) {
+        return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
+    }
+
+    try {
+        await db.run('UPDATE obras SET nombre = ?, avance = ?, presupuesto = ? WHERE id = ?',
+            [nombre, avance, presupuesto, req.params.id]);
+        res.json({ status: "Obra actualizada con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.put('/api/maquinaria/:id', verifyToken, async (req, res) => {
+    const { nombre, tipo, estado, ultimaRevision } = req.body;
+
+    if (!nombre || !tipo) {
+        return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
+    }
+
+    try {
+        await db.run('UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ? WHERE id = ?',
+            [nombre, tipo, estado, ultimaRevision, req.params.id]);
+        res.json({ status: "Maquinaria actualizada con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+// POST y endpoints para Maquinaria
+app.post('/api/maquinaria', verifyToken, async (req, res) => {
+    const { nombre, tipo, estado, ultimaRevision } = req.body;
+
+    if (!nombre || !tipo) {
+        return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
+    }
+
+    try {
+        await db.run('INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES (?, ?, ?, ?)',
+            [nombre, tipo, estado, ultimaRevision]);
+        res.json({ status: "Maquinaria registrada con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+// --- Módulo: Madera ---
+app.get('/api/madera', verifyToken, async (req, res) => {
+    try {
+        const rows = await db.all('SELECT * FROM madera');
+        res.json(rows);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.post('/api/madera', verifyToken, async (req, res) => {
+    const { especie, piezas, volumen, campamento } = req.body;
+
+    if (!especie || !piezas || !volumen || !campamento) {
+        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
+    }
+
+    try {
+        await db.run('INSERT INTO madera (especie, piezas, volumen, campamento) VALUES (?, ?, ?, ?)',
+            [especie, piezas, volumen, campamento]);
+        res.json({ status: "Rodeo registrado con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.put('/api/madera/:id', verifyToken, async (req, res) => {
+    const { especie, piezas, volumen, campamento } = req.body;
+
+    if (!especie || !piezas || !volumen || !campamento) {
+        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
+    }
+
+    try {
+        await db.run('UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ? WHERE id = ?',
+            [especie, piezas, volumen, campamento, req.params.id]);
+        res.json({ status: "Rodeo actualizado con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.delete('/api/madera/:id', verifyToken, async (req, res) => {
+    try {
+        await db.run('DELETE FROM madera WHERE id = ?', [req.params.id]);
+        res.json({ status: "Rodeo eliminado con éxito" });
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: 'Error al procesar solicitud' });
