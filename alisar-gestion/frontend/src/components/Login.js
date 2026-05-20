@@ -1,41 +1,141 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import LoadingSpinner from './common/LoadingSpinner';
+import ErrorMessage from './common/ErrorMessage';
 
 const Login = () => {
   const [formData, setFormData] = useState({ usuario: '', password: '' });
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
+  const { login, loading, error: authError } = useAuth();
   const navigate = useNavigate();
 
-  const onSubmit = async e => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    try {
-      const res = await axios.post('http://localhost:4000/api/auth/login', formData);
-      localStorage.setItem('token', res.data.token);
+    setLocalError('');
+
+    if (!formData.usuario || !formData.password) {
+      setLocalError('Usuario y contraseña son requeridos');
+      return;
+    }
+
+    const success = await login(formData.usuario, formData.password);
+    if (success) {
       navigate('/dashboard');
-    } catch (err) { setError('Acceso denegado. Verifique sus credenciales.'); }
+    }
   };
 
+  const displayError = localError || authError;
+
   const styles = {
-    container: { height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1a2a3a' },
-    card: { background: '#ffffff', padding: '40px', borderRadius: '12px', width: '350px', boxShadow: '0 15px 35px rgba(0,0,0,0.2)' },
-    input: { width: '100%', padding: '12px', margin: '10px 0', borderRadius: '6px', border: '1px solid #ddd', outline: 'none' },
-    btn: { width: '100%', padding: '12px', background: '#1a2a3a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', marginTop: '10px' }
+    container: {
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #0a0c0a 0%, #111411 100%)'
+    },
+    card: {
+      background: '#1a1d1a',
+      padding: '40px',
+      borderRadius: '16px',
+      width: '100%',
+      maxWidth: '380px',
+      boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+      border: '1px solid #1f241f'
+    },
+    header: {
+      textAlign: 'center',
+      marginBottom: '32px'
+    },
+    title: {
+      fontSize: '28px',
+      fontWeight: 'bold',
+      color: '#4ade80',
+      margin: 0,
+      marginBottom: '8px'
+    },
+    subtitle: {
+      color: '#666',
+      fontSize: '13px',
+      margin: 0
+    },
+    form: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '16px'
+    },
+    input: {
+      width: '100%',
+      padding: '12px 16px',
+      borderRadius: '8px',
+      border: '1px solid #1f241f',
+      background: '#111411',
+      color: '#e0e0e0',
+      outline: 'none',
+      fontSize: '14px',
+      boxSizing: 'border-box'
+    },
+    button: {
+      width: '100%',
+      padding: '12px',
+      background: '#4ade80',
+      color: '#000',
+      border: 'none',
+      borderRadius: '8px',
+      cursor: loading ? 'not-allowed' : 'pointer',
+      fontWeight: 'bold',
+      marginTop: '8px',
+      opacity: loading ? 0.6 : 1,
+      transition: 'opacity 0.2s'
+    }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={{textAlign: 'center', color: '#1a2a3a'}}>ALISAR S.R.L.</h2>
-        <p style={{textAlign: 'center', color: '#7f8c8d', fontSize: '12px'}}>SISTEMA DE GESTIÓN INTEGRAL</p>
-        {error && <p style={{color: 'red', textAlign: 'center', fontSize: '12px'}}>{error}</p>}
-        <form onSubmit={onSubmit}>
-          <input style={styles.input} type="text" placeholder="Usuario" onChange={e => setFormData({...formData, usuario: e.target.value})} required />
-          <input style={styles.input} type="password" placeholder="Contraseña" onChange={e => setFormData({...formData, password: e.target.value})} required />
-          <button type="submit" style={styles.btn}>ENTRAR</button>
+        <div style={styles.header}>
+          <h1 style={styles.title}>ALISAR S.R.L.</h1>
+          <p style={styles.subtitle}>SISTEMA DE GESTIÓN INTEGRAL</p>
+        </div>
+
+        {displayError && (
+          <ErrorMessage
+            message={displayError}
+            onDismiss={() => setLocalError('')}
+          />
+        )}
+
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <input
+            style={styles.input}
+            type="text"
+            placeholder="Usuario"
+            value={formData.usuario}
+            onChange={e => setFormData({ ...formData, usuario: e.target.value })}
+            disabled={loading}
+            required
+          />
+          <input
+            style={styles.input}
+            type="password"
+            placeholder="Contraseña"
+            value={formData.password}
+            onChange={e => setFormData({ ...formData, password: e.target.value })}
+            disabled={loading}
+            required
+          />
+          <button type="submit" style={styles.button} disabled={loading}>
+            {loading ? 'INGRESANDO...' : 'ENTRAR'}
+          </button>
         </form>
+
+        <p style={{ textAlign: 'center', color: '#666', fontSize: '12px', marginTop: '24px' }}>
+          Demo: usuario: <strong>admin</strong> | contraseña: <strong>riberalta</strong>
+        </p>
       </div>
     </div>
   );
 };
+
 export default Login;

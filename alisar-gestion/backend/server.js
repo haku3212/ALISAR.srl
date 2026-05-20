@@ -130,6 +130,52 @@ app.get('/api/personal', verifyToken, async (req, res) => {
     }
 });
 
+app.post('/api/personal', verifyToken, async (req, res) => {
+    const { nombre, cargo, celular } = req.body;
+
+    if (!nombre || !cargo) {
+        return res.status(400).json({ msg: 'Campos requeridos: nombre, cargo' });
+    }
+
+    try {
+        await db.run('INSERT INTO personal (nombre, cargo, celular) VALUES (?, ?, ?)', [nombre, cargo, celular]);
+        res.json({ status: "Personal registrado con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.delete('/api/obras/:id', verifyToken, async (req, res) => {
+    try {
+        await db.run('DELETE FROM obras WHERE id = ?', [req.params.id]);
+        res.json({ status: "Obra eliminada con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.delete('/api/personal/:id', verifyToken, async (req, res) => {
+    try {
+        await db.run('DELETE FROM personal WHERE id = ?', [req.params.id]);
+        res.json({ status: "Personal eliminado con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.delete('/api/maquinaria/:id', verifyToken, async (req, res) => {
+    try {
+        await db.run('DELETE FROM maquinaria WHERE id = ?', [req.params.id]);
+        res.json({ status: "Maquinaria eliminada con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
 // 3. Lanzamiento del Servidor
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 API activa en http://localhost:${PORT}`));
