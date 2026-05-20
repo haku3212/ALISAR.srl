@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3');
@@ -6,6 +7,9 @@ const { open } = require('sqlite');
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const createAuthRoutes = require('./routes/auth');
+const { verifyToken } = require('./middleware/auth');
 
 let db;
 
@@ -17,28 +21,37 @@ let db;
     });
 
     // Asegurar que existan todas las tablas core
-    await db.exec(
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            usuario TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            rol TEXT DEFAULT 'residente',
+            estado TEXT DEFAULT 'activo',
+            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
         CREATE TABLE IF NOT EXISTS maquinaria (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            nombre TEXT NOT NULL, 
-            tipo TEXT, 
-            estado TEXT, 
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            tipo TEXT,
+            estado TEXT,
             ultimaRevision TEXT
         );
         CREATE TABLE IF NOT EXISTS obras (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            nombre TEXT NOT NULL, 
-            avance INTEGER DEFAULT 0, 
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            avance INTEGER DEFAULT 0,
             presupuesto TEXT
         );
         CREATE TABLE IF NOT EXISTS personal (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            nombre TEXT NOT NULL, 
-            cargo TEXT, 
-            celular TEXT, 
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            cargo TEXT,
+            celular TEXT,
             estado TEXT DEFAULT 'Activo'
         );
-    );
+    `);
 
     // Inserción de datos semilla para Personal si la tabla está vacía
     const checkPersonal = await db.get('SELECT COUNT(*) as total FROM personal');
@@ -57,42 +70,66 @@ let db;
     }
 
     console.log("✅ Base de Datos SQLite sincronizada correctamente.");
+
+    // Configurar rutas autenticadas después de inicializar la BD
+    app.use('/api/auth', createAuthRoutes(db));
 })();
 
 // 2. ENDPOINTS DE LA API REST
 
 // --- Módulo: Maquinaria ---
-app.get('/api/maquinaria', async (req, res) => {
+app.get('/api/maquinaria', verifyToken, async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM maquinaria');
         res.json(rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
 });
 
 // --- Módulo: Obras ---
-app.get('/api/obras', async (req, res) => {
+app.get('/api/obras', verifyToken, async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM obras');
         res.json(rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
 });
 
-app.post('/api/obras', async (req, res) => {
+app.post('/api/obras', verifyToken, async (req, res) => {
     const { nombre, avance, presupuesto } = req.body;
+
+    if (!nombre || avance === undefined || !presupuesto) {
+        return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
+    }
+
+    if (isNaN(avance) || avance < 0 || avance > 100) {
+        return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
+    }
+
     try {
         await db.run('INSERT INTO obras (nombre, avance, presupuesto) VALUES (?, ?, ?)', [nombre, avance, presupuesto]);
         res.json({ status: "Obra registrada con éxito" });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
 });
 
 // --- Módulo: Personal ---
-app.get('/api/personal', async (req, res) => {
+app.get('/api/personal', verifyToken, async (req, res) => {
     try {
         const rows = await db.all('SELECT * FROM personal');
         res.json(rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
 });
 
-// Lanzamiento del Servidor
-const PORT = 4000;
-app.listen(PORT, () => console.log(🚀 API activa y escuchando en http://localhost:));
+// 3. Lanzamiento del Servidor
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`🚀 API activa en http://localhost:${PORT}`));

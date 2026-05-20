@@ -1,34 +1,34 @@
-﻿const mongoose = require('mongoose');
+﻿require('dotenv').config();
+const sqlite3 = require('sqlite3');
+const { open } = require('sqlite');
 const bcrypt = require('bcryptjs');
-const dotenv = require('dotenv');
-const User = require('./models/User');
-
-dotenv.config();
 
 const reset = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    await User.deleteMany({}); // Borramos todo para no tener dudas
-
-    const salt = await bcrypt.genSalt(10);
-    // AQUÍ DEFINIMOS LA CLAVE: Usaremos 'riberalta' para que sea fácil
-    const hashedPassword = await bcrypt.hash('riberalta', salt);
-
-    const nuevoAdmin = new User({
-      nombre: 'Armando',
-      usuario: 'admin',
-      password: hashedPassword,
-      rol: 'admin'
+    const db = await open({
+      filename: './database.db',
+      driver: sqlite3.Database
     });
 
-    await nuevoAdmin.save();
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash('riberalta', salt);
+
+    await db.run('DELETE FROM users');
+
+    await db.run(
+      'INSERT INTO users (nombre, usuario, password, rol, estado) VALUES (?, ?, ?, ?, ?)',
+      ['Armando', 'admin', hashedPassword, 'admin', 'activo']
+    );
+
     console.log('✅ USUARIO RESETEADO CON ÉXITO');
     console.log('Usuario: admin');
     console.log('Nueva Clave: riberalta');
+    await db.close();
     process.exit();
   } catch (err) {
-    console.error(err);
+    console.error('Error:', err);
     process.exit(1);
   }
 };
+
 reset();
