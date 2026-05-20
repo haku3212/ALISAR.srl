@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ALISAR · Sistema Integral de Gestión</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+  <style>
+    :root{
+      --bg:#0d1410; --bg-elev:#131c17; --bg-card:#182219; --bg-card-2:#1d281f;
+      --border:#28342a; --border-soft:#1f2922;
+      --text:#e7ebe5; --text-dim:#9aa39a; --text-mute:#6b7468;
+      --primary:#4ade80; --primary-dark:#16a34a; --primary-glow:rgba(74,222,128,.18);
+      --accent:#fbbf24; --accent-dark:#d97706;
+      --success:#4ade80; --warn:#fbbf24; --danger:#f87171; --info:#60a5fa;
+      --radius:14px; --radius-sm:10px;
+      --shadow-hard:0 10px 40px rgba(0,0,0,.45);
+      --font-display:'Bricolage Grotesque', system-ui, sans-serif;
+      --font-body:'Manrope', system-ui, sans-serif;
+      --font-mono:'JetBrains Mono', ui-monospace, monospace;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;height:100%}
+    body{font-family:var(--font-body); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overflow:hidden}
+    button{font-family:inherit; cursor:pointer}
+    input,select,textarea{font-family:inherit}
+
+    .bg-noise{position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:
+        radial-gradient(1200px 600px at 80% -10%, rgba(74,222,128,.05), transparent 60%),
+        radial-gradient(900px 500px at -10% 100%, rgba(251,191,36,.04), transparent 60%);}
+
+    .app{position:relative; z-index:1; display:grid; grid-template-columns:260px 1fr; height:100vh}
+
+    /* Sidebar */
+    .sidebar{background:linear-gradient(180deg,#0f1813,#0a110d); border-right:1px solid var(--border); padding:22px 14px; display:flex; flex-direction:column; overflow-y:auto}
+    .brand{display:flex; align-items:center; gap:10px; padding:4px 8px 18px; border-bottom:1px solid var(--border-soft); margin-bottom:18px}
+    .brand-logo{width:38px; height:38px; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); border-radius:10px; display:grid; place-items:center; box-shadow:0 0 0 1px rgba(74,222,128,.3), 0 6px 20px rgba(74,222,128,.25)}
+    .brand-logo i{color:#0a110d; font-size:22px}
+    .brand-text{display:flex; flex-direction:column; line-height:1}
+    .brand-name{font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:-.02em}
+    .brand-sub{font-size:10px; color:var(--text-mute); text-transform:uppercase; letter-spacing:.14em; margin-top:4px}
+    .nav-label{font-size:10px; color:var(--text-mute); text-transform:uppercase; letter-spacing:.15em; padding:14px 10px 6px}
+    .nav-item{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:var(--radius-sm); color:var(--text-dim); cursor:pointer; font-weight:500; font-size:14px; transition:all .15s ease; border:1px solid transparent; margin-bottom:2px}
+    .nav-item i{font-size:18px}
+    .nav-item:hover{background:rgba(255,255,255,.03); color:var(--text)}
+    .nav-item.active{background:linear-gradient(135deg, rgba(74,222,128,.12), rgba(74,222,128,.04)); color:var(--primary); border-color:rgba(74,222,128,.18); box-shadow:inset 2px 0 0 var(--primary)}
+    .nav-badge{margin-left:auto; font-family:var(--font-mono); font-size:10px; font-weight:600; background:var(--bg-card-2); color:var(--text-dim); padding:2px 7px; border-radius:6px}
+    .nav-item.active .nav-badge{background:rgba(74,222,128,.18); color:var(--primary)}
+    .nav-badge.alert{background:rgba(248,113,113,.15); color:var(--danger)}
+    .sidebar-foot{margin-top:auto; padding:14px 10px; border-top:1px solid var(--border-soft); display:flex; align-items:center; gap:10px}
+    .avatar{width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); display:grid; place-items:center; font-family:var(--font-display); font-weight:700; color:#1a1208}
+    .user-info{display:flex; flex-direction:column; line-height:1.2}
+    .user-name{font-size:13px; font-weight:600}
+    .user-role{font-size:11px; color:var(--text-mute)}
+
+    .main{overflow-y:auto; padding:26px 32px 60px}
+    .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:28px}
+    .page-title{font-family:var(--font-display); font-size:32px; font-weight:600; letter-spacing:-.02em; line-height:1.1}
+    .page-sub{color:var(--text-dim); font-size:13px; margin-top:4px}
+    .topbar-actions{display:flex; align-items:center; gap:10px}
+    .search-box{display:flex; align-items:center; gap:8px; background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:8px 12px; width:280px}
+    .search-box i{color:var(--text-mute); font-size:16px}
+    .search-box input{background:transparent; border:none; outline:none; color:var(--text); width:100%; font-size:13px}
+
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:9px 14px; font-size:13px; font-weight:600; border-radius:10px; border:1px solid var(--border); background:var(--bg-card); color:var(--text); transition:all .15s ease}
+    .btn:hover{background:var(--bg-card-2)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#0a110d; border-color:transparent; box-shadow:0 4px 16px rgba(74,222,128,.25)}
+    .btn-primary:hover{filter:brightness(1.08)}
+    .btn-ghost{background:transparent}
+    .btn-danger{color:var(--danger); border-color:rgba(248,113,113,.25)}
+    .btn-danger:hover{background:rgba(248,113,113,.08)}
+    .btn-sm{padding:5px 10px; font-size:12px}
+    .btn-icon{padding:8px}
+
+    .kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px}
+    .kpi{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; position:relative; overflow:hidden; transition:transform .2s ease, border-color .2s ease}
+    .kpi:hover{transform:translateY(-2px); border-color:rgba(74,222,128,.3)}
+    .kpi-icon{width:38px; height:38px; border-radius:10px; display:grid; place-items:center; margin-bottom:14px}
+    .kpi-icon i{font-size:20px}
+    .kpi-label{font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--text-mute); font-weight:600}
+    .kpi-value{font-family:var(--font-display); font-size:30px; font-weight:700; letter-spacing:-.02em; line-height:1; margin-top:6px}
+    .kpi-value .unit{font-size:14px; color:var(--text-dim); font-weight:500}
+    .kpi-trend{display:flex; align-items:center; gap:4px; font-size:12px; margin-top:10px; font-family:var(--font-mono)}
+    .trend-up{color:var(--success)} .trend-dn{color:var(--danger)} .trend-flat{color:var(--text-mute)}
+    .kpi.green .kpi-icon{background:rgba(74,222,128,.12); color:var(--primary)}
+    .kpi.amber .kpi-icon{background:rgba(251,191,36,.12); color:var(--accent)}
+    .kpi.blue  .kpi-icon{background:rgba(96,165,250,.12); color:var(--info)}
+    .kpi.red   .kpi-icon{background:rgba(248,113,113,.12); color:var(--danger)}
+
+    .grid-2{display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:22px}
+    .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+    .card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:20px}
+    .card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+    .card-title{font-family:var(--font-display); font-size:17px; font-weight:600; letter-spacing:-.01em}
+    .card-sub{font-size:12px; color:var(--text-mute)}
+
+    .tbl{width:100%; border-collapse:collapse; font-size:13px}
+    .tbl thead th{text-align:left; padding:10px 12px; color:var(--text-mute); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; border-bottom:1px solid var(--border-soft); background:rgba(255,255,255,.015)}
+    .tbl tbody td{padding:12px; border-bottom:1px solid var(--border-soft); vertical-align:middle}
+    .tbl tbody tr:hover{background:rgba(255,255,255,.02)}
+    .tbl .mono{font-family:var(--font-mono); font-size:12px}
+    .tbl .num{font-family:var(--font-mono); text-align:right}
+
+    .pill{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:600; border:1px solid; white-space:nowrap}
+    .pill .dot{width:6px; height:6px; border-radius:50%; background:currentColor}
+    .pill-green{color:var(--success); background:rgba(74,222,128,.08); border-color:rgba(74,222,128,.25)}
+    .pill-amber{color:var(--accent); background:rgba(251,191,36,.08); border-color:rgba(251,191,36,.25)}
+    .pill-red  {color:var(--danger); background:rgba(248,113,113,.08); border-color:rgba(248,113,113,.25)}
+    .pill-blue {color:var(--info);   background:rgba(96,165,250,.08); border-color:rgba(96,165,250,.25)}
+    .pill-gray {color:var(--text-dim); background:rgba(255,255,255,.04); border-color:var(--border)}
+
+    .progress{height:6px; background:var(--bg-card-2); border-radius:999px; overflow:hidden; position:relative}
+    .progress-bar{height:100%; background:linear-gradient(90deg,var(--primary),#86efac); border-radius:999px; transition:width .4s ease}
+    .progress-bar.amber{background:linear-gradient(90deg,var(--accent),#fcd34d)}
+    .progress-bar.red{background:linear-gradient(90deg,var(--danger),#fca5a5)}
+
+    .form-row{display:grid; gap:12px; margin-bottom:14px}
+    .form-row.cols-2{grid-template-columns:1fr 1fr}
+    .form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+    .form-row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+    .field{display:flex; flex-direction:column; gap:6px}
+    .field label{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-mute); font-weight:600}
+    .field input,.field select,.field textarea{background:var(--bg-card-2); border:1px solid var(--border); color:var(--text); padding:9px 12px; border-radius:9px; font-size:13px; outline:none; transition:border-color .15s ease}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow)}
+
+    .modal-bg{position:fixed; inset:0; z-index:50; background:rgba(5,10,7,.7); backdrop-filter:blur(6px); display:grid; place-items:center; padding:24px; animation:fadeIn .15s ease}
+    .modal{background:var(--bg-elev); border:1px solid var(--border); border-radius:16px; padding:24px; width:100%; max-width:680px; box-shadow:var(--shadow-hard); max-height:90vh; overflow-y:auto; animation:slideUp .2s ease}
+    .modal.lg{max-width:880px}
+    .modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--border-soft)}
+    .modal-title{font-family:var(--font-display); font-size:19px; font-weight:600; letter-spacing:-.01em}
+    .modal-foot{display:flex; gap:10px; justify-content:flex-end; padding-top:16px; margin-top:16px; border-top:1px solid var(--border-soft)}
+    .close-btn{background:transparent; border:1px solid var(--border); color:var(--text-dim); width:32px; height:32px; border-radius:8px; display:grid; place-items:center}
+    .close-btn:hover{color:var(--text)}
+
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideUp{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:translateY(0)}}
+    .page-enter{animation:fadeIn .25s ease}
+
+    .chart-area{width:100%; height:220px}
+
+    ::-webkit-scrollbar{width:8px; height:8px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px}
+    ::-webkit-scrollbar-thumb:hover{background:#3a4a3d}
+
+    .hstack{display:flex; align-items:center; gap:10px}
+    .vstack{display:flex; flex-direction:column; gap:10px}
+    .spacer{flex:1}
+    .text-mute{color:var(--text-mute)}
+    .text-dim{color:var(--text-dim)}
+    .text-mono{font-family:var(--font-mono)}
+    .text-sm{font-size:12px}
+    .text-xs{font-size:11px}
+    .strong{font-weight:600}
+
+    .ini{width:32px; height:32px; border-radius:8px; display:grid; place-items:center; font-size:11px; font-weight:700; background:var(--bg-card-2); font-family:var(--font-display)}
+    .ini.g{background:rgba(74,222,128,.15); color:var(--primary)}
+    .ini.a{background:rgba(251,191,36,.15); color:var(--accent)}
+    .ini.b{background:rgba(96,165,250,.15); color:var(--info)}
+    .ini.r{background:rgba(248,113,113,.15); color:var(--danger)}
+    .ini.p{background:rgba(167,139,250,.15); color:#a78bfa}
+
+    .callout{display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-radius:12px; border:1px solid; margin-bottom:16px}
+    .callout i{font-size:18px; margin-top:1px}
+    .callout.amber{background:rgba(251,191,36,.06); border-color:rgba(251,191,36,.2); color:var(--accent)}
+    .callout.red{background:rgba(248,113,113,.06); border-color:rgba(248,113,113,.2); color:var(--danger)}
+    .callout.green{background:rgba(74,222,128,.06); border-color:rgba(74,222,128,.2); color:var(--success)}
+    .callout-body{color:var(--text); flex:1}
+    .callout-body strong{display:block; margin-bottom:2px}
+    .callout-body p{margin:0; font-size:12px; color:var(--text-dim)}
+
+    .stage{display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:600; font-family:var(--font-mono); background:var(--bg-card-2); border:1px solid var(--border); white-space:nowrap}
+
+    .empty{padding:50px 24px; text-align:center; color:var(--text-mute)}
+    .empty i{font-size:36px; display:block; margin-bottom:8px; opacity:.6}
+
+    .ring-card{position:relative; overflow:hidden}
+    .ring-card::before{content:''; position:absolute; width:240px; height:240px; border-radius:50%; right:-100px; top:-100px; background:radial-gradient(circle, rgba(74,222,128,.1), transparent 70%); pointer-events:none}
+
+    .toolbar{display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap}
+    .toolbar input, .toolbar select{background:var(--bg-card); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:8px; font-size:13px; outline:none}
+    .toolbar input:focus, .toolbar select:focus{border-color:var(--primary)}
+
+    .tab-bar{display:flex; gap:4px; margin-bottom:18px; border-bottom:1px solid var(--border-soft)}
+    .tab{padding:10px 14px; font-size:13px; color:var(--text-dim); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; font-weight:500}
+    .tab:hover{color:var(--text)}
+    .tab.active{color:var(--primary); border-color:var(--primary)}
+
+    .stat-mini{display:flex; flex-direction:column; gap:2px}
+    .stat-mini .lbl{font-size:10px; color:var(--text-mute); text-transform:uppercase; letter-spacing:.1em; font-weight:600}
+    .stat-mini .val{font-family:var(--font-display); font-size:20px; font-weight:700; letter-spacing:-.01em}
+
+    .pipeline{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px}
+    .pipe-col{background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px; min-height:120px}
+    .pipe-col-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border-soft)}
+    .pipe-col-title{font-family:var(--font-display); font-size:14px; font-weight:600}
+    .pipe-card{background:var(--bg-card-2); border:1px solid var(--border-soft); border-radius:8px; padding:10px; margin-bottom:8px; font-size:12px}
+    .pipe-card .top{display:flex; justify-content:space-between; margin-bottom:4px}
+    .pipe-card .esp{font-weight:600}
+    .pipe-card .cu{font-family:var(--font-mono); color:var(--primary)}
+  </style>
+</head>
+<body>
+  <div class="bg-noise"></div>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useMemo, useEffect } = React;
+
+    /* ====================================================================
+       DATOS BASE — ALISAR S.R.L.
+       Extraídos de la entrevista al Gerente · Riberalta · 2026
+       ==================================================================== */
+    const EMPRESA = { nombre:"Constructora y Servicios ALISAR S.R.L.", sigla:"ALISAR", ciudad:"Riberalta — Beni", sucursal:"Sena", fundacion:2008 };
+
+    const OBRAS_INIT = [
+      { id:1, nombre:"Mantenimiento Carretera Riberalta–Guayaramerín", tipo:"Carretera", cliente:"ABC — Adm. Boliviana de Carreteras", ubicacion:"Tramo Beni", fechaIni:"2026-02-10", fechaFin:"2026-12-20", presupuesto:8500000, gastado:3120000, avance:38, estado:"En curso", fase:"Movimiento de tierra", encargado:"Ing. Marco Antelo", contrato:"ABC-2026-014" },
+      { id:2, nombre:"Campamento Forestal Sena — POAT 2026", tipo:"Forestal", cliente:"Maderera del Norte", ubicacion:"Sena — Pando", fechaIni:"2026-01-15", fechaFin:"2026-11-30", presupuesto:4200000, gastado:2150000, avance:52, estado:"En curso", fase:"Tumbado y arrastre", encargado:"Ing. For. Luis Roca", contrato:"MDN-POAT-026" },
+      { id:3, nombre:"Apertura Camino Vecinal San Lorenzo", tipo:"Carretera", cliente:"Gobierno Municipal Riberalta", ubicacion:"San Lorenzo", fechaIni:"2026-03-01", fechaFin:"2026-08-15", presupuesto:1850000, gastado:410000, avance:22, estado:"En curso", fase:"Desbroce", encargado:"Ing. Carla Méndez", contrato:"GMR-2026-007" },
+      { id:4, nombre:"Alquiler Maquinaria — YPFB Pozo Norte", tipo:"Alquiler", cliente:"YPFB Andina", ubicacion:"Pando", fechaIni:"2026-04-05", fechaFin:"2026-07-05", presupuesto:980000, gastado:320000, avance:33, estado:"En curso", fase:"Operación", encargado:"Ing. Marco Antelo", contrato:"YPFB-AR-2026-22" },
+      { id:5, nombre:"Transporte Madera POAT Bella Unión", tipo:"Forestal", cliente:"Aserradero Bella Unión", ubicacion:"Bella Unión", fechaIni:"2026-05-01", fechaFin:"2026-10-30", presupuesto:1320000, gastado:0, avance:5, estado:"Iniciando", fase:"Logística inicial", encargado:"Ing. For. Luis Roca", contrato:"ABU-TRA-026" }
+    ];
+
+    const MAQ_INIT = [
+      { id:1,  nombre:"Skidder 525C",   placa:"SKD-001", tipo:"Skidder",  obraId:2, horometro:8420, estado:"Operativa",        consumoTipo:"hora", consumoVal:14.5, ultimoMant:8200, proxMant:8400, operador:"Juan Mamani" },
+      { id:2,  nombre:"Skidder 525D",   placa:"SKD-002", tipo:"Skidder",  obraId:2, horometro:7110, estado:"Operativa",        consumoTipo:"hora", consumoVal:14.5, ultimoMant:7000, proxMant:7200, operador:"Pedro Suárez" },
+      { id:3,  nombre:"Skidder 648H",   placa:"SKD-003", tipo:"Skidder",  obraId:2, horometro:6230, estado:"En mantenimiento", consumoTipo:"hora", consumoVal:14.5, ultimoMant:6000, proxMant:6200, operador:"Vacante" },
+      { id:4,  nombre:"Skidder 540H",   placa:"SKD-004", tipo:"Skidder",  obraId:5, horometro:4980, estado:"Operativa",        consumoTipo:"hora", consumoVal:14.5, ultimoMant:4800, proxMant:5000, operador:"Daniel Roca" },
+      { id:5,  nombre:"Skidder 460D",   placa:"SKD-005", tipo:"Skidder",  obraId:null,horometro:3120, estado:"Disponible",     consumoTipo:"hora", consumoVal:14.5, ultimoMant:3000, proxMant:3200, operador:"Vacante" },
+      { id:6,  nombre:"Motoniveladora 140K", placa:"MTN-001", tipo:"Motoniveladora", obraId:1, horometro:11200, estado:"Operativa", consumoTipo:"hora", consumoVal:19,  ultimoMant:11000, proxMant:11200, operador:"Carlos Vaca" },
+      { id:7,  nombre:"Motoniveladora 140H", placa:"MTN-002", tipo:"Motoniveladora", obraId:1, horometro:9560,  estado:"Operativa", consumoTipo:"hora", consumoVal:19,  ultimoMant:9400,  proxMant:9600,  operador:"Mario Aguilar" },
+      { id:8,  nombre:"Motoniveladora 120G", placa:"MTN-003", tipo:"Motoniveladora", obraId:3, horometro:8120,  estado:"Operativa", consumoTipo:"hora", consumoVal:19,  ultimoMant:8000,  proxMant:8200,  operador:"Roberto Justiniano" },
+      { id:9,  nombre:"Oruga D6T", placa:"ORU-001", tipo:"Tractor Oruga", obraId:1, horometro:7820, estado:"Operativa", consumoTipo:"hora", consumoVal:22, ultimoMant:7600, proxMant:7800, operador:"Antonio Cuéllar" },
+      { id:10, nombre:"Oruga D6N", placa:"ORU-002", tipo:"Tractor Oruga", obraId:3, horometro:5430, estado:"Operativa", consumoTipo:"hora", consumoVal:22, ultimoMant:5200, proxMant:5400, operador:"Sergio Pinto" },
+      { id:11, nombre:"Oruga D7G", placa:"ORU-003", tipo:"Tractor Oruga", obraId:4, horometro:9120, estado:"Operativa", consumoTipo:"hora", consumoVal:22, ultimoMant:9000, proxMant:9200, operador:"Jaime Rocha" },
+      { id:12, nombre:"Tronquero Volvo F12 — 1", placa:"TRO-001", tipo:"Tronquero F12", obraId:2, horometro:124500, estado:"Operativa", consumoTipo:"km", consumoVal:0.42, ultimoMant:124000, proxMant:124500, operador:"Edwin Salazar" },
+      { id:13, nombre:"Tronquero Volvo F12 — 2", placa:"TRO-002", tipo:"Tronquero F12", obraId:2, horometro:108200, estado:"Operativa", consumoTipo:"km", consumoVal:0.42, ultimoMant:108000, proxMant:108500, operador:"Wilson Ojopi" },
+      { id:14, nombre:"Tronquero Volvo F12 — 3", placa:"TRO-003", tipo:"Tronquero F12", obraId:5, horometro:89400,  estado:"Operativa", consumoTipo:"km", consumoVal:0.42, ultimoMant:89200,  proxMant:89500,  operador:"Hugo Choque" },
+      { id:15, nombre:"Tronquero Volvo F12 — 4", placa:"TRO-004", tipo:"Tronquero F12", obraId:null,horometro:76300, estado:"Disponible", consumoTipo:"km", consumoVal:0.42, ultimoMant:76000, proxMant:76500, operador:"Vacante" },
+      { id:16, nombre:"Volqueta Scania 380 + Trailer", placa:"VOL-001", tipo:"Volqueta + Trailer", obraId:1, horometro:65200, estado:"Operativa", consumoTipo:"km", consumoVal:0.55, ultimoMant:65000, proxMant:65500, operador:"Rolando Tapia" },
+      { id:17, nombre:"Volqueta Scania 420 + Trailer", placa:"VOL-002", tipo:"Volqueta + Trailer", obraId:1, horometro:58400, estado:"Operativa", consumoTipo:"km", consumoVal:0.55, ultimoMant:58200, proxMant:58500, operador:"Mauricio Roca" },
+      { id:18, nombre:"Tractor Agrícola John Deere 5075E", placa:"TAG-001", tipo:"Tractor Agrícola", obraId:2, horometro:4520, estado:"Operativa", consumoTipo:"hora", consumoVal:8, ultimoMant:4400, proxMant:4600, operador:"Marcos Vargas" },
+      { id:19, nombre:"Tractor Agrícola Massey 4275",      placa:"TAG-002", tipo:"Tractor Agrícola", obraId:2, horometro:3210, estado:"Operativa", consumoTipo:"hora", consumoVal:8, ultimoMant:3000, proxMant:3200, operador:"Iván Paredes" },
+      { id:20, nombre:"Camión 3/4 Hino", placa:"CAM-001", tipo:"Camión 3/4", obraId:1, horometro:89000, estado:"Operativa", consumoTipo:"km", consumoVal:0.18, ultimoMant:88800, proxMant:89200, operador:"Freddy Lima" },
+      { id:21, nombre:"Vibrocompactadora CAT CS56B", placa:"VIB-001", tipo:"Vibrocompactadora", obraId:1, horometro:3850, estado:"Operativa", consumoTipo:"hora", consumoVal:11, ultimoMant:3800, proxMant:4000, operador:"Ramiro Cossío" },
+      { id:22, nombre:"Pala Cargadora 950H — 1", placa:"PAL-001", tipo:"Pala Cargadora", obraId:1, horometro:6740, estado:"Operativa", consumoTipo:"hora", consumoVal:16, ultimoMant:6600, proxMant:6800, operador:"José Quispe" },
+      { id:23, nombre:"Pala Cargadora 950H — 2", placa:"PAL-002", tipo:"Pala Cargadora", obraId:2, horometro:5280, estado:"Operativa", consumoTipo:"hora", consumoVal:16, ultimoMant:5200, proxMant:5400, operador:"Pablo Fernández" },
+      { id:24, nombre:"Pala Cargadora 938M",    placa:"PAL-003", tipo:"Pala Cargadora", obraId:3, horometro:4120, estado:"Operativa", consumoTipo:"hora", consumoVal:16, ultimoMant:4000, proxMant:4200, operador:"Eduardo Mamani" },
+      { id:25, nombre:"Pala Cargadora 924K",    placa:"PAL-004", tipo:"Pala Cargadora", obraId:null,horometro:7910, estado:"Disponible", consumoTipo:"hora", consumoVal:16, ultimoMant:7800, proxMant:8000, operador:"Vacante" },
+      { id:26, nombre:"Retroexcavadora 416F", placa:"RET-001", tipo:"Retroexcavadora", obraId:3, horometro:5210, estado:"Operativa", consumoTipo:"hora", consumoVal:12, ultimoMant:5000, proxMant:5200, operador:"Sandro Gutiérrez" },
+      { id:27, nombre:"Camión Cisterna 6000L", placa:"CIS-001", tipo:"Camión Cisterna", obraId:2, horometro:72400, estado:"Operativa", consumoTipo:"km", consumoVal:0.32, ultimoMant:72200, proxMant:72500, operador:"Néstor Justiniano" },
+      { id:28, nombre:"Toyota Hilux 4x4 — Gerencia", placa:"HIL-001", tipo:"Camioneta Hilux", obraId:null, horometro:48200, estado:"Operativa", consumoTipo:"km", consumoVal:0.12, ultimoMant:48000, proxMant:53000, operador:"Gerencia" },
+      { id:29, nombre:"Toyota Hilux 4x4 — Obra 1",   placa:"HIL-002", tipo:"Camioneta Hilux", obraId:1,    horometro:62100, estado:"Operativa", consumoTipo:"km", consumoVal:0.12, ultimoMant:62000, proxMant:67000, operador:"Ing. Marco Antelo" },
+      { id:30, nombre:"Toyota Hilux 4x4 — Forestal", placa:"HIL-003", tipo:"Camioneta Hilux", obraId:2,    horometro:71800, estado:"Operativa", consumoTipo:"km", consumoVal:0.12, ultimoMant:71500, proxMant:76500, operador:"Ing. Luis Roca" },
+      { id:31, nombre:"Toyota Hilux 4x4 — Sena",     placa:"HIL-004", tipo:"Camioneta Hilux", obraId:5,    horometro:38400, estado:"Operativa", consumoTipo:"km", consumoVal:0.12, ultimoMant:38000, proxMant:43000, operador:"Logística" }
+    ];
+
+    const EMP_INIT = [
+      { id:1,  ci:"3456789-RB", nombres:"Carlos Eduardo", apellidos:"Antelo Suárez",     cargo:"Gerente General",        tipo:"Administrativo", contrato:"Fijo",     salarioBase:18000, campamentoId:null, diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2008-05-12" },
+      { id:2,  ci:"4123456-RB", nombres:"Marcela Inés",   apellidos:"Antelo de la Vega", cargo:"Co-Gerente",             tipo:"Administrativo", contrato:"Fijo",     salarioBase:15000, campamentoId:null, diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2008-05-12" },
+      { id:3,  ci:"5634127-RB", nombres:"Laura Beatriz",  apellidos:"Roca Méndez",       cargo:"Jefe RRHH",              tipo:"Administrativo", contrato:"Fijo",     salarioBase:9500,  campamentoId:null, diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2014-03-08" },
+      { id:4,  ci:"6234567-RB", nombres:"Patricia",       apellidos:"Justiniano Vaca",   cargo:"Contadora",              tipo:"Administrativo", contrato:"Fijo",     salarioBase:8500,  campamentoId:null, diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2016-07-15" },
+      { id:5,  ci:"7345678-RB", nombres:"Andrea",         apellidos:"Cuéllar Roca",      cargo:"Asistente Administrativa",tipo:"Administrativo",contrato:"Fijo",     salarioBase:4800,  campamentoId:null, diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2019-02-20" },
+      { id:6,  ci:"8456789-RB", nombres:"Fernando",       apellidos:"Lima Tapia",        cargo:"Logística Central",      tipo:"Administrativo", contrato:"Fijo",     salarioBase:5500,  campamentoId:null, diasTrab:22, horasExtra:4,  diasFalta:0, rcIva:13, fechaIng:"2018-09-10" },
+      { id:7,  ci:"3567812-RB", nombres:"Marco Antonio",  apellidos:"Antelo Justiniano", cargo:"Ing. Encargado de Obra", tipo:"Campo",          contrato:"Fijo",     salarioBase:12000, campamentoId:1,    diasTrab:22, horasExtra:8,  diasFalta:0, rcIva:13, fechaIng:"2015-04-01" },
+      { id:8,  ci:"4123890-RB", nombres:"Luis Alberto",   apellidos:"Roca Salvatierra",  cargo:"Ing. Jefe de Monte",     tipo:"Campo",          contrato:"Fijo",     salarioBase:11000, campamentoId:2,    diasTrab:22, horasExtra:6,  diasFalta:0, rcIva:13, fechaIng:"2013-08-15" },
+      { id:9,  ci:"5234901-RB", nombres:"Carla",          apellidos:"Méndez Aguilar",    cargo:"Ing. Encargado de Obra", tipo:"Campo",          contrato:"Fijo",     salarioBase:10500, campamentoId:3,    diasTrab:22, horasExtra:6,  diasFalta:0, rcIva:13, fechaIng:"2020-01-10" },
+      { id:10, ci:"6345012-RB", nombres:"Rodrigo",        apellidos:"Vargas Pinto",      cargo:"Ing. Jefe de Monte",     tipo:"Campo",          contrato:"Fijo",     salarioBase:10500, campamentoId:2,    diasTrab:22, horasExtra:8,  diasFalta:0, rcIva:13, fechaIng:"2017-11-20" },
+      { id:11, ci:"3789456-RB", nombres:"Juan Carlos",    apellidos:"Mamani Choque",     cargo:"Operador Skidder",       tipo:"Operador",       contrato:"Fijo",     salarioBase:5800,  campamentoId:2,    diasTrab:22, horasExtra:18, diasFalta:0, rcIva:13, fechaIng:"2016-03-05" },
+      { id:12, ci:"4890567-RB", nombres:"Pedro",          apellidos:"Suárez Roca",       cargo:"Operador Skidder",       tipo:"Operador",       contrato:"Fijo",     salarioBase:5800,  campamentoId:2,    diasTrab:22, horasExtra:16, diasFalta:1, rcIva:13, fechaIng:"2017-05-12" },
+      { id:13, ci:"5901678-RB", nombres:"Daniel",         apellidos:"Roca Vaca",         cargo:"Operador Skidder",       tipo:"Operador",       contrato:"Eventual", salarioBase:5500,  campamentoId:2,    diasTrab:22, horasExtra:14, diasFalta:0, rcIva:13, fechaIng:"2023-02-01" },
+      { id:14, ci:"6012789-RB", nombres:"Carlos",         apellidos:"Vaca Mamani",       cargo:"Operador Motoniveladora",tipo:"Operador",       contrato:"Fijo",     salarioBase:6200,  campamentoId:1,    diasTrab:22, horasExtra:20, diasFalta:0, rcIva:13, fechaIng:"2015-06-20" },
+      { id:15, ci:"7123890-RB", nombres:"Mario",          apellidos:"Aguilar Lima",      cargo:"Operador Motoniveladora",tipo:"Operador",       contrato:"Fijo",     salarioBase:6200,  campamentoId:1,    diasTrab:22, horasExtra:18, diasFalta:0, rcIva:13, fechaIng:"2017-09-05" },
+      { id:16, ci:"8234901-RB", nombres:"Roberto",        apellidos:"Justiniano Soliz",  cargo:"Operador Motoniveladora",tipo:"Operador",       contrato:"Fijo",     salarioBase:6000,  campamentoId:3,    diasTrab:22, horasExtra:14, diasFalta:0, rcIva:13, fechaIng:"2019-04-15" },
+      { id:17, ci:"3345012-RB", nombres:"Antonio",        apellidos:"Cuéllar Roca",      cargo:"Operador Oruga",         tipo:"Operador",       contrato:"Fijo",     salarioBase:6300,  campamentoId:1,    diasTrab:22, horasExtra:16, diasFalta:0, rcIva:13, fechaIng:"2016-10-12" },
+      { id:18, ci:"4456123-RB", nombres:"Sergio",         apellidos:"Pinto Cuéllar",     cargo:"Operador Oruga",         tipo:"Operador",       contrato:"Fijo",     salarioBase:6300,  campamentoId:3,    diasTrab:22, horasExtra:15, diasFalta:0, rcIva:13, fechaIng:"2018-02-28" },
+      { id:19, ci:"5567234-RB", nombres:"Jaime",          apellidos:"Rocha Vaca",        cargo:"Operador Oruga",         tipo:"Operador",       contrato:"Eventual", salarioBase:6000,  campamentoId:null, diasTrab:22, horasExtra:12, diasFalta:0, rcIva:13, fechaIng:"2024-03-10" },
+      { id:20, ci:"6678345-RB", nombres:"Edwin",          apellidos:"Salazar Pinto",     cargo:"Chofer Tronquero",       tipo:"Operador",       contrato:"Fijo",     salarioBase:5500,  campamentoId:2,    diasTrab:22, horasExtra:24, diasFalta:0, rcIva:13, fechaIng:"2014-12-01" },
+      { id:21, ci:"7789456-RB", nombres:"Wilson",         apellidos:"Ojopi Roca",        cargo:"Chofer Tronquero",       tipo:"Operador",       contrato:"Fijo",     salarioBase:5500,  campamentoId:2,    diasTrab:22, horasExtra:22, diasFalta:0, rcIva:13, fechaIng:"2016-08-20" },
+      { id:22, ci:"8890567-RB", nombres:"Hugo",           apellidos:"Choque Mamani",     cargo:"Chofer Tronquero",       tipo:"Operador",       contrato:"Fijo",     salarioBase:5300,  campamentoId:2,    diasTrab:22, horasExtra:20, diasFalta:0, rcIva:13, fechaIng:"2019-01-15" },
+      { id:23, ci:"3901678-RB", nombres:"Rolando",        apellidos:"Tapia Suárez",      cargo:"Chofer Volqueta",        tipo:"Operador",       contrato:"Fijo",     salarioBase:5400,  campamentoId:1,    diasTrab:22, horasExtra:18, diasFalta:0, rcIva:13, fechaIng:"2017-06-10" },
+      { id:24, ci:"4012789-RB", nombres:"Mauricio",       apellidos:"Roca Tapia",        cargo:"Chofer Volqueta",        tipo:"Operador",       contrato:"Fijo",     salarioBase:5400,  campamentoId:1,    diasTrab:22, horasExtra:16, diasFalta:0, rcIva:13, fechaIng:"2018-11-22" },
+      { id:25, ci:"5123890-RB", nombres:"Ramiro",         apellidos:"Cossío Roca",       cargo:"Operador Vibrocomp.",    tipo:"Operador",       contrato:"Fijo",     salarioBase:5800,  campamentoId:1,    diasTrab:22, horasExtra:14, diasFalta:0, rcIva:13, fechaIng:"2020-03-05" },
+      { id:26, ci:"6234901-RB", nombres:"José",           apellidos:"Quispe Choque",     cargo:"Operador Pala",          tipo:"Operador",       contrato:"Fijo",     salarioBase:5600,  campamentoId:1,    diasTrab:22, horasExtra:14, diasFalta:0, rcIva:13, fechaIng:"2017-04-18" },
+      { id:27, ci:"7345012-RB", nombres:"Pablo",          apellidos:"Fernández Roca",    cargo:"Operador Pala",          tipo:"Operador",       contrato:"Fijo",     salarioBase:5600,  campamentoId:2,    diasTrab:22, horasExtra:13, diasFalta:0, rcIva:13, fechaIng:"2019-08-30" },
+      { id:28, ci:"8456123-RB", nombres:"Eduardo",        apellidos:"Mamani Pinto",      cargo:"Operador Pala",          tipo:"Operador",       contrato:"Fijo",     salarioBase:5400,  campamentoId:3,    diasTrab:22, horasExtra:12, diasFalta:0, rcIva:13, fechaIng:"2020-09-12" },
+      { id:29, ci:"3567234-RB", nombres:"Sandro",         apellidos:"Gutiérrez Méndez",  cargo:"Operador Retro",         tipo:"Operador",       contrato:"Fijo",     salarioBase:5500,  campamentoId:3,    diasTrab:22, horasExtra:14, diasFalta:0, rcIva:13, fechaIng:"2021-01-25" },
+      { id:30, ci:"4678345-RB", nombres:"Néstor",         apellidos:"Justiniano Roca",   cargo:"Chofer Cisterna",        tipo:"Operador",       contrato:"Fijo",     salarioBase:5200,  campamentoId:2,    diasTrab:22, horasExtra:16, diasFalta:0, rcIva:13, fechaIng:"2018-07-08" },
+      { id:31, ci:"5789456-RB", nombres:"Freddy",         apellidos:"Lima Choque",       cargo:"Chofer Hilux",           tipo:"Operador",       contrato:"Fijo",     salarioBase:4500,  campamentoId:1,    diasTrab:22, horasExtra:8,  diasFalta:0, rcIva:13, fechaIng:"2019-12-01" },
+      { id:32, ci:"6890567-RB", nombres:"Marcos",         apellidos:"Vargas Suárez",     cargo:"Operador Skidder",       tipo:"Operador",       contrato:"Eventual", salarioBase:5300,  campamentoId:2,    diasTrab:22, horasExtra:10, diasFalta:1, rcIva:13, fechaIng:"2024-05-15" },
+      { id:33, ci:"7901678-RB", nombres:"Iván",           apellidos:"Paredes Mamani",    cargo:"Operador Skidder",       tipo:"Operador",       contrato:"Fijo",     salarioBase:5500,  campamentoId:2,    diasTrab:22, horasExtra:14, diasFalta:0, rcIva:13, fechaIng:"2021-11-08" },
+      { id:34, ci:"8012789-RB", nombres:"Rubén",          apellidos:"Vaca Justiniano",   cargo:"Mecánico",               tipo:"Campo",          contrato:"Fijo",     salarioBase:6800,  campamentoId:null, diasTrab:22, horasExtra:12, diasFalta:0, rcIva:13, fechaIng:"2012-09-15" },
+      { id:35, ci:"3123890-RB", nombres:"Alex",           apellidos:"Roca Pinto",        cargo:"Mecánico",               tipo:"Campo",          contrato:"Fijo",     salarioBase:5500,  campamentoId:null, diasTrab:22, horasExtra:10, diasFalta:0, rcIva:13, fechaIng:"2017-02-10" },
+      { id:36, ci:"4234901-RB", nombres:"Diego",          apellidos:"Cuéllar Vaca",      cargo:"Ayudante de Mecánico",   tipo:"Campo",          contrato:"Fijo",     salarioBase:3800,  campamentoId:null, diasTrab:22, horasExtra:8,  diasFalta:0, rcIva:13, fechaIng:"2022-04-05" },
+      { id:37, ci:"5345012-RB", nombres:"Javier",         apellidos:"Ojopi Mamani",      cargo:"Motosierrista",          tipo:"Campo",          contrato:"Fijo",     salarioBase:4800,  campamentoId:2,    diasTrab:22, horasExtra:16, diasFalta:0, rcIva:13, fechaIng:"2018-05-20" },
+      { id:38, ci:"6456123-RB", nombres:"Raúl",           apellidos:"Choque Roca",       cargo:"Motosierrista",          tipo:"Campo",          contrato:"Fijo",     salarioBase:4800,  campamentoId:2,    diasTrab:22, horasExtra:14, diasFalta:0, rcIva:13, fechaIng:"2019-09-12" },
+      { id:39, ci:"7567234-RB", nombres:"Mario",          apellidos:"Pinto Lima",        cargo:"Motosierrista",          tipo:"Campo",          contrato:"Eventual", salarioBase:4500,  campamentoId:5,    diasTrab:22, horasExtra:12, diasFalta:0, rcIva:13, fechaIng:"2024-01-30" },
+      { id:40, ci:"8678345-RB", nombres:"Lucas",          apellidos:"Salazar Roca",      cargo:"Saneador",               tipo:"Campo",          contrato:"Fijo",     salarioBase:4200,  campamentoId:2,    diasTrab:22, horasExtra:10, diasFalta:0, rcIva:13, fechaIng:"2020-07-18" },
+      { id:41, ci:"3711456-RB", nombres:"Roger",          apellidos:"Vaca Tapia",        cargo:"Saneador",               tipo:"Campo",          contrato:"Fijo",     salarioBase:4200,  campamentoId:2,    diasTrab:22, horasExtra:10, diasFalta:0, rcIva:13, fechaIng:"2021-03-22" },
+      { id:42, ci:"4822567-RB", nombres:"Tito",           apellidos:"Justiniano Choque", cargo:"Clasificador de Madera", tipo:"Campo",          contrato:"Fijo",     salarioBase:4500,  campamentoId:2,    diasTrab:22, horasExtra:8,  diasFalta:0, rcIva:13, fechaIng:"2019-04-05" },
+      { id:43, ci:"5933678-RB", nombres:"Brayan",         apellidos:"Roca Suárez",       cargo:"Clasificador de Madera", tipo:"Campo",          contrato:"Eventual", salarioBase:4300,  campamentoId:5,    diasTrab:22, horasExtra:6,  diasFalta:0, rcIva:13, fechaIng:"2024-04-12" },
+      { id:44, ci:"6044789-RB", nombres:"Hugo",           apellidos:"Mamani Cuéllar",    cargo:"Ayudante General",       tipo:"Campo",          contrato:"Eventual", salarioBase:3500,  campamentoId:5,    diasTrab:22, horasExtra:8,  diasFalta:2, rcIva:13, fechaIng:"2024-06-01" },
+      { id:45, ci:"7155890-RB", nombres:"Víctor",         apellidos:"Aguilar Pinto",     cargo:"Encargado Campamento",   tipo:"Campo",          contrato:"Fijo",     salarioBase:5800,  campamentoId:2,    diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2015-11-10" },
+      { id:46, ci:"8266901-RB", nombres:"Walter",         apellidos:"Roca Cossío",       cargo:"Encargado Campamento",   tipo:"Campo",          contrato:"Fijo",     salarioBase:5800,  campamentoId:1,    diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2016-08-15" },
+      { id:47, ci:"3377012-RB", nombres:"Elmer",          apellidos:"Pinto Justiniano",  cargo:"Encargado Combustible",  tipo:"Campo",          contrato:"Fijo",     salarioBase:4800,  campamentoId:2,    diasTrab:22, horasExtra:6,  diasFalta:0, rcIva:13, fechaIng:"2018-03-20" },
+      { id:48, ci:"4488123-RB", nombres:"Óscar",          apellidos:"Choque Cuéllar",    cargo:"Encargado Combustible",  tipo:"Campo",          contrato:"Fijo",     salarioBase:4800,  campamentoId:1,    diasTrab:22, horasExtra:5,  diasFalta:0, rcIva:13, fechaIng:"2019-06-18" },
+      { id:49, ci:"5599234-RB", nombres:"Rosa",           apellidos:"Lima Justiniano",   cargo:"Cocinero",               tipo:"Campo",          contrato:"Fijo",     salarioBase:3500,  campamentoId:2,    diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2020-02-12" },
+      { id:50, ci:"6600345-RB", nombres:"Ramón",          apellidos:"Vaca Choque",       cargo:"Sereno",                 tipo:"Campo",          contrato:"Eventual", salarioBase:3200,  campamentoId:1,    diasTrab:22, horasExtra:0,  diasFalta:0, rcIva:13, fechaIng:"2023-09-05" }
+    ];
+
+    const CAMP_INIT = [
+      { id:1, nombre:"Campamento Mantenimiento Carretera", ubicacion:"Tramo Riberalta–Guayaramerín, Beni", obraId:1, encargado:"Walter Roca Cossío",  capacidad:25, ocupacion:18, estado:"Activo",       fechaApertura:"2026-02-15", combustibleStock:4200, alimentosStock:320, observaciones:"Activo. Logística semanal desde Riberalta." },
+      { id:2, nombre:"Campamento Forestal Sena",            ubicacion:"Sena — Pando",                      obraId:2, encargado:"Víctor Aguilar Pinto",capacidad:30, ocupacion:24, estado:"Activo",       fechaApertura:"2026-01-20", combustibleStock:6800, alimentosStock:480, observaciones:"Principal campamento forestal. Acceso por camino vecinal." },
+      { id:3, nombre:"Campamento San Lorenzo",              ubicacion:"San Lorenzo, Beni",                 obraId:3, encargado:"Eduardo Mamani Pinto",capacidad:15, ocupacion:9,  estado:"Activo",       fechaApertura:"2026-03-05", combustibleStock:1800, alimentosStock:150, observaciones:"Campamento ligero. Personal rota semanalmente." },
+      { id:4, nombre:"Campamento Pozo Norte (YPFB)",        ubicacion:"Pando — Operación YPFB",            obraId:4, encargado:"Ing. Marco Antelo",   capacidad:12, ocupacion:7,  estado:"Activo",       fechaApertura:"2026-04-10", combustibleStock:2400, alimentosStock:110, observaciones:"Operación corta de alquiler de maquinaria." },
+      { id:5, nombre:"Campamento Bella Unión",              ubicacion:"Bella Unión — Pando",               obraId:5, encargado:"Pendiente",           capacidad:18, ocupacion:0,  estado:"En preparación",fechaApertura:"2026-05-10", combustibleStock:0,    alimentosStock:0,   observaciones:"Apertura programada. Lluvias retrasaron logística inicial." }
+    ];
+
+    const ESPECIES = ["Mara","Cedro","Roble","Tajibo","Almendrillo","Ochoó","Bibosi","Cuchi","Verdolago","Jichituriqui"];
+
+    const RODEOS_INIT = [
+      { id:1, fecha:"2026-04-28", obraId:2, especie:"Mara",         cubos:18.5, etapa:"Transportado", origen:"POAT Sena Lote 7", destino:"Aserradero Bella Unión", responsable:"Edwin Salazar",   maquinaId:12 },
+      { id:2, fecha:"2026-04-28", obraId:2, especie:"Cedro",        cubos:22.3, etapa:"Transportado", origen:"POAT Sena Lote 7", destino:"Aserradero Bella Unión", responsable:"Wilson Ojopi",    maquinaId:13 },
+      { id:3, fecha:"2026-05-01", obraId:2, especie:"Almendrillo",  cubos:31.8, etapa:"Cargado",      origen:"POAT Sena Lote 8", destino:"Aserradero Bella Unión", responsable:"Hugo Choque",     maquinaId:14 },
+      { id:4, fecha:"2026-05-02", obraId:2, especie:"Tajibo",       cubos:15.6, etapa:"Jalado",       origen:"POAT Sena Lote 8", destino:"Cancha Sena",            responsable:"Juan Mamani",     maquinaId:1  },
+      { id:5, fecha:"2026-05-03", obraId:2, especie:"Ochoó",        cubos:28.2, etapa:"Jalado",       origen:"POAT Sena Lote 8", destino:"Cancha Sena",            responsable:"Pedro Suárez",    maquinaId:2  },
+      { id:6, fecha:"2026-05-04", obraId:2, especie:"Roble",        cubos: 8.4, etapa:"Tumbado",      origen:"POAT Sena Lote 9", destino:"Cancha Sena",            responsable:"Javier Ojopi",    maquinaId:null },
+      { id:7, fecha:"2026-05-05", obraId:2, especie:"Cuchi",        cubos:12.1, etapa:"Tumbado",      origen:"POAT Sena Lote 9", destino:"Cancha Sena",            responsable:"Raúl Choque",     maquinaId:null },
+      { id:8, fecha:"2026-05-06", obraId:5, especie:"Verdolago",    cubos: 6.5, etapa:"Tumbado",      origen:"POAT Bella Unión", destino:"Cancha Bella Unión",     responsable:"Mario Pinto",     maquinaId:null },
+      { id:9, fecha:"2026-05-08", obraId:2, especie:"Bibosi",       cubos:19.7, etapa:"Cargado",      origen:"POAT Sena Lote 8", destino:"Aserradero Bella Unión", responsable:"Edwin Salazar",   maquinaId:12 },
+      { id:10,fecha:"2026-05-10", obraId:2, especie:"Jichituriqui", cubos:14.2, etapa:"Transportado", origen:"POAT Sena Lote 7", destino:"Aserradero Bella Unión", responsable:"Wilson Ojopi",    maquinaId:13 }
+    ];
+
+    const HOY = new Date("2026-05-14");
+    const diasHasta = (s) => Math.ceil((new Date(s) - HOY) / 86400000);
+
+    const DOCS_INIT = [
+      { id:1,  tipo:"POAT",            nombre:"POAT 2026 — Sena Lote 7",       entidad:"ABT",         refTipo:"obra",     refId:2,  fechaEmision:"2026-01-10", fechaVenc:"2026-12-31", observ:"Plan Operativo Anual Forestal vigente." },
+      { id:2,  tipo:"POAT",            nombre:"POAT 2026 — Sena Lote 8",       entidad:"ABT",         refTipo:"obra",     refId:2,  fechaEmision:"2026-02-05", fechaVenc:"2026-12-31", observ:"En ejecución." },
+      { id:3,  tipo:"POAT",            nombre:"POAT 2026 — Bella Unión",       entidad:"ABT",         refTipo:"obra",     refId:5,  fechaEmision:"2026-04-15", fechaVenc:"2026-11-30", observ:"Próximo a iniciar." },
+      { id:4,  tipo:"Contrato",        nombre:"Contrato ABC — Carretera Beni", entidad:"ABC",         refTipo:"obra",     refId:1,  fechaEmision:"2026-02-01", fechaVenc:"2026-12-30", observ:"Contrato principal." },
+      { id:5,  tipo:"Contrato",        nombre:"Contrato YPFB Alquiler",        entidad:"YPFB",        refTipo:"obra",     refId:4,  fechaEmision:"2026-04-01", fechaVenc:"2026-07-05", observ:"Alquiler de maquinaria." },
+      { id:6,  tipo:"SOAT",            nombre:"SOAT Hilux HIL-001",            entidad:"APS",         refTipo:"maquina",  refId:28, fechaEmision:"2025-06-15", fechaVenc:"2026-06-15", observ:"Próximo a vencer." },
+      { id:7,  tipo:"SOAT",            nombre:"SOAT Hilux HIL-002",            entidad:"APS",         refTipo:"maquina",  refId:29, fechaEmision:"2025-08-20", fechaVenc:"2026-08-20", observ:"" },
+      { id:8,  tipo:"SOAT",            nombre:"SOAT Volqueta VOL-001",         entidad:"APS",         refTipo:"maquina",  refId:16, fechaEmision:"2025-09-10", fechaVenc:"2026-09-10", observ:"" },
+      { id:9,  tipo:"SOAT",            nombre:"SOAT Tronquero TRO-001",        entidad:"APS",         refTipo:"maquina",  refId:12, fechaEmision:"2025-05-22", fechaVenc:"2026-05-22", observ:"¡URGENTE! Renovar." },
+      { id:10, tipo:"Inspección Téc.", nombre:"Inspección Vehicular TRO-002",  entidad:"DGTV",        refTipo:"maquina",  refId:13, fechaEmision:"2025-11-01", fechaVenc:"2026-11-01", observ:"" },
+      { id:11, tipo:"Licencia Op.",    nombre:"Licencia Juan Mamani",          entidad:"Tránsito",    refTipo:"empleado", refId:11, fechaEmision:"2023-04-10", fechaVenc:"2028-04-10", observ:"Categoría C." },
+      { id:12, tipo:"Licencia Op.",    nombre:"Licencia Edwin Salazar",        entidad:"Tránsito",    refTipo:"empleado", refId:20, fechaEmision:"2022-09-15", fechaVenc:"2026-06-30", observ:"Próxima a vencer." },
+      { id:13, tipo:"Seguro Equipo",   nombre:"Seguro Flota Forestal",         entidad:"BISA Seguros",refTipo:"empresa",  refId:null,fechaEmision:"2026-01-01",fechaVenc:"2026-12-31", observ:"Cobertura total flota." },
+      { id:14, tipo:"NIT/Tributario",  nombre:"FUT Trimestral Q1",             entidad:"SIN",         refTipo:"empresa",  refId:null,fechaEmision:"2026-04-15",fechaVenc:"2026-07-15", observ:"Declaración trimestral." },
+      { id:15, tipo:"Permiso Mun.",    nombre:"Permiso Operación Riberalta",   entidad:"GMR",         refTipo:"empresa",  refId:null,fechaEmision:"2025-12-01",fechaVenc:"2026-12-01", observ:"" }
+    ];
+
+    window.ALISAR_DATA = { EMPRESA, OBRAS_INIT, MAQ_INIT, EMP_INIT, CAMP_INIT, RODEOS_INIT, DOCS_INIT, ESPECIES, HOY, diasHasta };
+  </script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useMemo, useEffect } = React;
+    const { EMPRESA, OBRAS_INIT, MAQ_INIT, EMP_INIT, CAMP_INIT, RODEOS_INIT, DOCS_INIT, ESPECIES, HOY, diasHasta } = window.ALISAR_DATA;
+
+    /* ---------- UTILIDADES ---------- */
+    const fmtBs   = (n) => "Bs " + (Number(n)||0).toLocaleString("es-BO", { maximumFractionDigits: 0 });
+    const fmtNum  = (n, d=0) => (Number(n)||0).toLocaleString("es-BO", { minimumFractionDigits:d, maximumFractionDigits:d });
+    const initials = (s) => (s||"").split(" ").filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+    const colorByIdx = (i) => ["g","a","b","r","p"][i % 5];
+
+    function calcularPlanilla(emp){
+      const jornal = emp.salarioBase / 22;
+      const horaExtra = (emp.salarioBase / 176) * 2;
+      const bruto = emp.salarioBase + (emp.horasExtra * horaExtra) - (emp.diasFalta * jornal);
+      const afp = bruto * 0.0471;
+      const rcIva = bruto * (emp.rcIva/100);
+      const neto = bruto - afp - rcIva;
+      return { jornal, horaExtra, bruto, afp, rcIva, neto };
+    }
+
+    const Icon = ({n, style}) => <i className={`ti ti-${n}`} style={style}></i>;
+
+    function StatePill({state}){
+      const map = {
+        "Operativa":        {cls:"pill-green"},
+        "Disponible":       {cls:"pill-blue"},
+        "En mantenimiento": {cls:"pill-amber"},
+        "En curso":         {cls:"pill-green"},
+        "Iniciando":        {cls:"pill-blue"},
+        "Finalizada":       {cls:"pill-gray"},
+        "Activo":           {cls:"pill-green"},
+        "En preparación":   {cls:"pill-amber"},
+        "Cerrado":          {cls:"pill-gray"},
+        "Fijo":             {cls:"pill-green"},
+        "Eventual":         {cls:"pill-amber"}
+      };
+      const m = map[state] || {cls:"pill-gray"};
+      return <span className={`pill ${m.cls}`}><span className="dot"></span>{state}</span>;
+    }
+
+    function StagePill({stage}){
+      const map = {
+        "Tumbado":     {bg:"rgba(248,113,113,.12)", c:"#f87171"},
+        "Jalado":      {bg:"rgba(251,191,36,.12)",  c:"#fbbf24"},
+        "Cargado":     {bg:"rgba(96,165,250,.12)",  c:"#60a5fa"},
+        "Transportado":{bg:"rgba(74,222,128,.12)",  c:"#4ade80"}
+      };
+      const m = map[stage] || {bg:"var(--bg-card-2)", c:"var(--text-dim)"};
+      return <span className="stage" style={{background:m.bg, color:m.c, borderColor:m.bg}}>{stage}</span>;
+    }
+
+    function Sidebar({view, setView, alertCount}){
+      const items = [
+        {id:"dashboard",   label:"Dashboard",      icon:"layout-dashboard"},
+        {id:"obras",       label:"Obras",           icon:"building-bridge"},
+        {id:"maquinaria",  label:"Maquinaria",      icon:"bulldozer"},
+        {id:"rrhh",        label:"Personal / RRHH", icon:"users"},
+        {id:"rodeos",      label:"Rodeos Madera",   icon:"tree"},
+        {id:"campamentos", label:"Campamentos",     icon:"tent"},
+        {id:"documentos",  label:"Documentos",      icon:"file-text", badge:alertCount, alert:true}
+      ];
+      return (
+        <aside className="sidebar">
+          <div className="brand">
+            <div className="brand-logo"><Icon n="trees"/></div>
+            <div className="brand-text">
+              <div className="brand-name">ALISAR</div>
+              <div className="brand-sub">Sistema Integral</div>
+            </div>
+          </div>
+          <div className="nav-label">Operacion</div>
+          {items.map(it=>(
+            <div key={it.id} className={`nav-item ${view===it.id?"active":""}`} onClick={()=>setView(it.id)}>
+              <Icon n={it.icon}/>
+              <span>{it.label}</span>
+              {it.badge ? <span className={`nav-badge ${it.alert?"alert":""}`}>{it.badge}</span> : null}
+            </div>
+          ))}
+          <div style={{marginTop:14}} className="nav-label">Sistema</div>
+          <div className="nav-item"><Icon n="settings"/><span>Configuracion</span></div>
+          <div className="sidebar-foot">
+            <div className="avatar">CA</div>
+            <div className="user-info">
+              <div className="user-name">Carlos Antelo</div>
+              <div className="user-role">Gerente General</div>
+            </div>
+          </div>
+        </aside>
+      );
+    }
+
+    function Topbar({title, subtitle, actions}){
+      return (
+        <div className="topbar">
+          <div>
+            <div className="page-title">{title}</div>
+            <div className="page-sub">{subtitle}</div>
+          </div>
+          <div className="topbar-actions">
+            <div className="search-box"><Icon n="search"/><input placeholder="Buscar..."/></div>
+            {actions}
+          </div>
+        </div>
+      );
+    }
+
+    function Kpi({icon, label, value, unit, trend, color="green"}){
+      return (
+        <div className={`kpi ${color}`}>
+          <div className="kpi-icon"><Icon n={icon}/></div>
+          <div className="kpi-label">{label}</div>
+          <div className="kpi-value">{value}{unit && <span className="unit"> {unit}</span>}</div>
+          {trend && (
+            <div className={`kpi-trend ${trend.dir==="up"?"trend-up":trend.dir==="dn"?"trend-dn":"trend-flat"}`}>
+              <Icon n={trend.dir==="up"?"trending-up":trend.dir==="dn"?"trending-down":"minus"}/>
+              <span>{trend.text}</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function BarChart({data, valueKey="value", labelKey="label", color="var(--primary)"}){
+      const W=600, H=200, pad={l:30,r:10,t:10,b:30};
+      const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+      const max=Math.max(...data.map(d=>d[valueKey]),1);
+      const bw=iW/data.length;
+      return (
+        <svg viewBox={`0 0 ${W} ${H}`} className="chart-area" preserveAspectRatio="xMidYMid meet">
+          {[0,.25,.5,.75,1].map(p=>(
+            <line key={p} x1={pad.l} x2={W-pad.r} y1={pad.t+iH*(1-p)} y2={pad.t+iH*(1-p)} stroke="#28342a" strokeDasharray="2 4"/>
+          ))}
+          {data.map((d,i)=>{
+            const h=(d[valueKey]/max)*iH, x=pad.l+i*bw+bw*0.18, y=pad.t+iH-h;
+            return (
+              <g key={i}>
+                <rect x={x} y={y} width={bw*0.64} height={h} fill={color} opacity="0.85" rx="4"/>
+                <text x={x+bw*0.32} y={H-10} textAnchor="middle" fontSize="10" fill="var(--text-mute)" fontFamily="var(--font-mono)">{d[labelKey]}</text>
+                <text x={x+bw*0.32} y={y-4} textAnchor="middle" fontSize="10" fill="var(--text)" fontFamily="var(--font-mono)" fontWeight="600">{d[valueKey]}</text>
+              </g>
+            );
+          })}
+        </svg>
+      );
+    }
+
+    function DonutChart({data, size=170}){
+      const total=data.reduce((s,d)=>s+d.value,0)||1;
+      const r=size/2-14, cx=size/2, cy=size/2;
+      let acc=0;
+      const arcs=data.map((d,i)=>{
+        const s=acc/total*Math.PI*2; acc+=d.value; const e=acc/total*Math.PI*2;
+        const large=(e-s)>Math.PI?1:0;
+        return {
+          path:`M ${cx+r*Math.cos(s-Math.PI/2)} ${cy+r*Math.sin(s-Math.PI/2)} A ${r} ${r} 0 ${large} 1 ${cx+r*Math.cos(e-Math.PI/2)} ${cy+r*Math.sin(e-Math.PI/2)}`,
+          color:d.color, label:d.label, value:d.value
+        };
+      });
+      return (
+        <div style={{display:"flex",alignItems:"center",gap:18}}>
+          <svg width={size} height={size}>
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#28342a" strokeWidth="14"/>
+            {arcs.map((a,i)=><path key={i} d={a.path} fill="none" stroke={a.color} strokeWidth="14" strokeLinecap="round"/>)}
+            <text x={cx} y={cy-2} textAnchor="middle" fontFamily="var(--font-display)" fontSize="22" fontWeight="700" fill="var(--text)">{total}</text>
+            <text x={cx} y={cy+16} textAnchor="middle" fontSize="10" fill="var(--text-mute)" letterSpacing="2">TOTAL</text>
+          </svg>
+          <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
+            {arcs.map((a,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
+                <span style={{width:10,height:10,background:a.color,borderRadius:3}}></span>
+                <span style={{flex:1,color:"var(--text-dim)"}}>{a.label}</span>
+                <span style={{fontFamily:"var(--font-mono)",fontWeight:600}}>{a.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function Modal({title, onClose, children, footer, size}){
+      return (
+        <div className="modal-bg" onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+          <div className={`modal${size==="lg"?" lg":""}`}>
+            <div className="modal-head">
+              <div className="modal-title">{title}</div>
+              <button className="close-btn" onClick={onClose}><Icon n="x"/></button>
+            </div>
+            {children}
+            {footer && <div className="modal-foot">{footer}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    /* ============================================================ DASHBOARD */
+    function PageDashboard({obras,maquinas,empleados,rodeos,campamentos,documentos,setView}){
+      const totPres=obras.reduce((s,o)=>s+(o.estado!=="Finalizada"?o.presupuesto:0),0);
+      const totGast=obras.reduce((s,o)=>s+o.gastado,0);
+      const m3=rodeos.reduce((s,r)=>s+r.cubos,0);
+      const docsAlert=documentos.filter(d=>{const dd=diasHasta(d.fechaVenc);return dd<60;});
+      const docsVenc=documentos.filter(d=>diasHasta(d.fechaVenc)<0).length;
+
+      const obrasTipo=useMemo(()=>{
+        const acc={};obras.forEach(o=>acc[o.tipo]=(acc[o.tipo]||0)+1);
+        const C={Carretera:"#fbbf24",Forestal:"#4ade80",Alquiler:"#60a5fa"};
+        return Object.entries(acc).map(([k,v])=>({label:k,value:v,color:C[k]||"#6b7468"}));
+      },[obras]);
+
+      const rodeosEtapa=useMemo(()=>{
+        const acc={Tumbado:0,Jalado:0,Cargado:0,Transportado:0};
+        rodeos.forEach(r=>acc[r.etapa]=(acc[r.etapa]||0)+r.cubos);
+        return Object.entries(acc).map(([k,v])=>({label:k,value:Math.round(v)}));
+      },[rodeos]);
+
+      return (
+        <div className="page-enter">
+          <Topbar title="Buenos dias, Carlos" subtitle={`Resumen operativo - ${HOY.toLocaleDateString("es-BO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}`}
+            actions={<><button className="btn btn-ghost"><Icon n="download"/> Exportar</button><button className="btn btn-primary" onClick={()=>setView("obras")}><Icon n="plus"/> Nueva Obra</button></>}
+          />
+          {docsAlert.length>0&&(
+            <div className="callout amber"><Icon n="alert-triangle"/>
+              <div className="callout-body">
+                <strong>Documentos requieren atencion</strong>
+                <p>{docsVenc>0&&`${docsVenc} vencidos - `}{docsAlert.length} vencen en los proximos 60 dias.</p>
+              </div>
+              <button className="btn btn-sm" onClick={()=>setView("documentos")}>Revisar</button>
+            </div>
+          )}
+          <div className="kpi-grid">
+            <Kpi icon="building-bridge" label="Obras Activas" value={obras.filter(o=>o.estado==="En curso").length} color="green" trend={{dir:"up",text:`${obras.length} en total`}}/>
+            <Kpi icon="bulldozer" label="Maq. Operativas" value={maquinas.filter(m=>m.estado==="Operativa").length} unit={`/ ${maquinas.length}`} color="amber" trend={{dir:"flat",text:`${maquinas.filter(m=>m.estado==="En mantenimiento").length} en mantenimiento`}}/>
+            <Kpi icon="users" label="Personal" value={empleados.length} color="blue" trend={{dir:"up",text:`${empleados.filter(e=>e.contrato==="Fijo").length} fijos`}}/>
+            <Kpi icon="tree" label="Madera Procesada" value={fmtNum(m3,1)} unit="m3" color="green" trend={{dir:"up",text:`${rodeos.length} rodeos este mes`}}/>
+          </div>
+          <div className="grid-2">
+            <div className="card ring-card">
+              <div className="card-head"><div><div className="card-title">Presupuesto vs Ejecucion</div><div className="card-sub">Obras activas - 2026</div></div><span className="pill pill-green"><span className="dot"></span>En linea</span></div>
+              <div style={{display:"flex",gap:24,marginTop:6,flexWrap:"wrap"}}>
+                <div><div className="text-xs text-mute" style={{letterSpacing:".1em",textTransform:"uppercase"}}>Presupuesto</div><div style={{fontFamily:"var(--font-display)",fontSize:24,fontWeight:700,marginTop:4}}>{fmtBs(totPres)}</div></div>
+                <div><div className="text-xs text-mute" style={{letterSpacing:".1em",textTransform:"uppercase"}}>Ejecutado</div><div style={{fontFamily:"var(--font-display)",fontSize:24,fontWeight:700,marginTop:4,color:"var(--accent)"}}>{fmtBs(totGast)}</div></div>
+                <div><div className="text-xs text-mute" style={{letterSpacing:".1em",textTransform:"uppercase"}}>Ejecucion</div><div style={{fontFamily:"var(--font-display)",fontSize:24,fontWeight:700,marginTop:4,color:"var(--primary)"}}>{Math.round(totGast/totPres*100)}%</div></div>
+              </div>
+              <div style={{marginTop:18}}>
+                {obras.filter(o=>o.estado!=="Finalizada").map(o=>{
+                  const e=(o.gastado/o.presupuesto*100);
+                  return (<div key={o.id} style={{marginBottom:14}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:12,gap:8}}>
+                      <span className="strong" style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{o.nombre}</span>
+                      <span className="text-mono text-mute">{fmtBs(o.gastado)}/{fmtBs(o.presupuesto)}</span>
+                    </div>
+                    <div className="progress"><div className={`progress-bar${e>85?" red":e>60?" amber":""}`} style={{width:Math.min(e,100)+"%"}}></div></div>
+                  </div>);
+                })}
+              </div>
+            </div>
+            <div className="card">
+              <div className="card-head"><div className="card-title">Obras por Tipo</div><span className="text-xs text-mute">{obras.length} proyectos</span></div>
+              <DonutChart data={obrasTipo}/>
+              <div style={{marginTop:18,paddingTop:14,borderTop:"1px solid var(--border-soft)"}}>
+                <div className="text-xs text-mute" style={{textTransform:"uppercase",letterSpacing:".1em",marginBottom:8}}>Fase actual</div>
+                {obras.filter(o=>o.estado!=="Finalizada").slice(0,3).map(o=>(
+                  <div key={o.id} className="hstack" style={{padding:"6px 0",fontSize:12}}>
+                    <div className={`ini ${colorByIdx(o.id)}`} style={{width:24,height:24,borderRadius:6,fontSize:10}}>{o.tipo[0]}</div>
+                    <span style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} className="text-dim">{o.nombre}</span>
+                    <span className="text-mono text-xs" style={{color:"var(--accent)"}}>{o.fase}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="grid-2">
+            <div className="card">
+              <div className="card-head"><div><div className="card-title">Cubos por Etapa (Rodeo)</div><div className="card-sub">Volumen acumulado - m3</div></div></div>
+              <BarChart data={rodeosEtapa} color="var(--primary)"/>
+            </div>
+            <div className="card">
+              <div className="card-head"><div className="card-title">Campamentos - Ocupacion</div><span className="text-xs text-mute">{campamentos.filter(c=>c.estado==="Activo").length} activos</span></div>
+              {campamentos.map(c=>{const p=c.capacidad?Math.round(c.ocupacion/c.capacidad*100):0;return(
+                <div key={c.id} style={{marginBottom:14}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:5,gap:8}}>
+                    <span className="strong" style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nombre}</span>
+                    <span className="text-mono text-mute">{c.ocupacion}/{c.capacidad}</span>
+                  </div>
+                  <div className="progress"><div className={`progress-bar${p>85?" red":p>60?" amber":""}`} style={{width:p+"%"}}></div></div>
+                </div>
+              );})}
+            </div>
+          </div>
+          <div className="grid-2" style={{marginTop:22}}>
+            <div className="card">
+              <div className="card-head"><div className="card-title">Ultimos Rodeos</div><button className="btn btn-sm btn-ghost" onClick={()=>setView("rodeos")}>Ver todo <Icon n="arrow-right"/></button></div>
+              <table className="tbl">
+                <thead><tr><th>Fecha</th><th>Especie</th><th>Cubos</th><th>Etapa</th></tr></thead>
+                <tbody>{rodeos.slice(-5).reverse().map(r=>(
+                  <tr key={r.id}>
+                    <td className="mono">{r.fecha.slice(5)}</td>
+                    <td><span className="strong">{r.especie}</span></td>
+                    <td className="num strong">{fmtNum(r.cubos,1)} m3</td>
+                    <td><StagePill stage={r.etapa}/></td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+            <div className="card">
+              <div className="card-head"><div className="card-title">Documentos por Vencer</div><button className="btn btn-sm btn-ghost" onClick={()=>setView("documentos")}>Ver todo <Icon n="arrow-right"/></button></div>
+              {documentos.map(d=>({...d,dias:diasHasta(d.fechaVenc)})).sort((a,b)=>a.dias-b.dias).slice(0,5).map(d=>(
+                <div key={d.id} className="hstack" style={{padding:"10px 0",borderBottom:"1px solid var(--border-soft)"}}>
+                  <div className={`ini ${d.dias<0?"r":d.dias<30?"a":"g"}`}><Icon n="file-text"/></div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div className="strong text-sm" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.nombre}</div>
+                    <div className="text-xs text-mute">{d.tipo} - vence {d.fechaVenc}</div>
+                  </div>
+                  <span className={`pill ${d.dias<0?"pill-red":d.dias<30?"pill-amber":"pill-green"}`}>{d.dias<0?`Vencido ${-d.dias}d`:`${d.dias}d`}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ============================================================ OBRAS */
+    function ObraModal({obra,onClose,onSave}){
+      const [f,setF]=useState({...obra});
+      const u=(k,v)=>setF({...f,[k]:v});
+      return (
+        <Modal title={obra.id?"Editar Obra":"Nueva Obra"} onClose={onClose} size="lg"
+          footer={<><button className="btn" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={()=>onSave(f)}><Icon n="check"/> Guardar</button></>}>
+          <div className="form-row cols-2">
+            <div className="field"><label>Nombre</label><input value={f.nombre} onChange={e=>u("nombre",e.target.value)}/></div>
+            <div className="field"><label>Contrato</label><input value={f.contrato} onChange={e=>u("contrato",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-3">
+            <div className="field"><label>Tipo</label><select value={f.tipo} onChange={e=>u("tipo",e.target.value)}><option>Carretera</option><option>Forestal</option><option>Alquiler</option><option>Edificacion</option></select></div>
+            <div className="field"><label>Estado</label><select value={f.estado} onChange={e=>u("estado",e.target.value)}><option>Iniciando</option><option>En curso</option><option>Finalizada</option></select></div>
+            <div className="field"><label>Fase</label><input value={f.fase} onChange={e=>u("fase",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-2">
+            <div className="field"><label>Cliente</label><input value={f.cliente} onChange={e=>u("cliente",e.target.value)}/></div>
+            <div className="field"><label>Ubicacion</label><input value={f.ubicacion} onChange={e=>u("ubicacion",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-3">
+            <div className="field"><label>Fecha inicio</label><input type="date" value={f.fechaIni} onChange={e=>u("fechaIni",e.target.value)}/></div>
+            <div className="field"><label>Fecha fin</label><input type="date" value={f.fechaFin} onChange={e=>u("fechaFin",e.target.value)}/></div>
+            <div className="field"><label>Encargado</label><input value={f.encargado} onChange={e=>u("encargado",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-3">
+            <div className="field"><label>Presupuesto (Bs)</label><input type="number" value={f.presupuesto} onChange={e=>u("presupuesto",+e.target.value)}/></div>
+            <div className="field"><label>Gastado (Bs)</label><input type="number" value={f.gastado} onChange={e=>u("gastado",+e.target.value)}/></div>
+            <div className="field"><label>Avance (%)</label><input type="number" min="0" max="100" value={f.avance} onChange={e=>u("avance",+e.target.value)}/></div>
+          </div>
+        </Modal>
+      );
+    }
+
+    function PageObras({obras,setObras}){
+      const [editing,setEditing]=useState(null);
+      const [fTipo,setFTipo]=useState("Todos");
+      const [srch,setSrch]=useState("");
+      const empty={id:0,nombre:"",tipo:"Carretera",cliente:"",ubicacion:"",fechaIni:"2026-01-01",fechaFin:"2026-12-31",presupuesto:0,gastado:0,avance:0,estado:"Iniciando",fase:"",encargado:"",contrato:""};
+      const filtered=obras.filter(o=>(fTipo==="Todos"||o.tipo===fTipo)&&(!srch||o.nombre.toLowerCase().includes(srch.toLowerCase())||o.cliente.toLowerCase().includes(srch.toLowerCase())));
+      function saveO(o){if(o.id===0){const nid=Math.max(...obras.map(x=>x.id),0)+1;setObras([...obras,{...o,id:nid}]);}else{setObras(obras.map(x=>x.id===o.id?o:x));}setEditing(null);}
+      function delO(id){if(confirm("Eliminar esta obra?"))setObras(obras.filter(o=>o.id!==id));}
+      return (
+        <div className="page-enter">
+          <Topbar title="Obras y Proyectos" subtitle={`${obras.length} obras - ${obras.filter(o=>o.estado==="En curso").length} en ejecucion`}
+            actions={<button className="btn btn-primary" onClick={()=>setEditing(empty)}><Icon n="plus"/> Nueva Obra</button>}/>
+          <div className="kpi-grid">
+            <Kpi icon="building-bridge" label="Carreteras" value={obras.filter(o=>o.tipo==="Carretera").length} color="amber"/>
+            <Kpi icon="tree" label="Forestales" value={obras.filter(o=>o.tipo==="Forestal").length} color="green"/>
+            <Kpi icon="truck" label="Alquileres" value={obras.filter(o=>o.tipo==="Alquiler").length} color="blue"/>
+            <Kpi icon="cash" label="Ppto. Total" value={fmtBs(obras.reduce((s,o)=>s+o.presupuesto,0))} color="green"/>
+          </div>
+          <div className="card">
+            <div className="toolbar">
+              <input placeholder="Buscar obra o cliente..." value={srch} onChange={e=>setSrch(e.target.value)} style={{flex:1,minWidth:200}}/>
+              <select value={fTipo} onChange={e=>setFTipo(e.target.value)}><option>Todos</option><option>Carretera</option><option>Forestal</option><option>Alquiler</option></select>
+            </div>
+            <table className="tbl">
+              <thead><tr><th>Obra</th><th>Tipo</th><th>Cliente</th><th>Fase</th><th>Avance</th><th>Presupuesto</th><th>Estado</th><th></th></tr></thead>
+              <tbody>
+                {filtered.map((o,i)=>(
+                  <tr key={o.id}>
+                    <td><div className="hstack"><div className={`ini ${colorByIdx(i)}`}>{initials(o.nombre)}</div><div><div className="strong">{o.nombre}</div><div className="text-xs text-mute">{o.ubicacion} - {o.contrato}</div></div></div></td>
+                    <td><span className="pill pill-gray">{o.tipo}</span></td>
+                    <td className="text-sm">{o.cliente}</td>
+                    <td className="text-sm text-dim">{o.fase}</td>
+                    <td><div style={{minWidth:110}}><div className="text-xs text-mute mono">{o.avance}%</div><div className="progress" style={{marginTop:4}}><div className="progress-bar" style={{width:o.avance+"%"}}></div></div></div></td>
+                    <td className="num">{fmtBs(o.presupuesto)}</td>
+                    <td><StatePill state={o.estado}/></td>
+                    <td><div className="hstack" style={{gap:4}}><button className="btn btn-sm btn-icon btn-ghost" onClick={()=>setEditing(o)}><Icon n="edit"/></button><button className="btn btn-sm btn-icon btn-ghost btn-danger" onClick={()=>delO(o.id)}><Icon n="trash"/></button></div></td>
+                  </tr>
+                ))}
+                {filtered.length===0&&<tr><td colSpan="8"><div className="empty"><Icon n="search-off"/>Sin resultados</div></td></tr>}
+              </tbody>
+            </table>
+          </div>
+          {editing&&<ObraModal obra={editing} onClose={()=>setEditing(null)} onSave={saveO}/>}
+        </div>
+      );
+    }
+
+    /* ============================================================ MAQUINARIA */
+    function MaqModal({maq,onClose,onSave,obras}){
+      const [f,setF]=useState({...maq});
+      const u=(k,v)=>setF({...f,[k]:v});
+      return (
+        <Modal title={maq.id?"Editar Maquinaria":"Nueva Maquinaria"} onClose={onClose} size="lg"
+          footer={<><button className="btn" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={()=>onSave(f)}><Icon n="check"/> Guardar</button></>}>
+          <div className="form-row cols-2">
+            <div className="field"><label>Nombre / Modelo</label><input value={f.nombre} onChange={e=>u("nombre",e.target.value)}/></div>
+            <div className="field"><label>Placa / Codigo</label><input value={f.placa} onChange={e=>u("placa",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-3">
+            <div className="field"><label>Tipo</label><select value={f.tipo} onChange={e=>u("tipo",e.target.value)}>{["Skidder","Motoniveladora","Tractor Oruga","Tronquero F12","Volqueta + Trailer","Tractor Agricola","Camion 3/4","Vibrocompactadora","Pala Cargadora","Retroexcavadora","Camion Cisterna","Camioneta Hilux"].map(t=><option key={t}>{t}</option>)}</select></div>
+            <div className="field"><label>Estado</label><select value={f.estado} onChange={e=>u("estado",e.target.value)}><option>Operativa</option><option>Disponible</option><option>En mantenimiento</option></select></div>
+            <div className="field"><label>Operador</label><input value={f.operador} onChange={e=>u("operador",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-2">
+            <div className="field"><label>Asignada a Obra</label><select value={f.obraId||""} onChange={e=>u("obraId",e.target.value?+e.target.value:null)}><option value="">Sin asignar</option>{obras.map(o=><option key={o.id} value={o.id}>{o.nombre}</option>)}</select></div>
+            <div className="field"><label>Tipo medicion</label><select value={f.consumoTipo} onChange={e=>u("consumoTipo",e.target.value)}><option value="hora">Horometro (horas)</option><option value="km">Kilometraje (km)</option></select></div>
+          </div>
+          <div className="form-row cols-4">
+            <div className="field"><label>{f.consumoTipo==="km"?"KM":"Horas"} actuales</label><input type="number" value={f.horometro} onChange={e=>u("horometro",+e.target.value)}/></div>
+            <div className="field"><label>Consumo L/{f.consumoTipo==="km"?"km":"h"}</label><input type="number" step="0.01" value={f.consumoVal} onChange={e=>u("consumoVal",+e.target.value)}/></div>
+            <div className="field"><label>Ultimo mant.</label><input type="number" value={f.ultimoMant} onChange={e=>u("ultimoMant",+e.target.value)}/></div>
+            <div className="field"><label>Prox. mant.</label><input type="number" value={f.proxMant} onChange={e=>u("proxMant",+e.target.value)}/></div>
+          </div>
+        </Modal>
+      );
+    }
+
+    function PageMaquinaria({maquinas,setMaquinas,obras}){
+      const [editing,setEditing]=useState(null);
+      const [fTipo,setFTipo]=useState("Todos");
+      const [srch,setSrch]=useState("");
+      const tipos=["Todos",...Array.from(new Set(maquinas.map(m=>m.tipo)))];
+      const empty={id:0,nombre:"",placa:"",tipo:"Skidder",obraId:null,horometro:0,estado:"Disponible",consumoTipo:"hora",consumoVal:0,ultimoMant:0,proxMant:0,operador:""};
+      const filtered=maquinas.filter(m=>(fTipo==="Todos"||m.tipo===fTipo)&&(!srch||m.nombre.toLowerCase().includes(srch.toLowerCase())||m.placa.toLowerCase().includes(srch.toLowerCase())));
+      function saveM(m){if(m.id===0){const nid=Math.max(...maquinas.map(x=>x.id),0)+1;setMaquinas([...maquinas,{...m,id:nid}]);}else{setMaquinas(maquinas.map(x=>x.id===m.id?m:x));}setEditing(null);}
+      function delM(id){if(confirm("Eliminar esta maquinaria?"))setMaquinas(maquinas.filter(m=>m.id!==id));}
+      const oN=(id)=>obras.find(o=>o.id===id)?.nombre||"—";
+      const distrib=useMemo(()=>{const acc={};maquinas.forEach(m=>acc[m.tipo]=(acc[m.tipo]||0)+1);return Object.entries(acc).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k,value:v}));},[maquinas]);
+      return (
+        <div className="page-enter">
+          <Topbar title="Maquinaria y Flota" subtitle={`${maquinas.length} unidades - ${maquinas.filter(m=>m.estado==="Operativa").length} operativas`}
+            actions={<button className="btn btn-primary" onClick={()=>setEditing(empty)}><Icon n="plus"/> Nueva Maquinaria</button>}/>
+          <div className="kpi-grid">
+            <Kpi icon="bulldozer" label="Total Flota" value={maquinas.length} color="green"/>
+            <Kpi icon="check" label="Operativas" value={maquinas.filter(m=>m.estado==="Operativa").length} color="green" trend={{dir:"up",text:Math.round(maquinas.filter(m=>m.estado==="Operativa").length/maquinas.length*100)+"% disponib."}}/>
+            <Kpi icon="tool" label="Mantenimiento" value={maquinas.filter(m=>m.estado==="En mantenimiento").length} color="amber"/>
+            <Kpi icon="alert-circle" label="Mant. Vencido" value={maquinas.filter(m=>m.horometro>=m.proxMant).length} color="red"/>
+          </div>
+          <div className="grid-2">
+            <div className="card">
+              <div className="card-head"><div><div className="card-title">Mantenimientos Proximos</div><div className="card-sub">Maquinas con menos de 100h/km para servicio</div></div></div>
+              {maquinas.map(m=>({...m,rest:m.proxMant-m.horometro})).filter(m=>m.rest<=100).sort((a,b)=>a.rest-b.rest).slice(0,6).map(m=>(
+                <div key={m.id} className="hstack" style={{padding:"10px 0",borderBottom:"1px solid var(--border-soft)"}}>
+                  <div className={`ini ${m.rest<=0?"r":m.rest<50?"a":"g"}`}><Icon n="bulldozer"/></div>
+                  <div style={{flex:1,minWidth:0}}><div className="strong text-sm" style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.nombre}</div><div className="text-xs text-mute">{m.placa} - {fmtNum(m.horometro)}{m.consumoTipo==="km"?"km":"h"}</div></div>
+                  <span className={`pill ${m.rest<=0?"pill-red":m.rest<50?"pill-amber":"pill-green"}`}>{m.rest<=0?`Atrasado ${-m.rest}h`:`${m.rest}h`}</span>
+                </div>
+              ))}
+            </div>
+            <div className="card">
+              <div className="card-head"><div className="card-title">Distribucion por Tipo</div></div>
+              {distrib.map(d=>(
+                <div key={d.label} style={{marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}><span className="strong">{d.label}</span><span className="text-mono text-mute">{d.value}</span></div>
+                  <div className="progress"><div className="progress-bar" style={{width:(d.value/maquinas.length*100)+"%"}}></div></div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card" style={{marginTop:22}}>
+            <div className="toolbar">
+              <input placeholder="Buscar nombre o placa..." value={srch} onChange={e=>setSrch(e.target.value)} style={{flex:1,minWidth:200}}/>
+              <select value={fTipo} onChange={e=>setFTipo(e.target.value)}>{tipos.map(t=><option key={t}>{t}</option>)}</select>
+            </div>
+            <table className="tbl">
+              <thead><tr><th>Maquinaria</th><th>Tipo</th><th>Asignada a</th><th>Operador</th><th>Horometro</th><th>Prox. Mant.</th><th>Estado</th><th></th></tr></thead>
+              <tbody>
+                {filtered.map((m,i)=>{const rest=m.proxMant-m.horometro;return(
+                  <tr key={m.id}>
+                    <td><div className="hstack"><div className={`ini ${colorByIdx(i)}`}><Icon n="bulldozer"/></div><div><div className="strong">{m.nombre}</div><div className="text-xs text-mute mono">{m.placa}</div></div></div></td>
+                    <td><span className="pill pill-gray">{m.tipo}</span></td>
+                    <td className="text-sm text-dim">{oN(m.obraId)}</td>
+                    <td className="text-sm">{m.operador}</td>
+                    <td className="num mono">{fmtNum(m.horometro)} {m.consumoTipo==="km"?"km":"h"}</td>
+                    <td><span className={`pill ${rest<=0?"pill-red":rest<50?"pill-amber":"pill-green"}`}>{rest<=0?`Atrasado ${-rest}`:`en ${rest}${m.consumoTipo==="km"?"km":"h"}`}</span></td>
+                    <td><StatePill state={m.estado}/></td>
+                    <td><div className="hstack" style={{gap:4}}><button className="btn btn-sm btn-icon btn-ghost" onClick={()=>setEditing(m)}><Icon n="edit"/></button><button className="btn btn-sm btn-icon btn-ghost btn-danger" onClick={()=>delM(m.id)}><Icon n="trash"/></button></div></td>
+                  </tr>
+                );})}
+                {filtered.length===0&&<tr><td colSpan="8"><div className="empty"><Icon n="search-off"/>Sin resultados</div></td></tr>}
+              </tbody>
+            </table>
+          </div>
+          {editing&&<MaqModal maq={editing} onClose={()=>setEditing(null)} onSave={saveM} obras={obras}/>}
+        </div>
+      );
+    }
+
+    /* ============================================================ RRHH */
+    function EmpModal({emp,onClose,onSave,campamentos}){
+      const [f,setF]=useState({...emp});
+      const u=(k,v)=>setF({...f,[k]:v});
+      const p=calcularPlanilla(f);
+      return (
+        <Modal title={emp.id?"Editar Empleado":"Nuevo Empleado"} onClose={onClose} size="lg"
+          footer={<><button className="btn" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={()=>onSave(f)}><Icon n="check"/> Guardar</button></>}>
+          <div className="form-row cols-3">
+            <div className="field"><label>CI</label><input value={f.ci} onChange={e=>u("ci",e.target.value)}/></div>
+            <div className="field"><label>Nombres</label><input value={f.nombres} onChange={e=>u("nombres",e.target.value)}/></div>
+            <div className="field"><label>Apellidos</label><input value={f.apellidos} onChange={e=>u("apellidos",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-3">
+            <div className="field"><label>Cargo</label><input value={f.cargo} onChange={e=>u("cargo",e.target.value)}/></div>
+            <div className="field"><label>Tipo</label><select value={f.tipo} onChange={e=>u("tipo",e.target.value)}><option>Administrativo</option><option>Campo</option><option>Operador</option></select></div>
+            <div className="field"><label>Contrato</label><select value={f.contrato} onChange={e=>u("contrato",e.target.value)}><option>Fijo</option><option>Eventual</option></select></div>
+          </div>
+          <div className="form-row cols-2">
+            <div className="field"><label>Campamento</label><select value={f.campamentoId||""} onChange={e=>u("campamentoId",e.target.value?+e.target.value:null)}><option value="">Oficina / Sin asignar</option>{campamentos.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select></div>
+            <div className="field"><label>Fecha ingreso</label><input type="date" value={f.fechaIng} onChange={e=>u("fechaIng",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-4">
+            <div className="field"><label>Salario base (Bs)</label><input type="number" value={f.salarioBase} onChange={e=>u("salarioBase",+e.target.value)}/></div>
+            <div className="field"><label>Dias trab.</label><input type="number" value={f.diasTrab} onChange={e=>u("diasTrab",+e.target.value)}/></div>
+            <div className="field"><label>Horas extra</label><input type="number" value={f.horasExtra} onChange={e=>u("horasExtra",+e.target.value)}/></div>
+            <div className="field"><label>Dias falta</label><input type="number" value={f.diasFalta} onChange={e=>u("diasFalta",+e.target.value)}/></div>
+          </div>
+          <div style={{marginTop:14,padding:14,background:"var(--bg-card-2)",borderRadius:10,border:"1px solid var(--border-soft)"}}>
+            <div className="text-xs text-mute" style={{textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>Planilla calculada</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}}>
+              <div className="stat-mini"><span className="lbl">Bruto</span><span className="val">{fmtBs(p.bruto)}</span></div>
+              <div className="stat-mini"><span className="lbl">AFP 4.71%</span><span className="val" style={{color:"var(--danger)"}}>-{fmtBs(p.afp)}</span></div>
+              <div className="stat-mini"><span className="lbl">RC-IVA {f.rcIva}%</span><span className="val" style={{color:"var(--danger)"}}>-{fmtBs(p.rcIva)}</span></div>
+              <div className="stat-mini"><span className="lbl">NETO</span><span className="val" style={{color:"var(--primary)"}}>{fmtBs(p.neto)}</span></div>
+            </div>
+          </div>
+        </Modal>
+      );
+    }
+
+    function PageRRHH({empleados,setEmpleados,campamentos}){
+      const [editing,setEditing]=useState(null);
+      const [fTipo,setFTipo]=useState("Todos");
+      const [srch,setSrch]=useState("");
+      const empty={id:0,ci:"",nombres:"",apellidos:"",cargo:"",tipo:"Operador",contrato:"Fijo",salarioBase:0,campamentoId:null,diasTrab:22,horasExtra:0,diasFalta:0,rcIva:13,fechaIng:"2026-01-01"};
+      const filtered=empleados.filter(e=>(fTipo==="Todos"||e.tipo===fTipo)&&(!srch||`${e.nombres} ${e.apellidos}`.toLowerCase().includes(srch.toLowerCase())||e.ci.includes(srch)||e.cargo.toLowerCase().includes(srch.toLowerCase())));
+      function saveE(e){if(e.id===0){const nid=Math.max(...empleados.map(x=>x.id),0)+1;setEmpleados([...empleados,{...e,id:nid}]);}else{setEmpleados(empleados.map(x=>x.id===e.id?e:x));}setEditing(null);}
+      function delE(id){if(confirm("Eliminar este empleado?"))setEmpleados(empleados.filter(e=>e.id!==id));}
+      const totales=useMemo(()=>empleados.reduce((acc,e)=>{const p=calcularPlanilla(e);return{bruto:acc.bruto+p.bruto,neto:acc.neto+p.neto}},{bruto:0,neto:0}),[empleados]);
+      const cN=(id)=>campamentos.find(c=>c.id===id)?.nombre||"—";
+      return (
+        <div className="page-enter">
+          <Topbar title="Recursos Humanos" subtitle={`${empleados.length} empleados - planilla del mes`}
+            actions={<button className="btn btn-primary" onClick={()=>setEditing(empty)}><Icon n="plus"/> Nuevo Empleado</button>}/>
+          <div className="kpi-grid">
+            <Kpi icon="users" label="Total Empleados" value={empleados.length} color="green"/>
+            <Kpi icon="briefcase" label="Administrativos" value={empleados.filter(e=>e.tipo==="Administrativo").length} color="blue"/>
+            <Kpi icon="tool" label="Operadores y Campo" value={empleados.filter(e=>e.tipo!=="Administrativo").length} color="amber"/>
+            <Kpi icon="cash" label="Planilla Neta" value={fmtBs(totales.neto)} color="green" trend={{dir:"flat",text:`Bruto: ${fmtBs(totales.bruto)}`}}/>
+          </div>
+          <div className="card">
+            <div className="toolbar">
+              <input placeholder="Buscar nombre, CI o cargo..." value={srch} onChange={e=>setSrch(e.target.value)} style={{flex:1,minWidth:200}}/>
+              <select value={fTipo} onChange={e=>setFTipo(e.target.value)}><option>Todos</option><option>Administrativo</option><option>Campo</option><option>Operador</option></select>
+              <span className="text-xs text-mute">{filtered.length} / {empleados.length}</span>
+            </div>
+            <table className="tbl">
+              <thead><tr><th>Empleado</th><th>Cargo</th><th>Contrato</th><th>Campamento</th><th>Base</th><th>H.Extra</th><th>Bruto</th><th>Neto</th><th></th></tr></thead>
+              <tbody>
+                {filtered.map((e,i)=>{const p=calcularPlanilla(e);return(
+                  <tr key={e.id}>
+                    <td><div className="hstack"><div className={`ini ${colorByIdx(i)}`}>{initials(e.nombres+" "+e.apellidos)}</div><div><div className="strong">{e.nombres} {e.apellidos}</div><div className="text-xs text-mute mono">CI {e.ci}</div></div></div></td>
+                    <td className="text-sm">{e.cargo}</td>
+                    <td><StatePill state={e.contrato}/></td>
+                    <td className="text-sm text-dim">{cN(e.campamentoId)}</td>
+                    <td className="num">{fmtBs(e.salarioBase)}</td>
+                    <td className="num text-mute">{e.horasExtra}h</td>
+                    <td className="num strong">{fmtBs(p.bruto)}</td>
+                    <td className="num strong" style={{color:"var(--primary)"}}>{fmtBs(p.neto)}</td>
+                    <td><div className="hstack" style={{gap:4}}><button className="btn btn-sm btn-icon btn-ghost" onClick={()=>setEditing(e)}><Icon n="edit"/></button><button className="btn btn-sm btn-icon btn-ghost btn-danger" onClick={()=>delE(e.id)}><Icon n="trash"/></button></div></td>
+                  </tr>
+                );})}
+                {filtered.length===0&&<tr><td colSpan="9"><div className="empty"><Icon n="search-off"/>Sin resultados</div></td></tr>}
+              </tbody>
+              <tfoot><tr style={{background:"rgba(74,222,128,.04)"}}><td colSpan="6" className="strong" style={{padding:"14px 12px"}}>TOTALES</td><td className="num strong">{fmtBs(totales.bruto)}</td><td className="num strong" style={{color:"var(--primary)"}}>{fmtBs(totales.neto)}</td><td></td></tr></tfoot>
+            </table>
+          </div>
+          {editing&&<EmpModal emp={editing} onClose={()=>setEditing(null)} onSave={saveE} campamentos={campamentos}/>}
+        </div>
+      );
+    }
+
+    /* ============================================================ RODEOS */
+    function RodeoModal({r,onClose,onSave,obras,maquinas}){
+      const [f,setF]=useState({...r});
+      const u=(k,v)=>setF({...f,[k]:v});
+      return (
+        <Modal title={r.id?"Editar Rodeo":"Nuevo Rodeo"} onClose={onClose}
+          footer={<><button className="btn" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={()=>onSave(f)}><Icon n="check"/> Guardar</button></>}>
+          <div className="form-row cols-3">
+            <div className="field"><label>Fecha</label><input type="date" value={f.fecha} onChange={e=>u("fecha",e.target.value)}/></div>
+            <div className="field"><label>Especie</label><select value={f.especie} onChange={e=>u("especie",e.target.value)}>{ESPECIES.map(e=><option key={e}>{e}</option>)}</select></div>
+            <div className="field"><label>Cubos (m3)</label><input type="number" step="0.1" value={f.cubos} onChange={e=>u("cubos",+e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-2">
+            <div className="field"><label>Origen</label><input value={f.origen} onChange={e=>u("origen",e.target.value)}/></div>
+            <div className="field"><label>Destino</label><input value={f.destino} onChange={e=>u("destino",e.target.value)}/></div>
+          </div>
+          <div className="form-row cols-2">
+            <div className="field"><label>Responsable</label><input value={f.responsable} onChange={e=>u("responsable",e.target.value)}/></div>
+            <div className="field"><label>Etapa</label><select value={f.etapa} onChange={e=>u("etapa",e.target.value)}><option>Tumbado</option><option>Jalado</option><option>Cargado</option><option>Transportado</option></select></div>
+          </div>
+          <div className="form-row cols-2">
+            <div className="field"><label>Obra (POAT)</label><select value={f.obraId||""} onChange={e=>u("obraId",e.target.value?+e.target.value:null)}>{obras.filter(o=>o.tipo==="Forestal").map(o=><option key={o.id} value={o.id}>{o.nombre}</option>)}</select></div>
+            <div className="field"><label>Maquinaria</label><select value={f.maquinaId||""} onChange={e=>u("maquinaId",e.target.value?+e.target.value:null)}><option value="">Sin maquina</option>{maquinas.filter(m=>["Skidder","Tronquero F12","Tractor Agricola"].includes(m.tipo)).map(m=><option key={m.id} value={m.id}>{m.nombre} ({m.placa})</option>)}</select></div>
+          </div>
+        </Modal>
+      );
+    }
+
+    function PageRodeos({rodeos,setRodeos,obras,maquinas}){
+      const [editing,setEditing]=useState(null);
+      const [tab,setTab]=useState("pipeline");
+      const empty={id:0,fecha:"2026-05-14",obraId:obras.filter(o=>o.tipo==="Forestal")[0]?.id||null,especie:"Mara",cubos:0,etapa:"Tumbado",origen:"",destino:"",responsable:"",maquinaId:null};
+      const m3=rodeos.reduce((s,r)=>s+r.cubos,0);
+      const etapas=["Tumbado","Jalado","Cargado","Transportado"];
+      function saveR(r){if(r.id===0){const nid=Math.max(...rodeos.map(x=>x.id),0)+1;setRodeos([...rodeos,{...r,id:nid}]);}else{setRodeos(rodeos.map(x=>x.id===r.id?r:x));}setEditing(null);}
+      function delR(id){if(confirm("Eliminar?"))setRodeos(rodeos.filter(r=>r.id!==id));}
+      function moveR(r,d){const or=["Tumbado","Jalado","Cargado","Transportado"];const i=or.indexOf(r.etapa);const ni=Math.max(0,Math.min(3,i+d));setRodeos(rodeos.map(x=>x.id===r.id?{...x,etapa:or[ni]}:x));}
+      const oN=(id)=>obras.find(o=>o.id===id)?.nombre||"—";
+      const porEsp=useMemo(()=>{const a={};rodeos.forEach(r=>a[r.especie]=(a[r.especie]||0)+r.cubos);return Object.entries(a).sort((a,b)=>b[1]-a[1]);},[rodeos]);
+      return (
+        <div className="page-enter">
+          <Topbar title="Rodeos - Madera" subtitle={`${rodeos.length} registros - ${fmtNum(m3,1)} m3 procesados`}
+            actions={<button className="btn btn-primary" onClick={()=>setEditing(empty)}><Icon n="plus"/> Nuevo Rodeo</button>}/>
+          <div className="kpi-grid">
+            {etapas.map((et,i)=>{
+              const cnt=rodeos.filter(r=>r.etapa===et).length;
+              const cub=rodeos.filter(r=>r.etapa===et).reduce((s,r)=>s+r.cubos,0);
+              return <div key={et} className={`kpi ${["red","amber","blue","green"][i]}`}>
+                <div className="kpi-icon"><Icon n={["axe","arrow-bear-right","package","truck-delivery"][i]}/></div>
+                <div className="kpi-label">{et}</div>
+                <div className="kpi-value">{cnt} <span className="unit">rodeos</span></div>
+                <div className="kpi-trend trend-flat"><Icon n="ruler-2"/><span>{fmtNum(cub,1)} m3</span></div>
+              </div>;
+            })}
+          </div>
+          <div className="tab-bar">
+            <div className={`tab${tab==="pipeline"?" active":""}`} onClick={()=>setTab("pipeline")}>Pipeline</div>
+            <div className={`tab${tab==="tabla"?" active":""}`} onClick={()=>setTab("tabla")}>Tabla detallada</div>
+            <div className={`tab${tab==="especies"?" active":""}`} onClick={()=>setTab("especies")}>Por especie</div>
+          </div>
+          {tab==="pipeline"&&(
+            <div className="pipeline">
+              {etapas.map(et=>(
+                <div key={et} className="pipe-col">
+                  <div className="pipe-col-head"><div className="pipe-col-title"><StagePill stage={et}/></div><span className="text-xs text-mute mono">{rodeos.filter(r=>r.etapa===et).length}</span></div>
+                  {rodeos.filter(r=>r.etapa===et).map(r=>(
+                    <div key={r.id} className="pipe-card">
+                      <div className="top"><span className="esp">{r.especie}</span><span className="cu">{fmtNum(r.cubos,1)} m3</span></div>
+                      <div className="text-xs text-mute" style={{marginBottom:4}}>{r.fecha} - {r.responsable}</div>
+                      <div style={{display:"flex",gap:4,justifyContent:"flex-end",marginTop:6}}>
+                        <button className="btn btn-sm btn-icon btn-ghost" onClick={()=>moveR(r,-1)} title="Etapa anterior"><Icon n="arrow-left"/></button>
+                        <button className="btn btn-sm btn-icon btn-ghost" onClick={()=>setEditing(r)}><Icon n="edit"/></button>
+                        <button className="btn btn-sm btn-icon btn-ghost" onClick={()=>moveR(r,1)} title="Siguiente etapa"><Icon n="arrow-right"/></button>
+                      </div>
+                    </div>
+                  ))}
+                  {rodeos.filter(r=>r.etapa===et).length===0&&<div className="text-xs text-mute" style={{textAlign:"center",padding:20}}>Sin rodeos</div>}
+                </div>
+              ))}
+            </div>
+          )}
+          {tab==="tabla"&&(
+            <div className="card"><table className="tbl">
+              <thead><tr><th>Fecha</th><th>Especie</th><th>Cubos</th><th>Origen</th><th>Destino</th><th>Responsable</th><th>Etapa</th><th></th></tr></thead>
+              <tbody>
+                {rodeos.slice().reverse().map(r=>(
+                  <tr key={r.id}>
+                    <td className="mono">{r.fecha}</td><td className="strong">{r.especie}</td>
+                    <td className="num strong">{fmtNum(r.cubos,1)} m3</td>
+                    <td className="text-sm text-dim">{r.origen}</td><td className="text-sm text-dim">{r.destino}</td>
+                    <td className="text-sm">{r.responsable}</td><td><StagePill stage={r.etapa}/></td>
+                    <td><div className="hstack" style={{gap:4}}><button className="btn btn-sm btn-icon btn-ghost" onClick={()=>setEditing(r)}><Icon n="edit"/></button><button className="btn btn-sm btn-icon btn-ghost btn-danger" onClick={()=>delR(r.id)}><Icon n="trash"/></button></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table></div>
+          )}
+          {tab==="especies"&&(
+            <div className="card">
+              <div className="card-head"><div className="card-title">Cubos por Especie</div><span className="text-xs text-mute">{porEsp.length} especies</span></div>
+              {porEsp.map(([esp,c])=>(
+                <div key={esp} style={{marginBottom:14}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span className="strong">{esp}</span><span className="text-mono">{fmtNum(c,1)} m3</span></div>
+                  <div className="progress"><div className="progress-bar" style={{width:(c/m3*100)+"%"}}></div></div>
+                </div>
+              ))}
+            </div>
+          )}
+          {editing&&<RodeoModal r={editing} onClose={()=>setEditing(null)} onSave={saveR} obras={obras} maquinas={maquinas}/>}
+        </div>
+      );
+    }
+
+    /* ============================================================ CAMPAMENTOS */
+    function CampModal({c,onClose,onSave,obras}){
+      const [f,setF]=useState({...c});
+      const u=(k,v)=>setF({...f,[k]:v});
+      return (
+        <Modal title={c.id?"Editar Campamento":"Nuevo Campamento"} onClose={onClose} size="lg"
+          footer={<><button className="btn" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={()=>onSave(f)}><Icon n="check"/> Guardar</button></>}>
+          <div className="form-row cols-2"><div className="field"><label>Nombre</label><input value={f.nombre} onChange={e=>u("nombre",e.target.value)}/></div><div className="field"><label>Ubicacion</label><input value={f.ubicacion} onChange={e=>u("ubicacion",e.target.value)}/></div></div>
+          <div className="form-row cols-3">
+            <div className="field"><label>Obra asociada</label><select value={f.obraId||""} onChange={e=>u("obraId",e.target.value?+e.target.value:null)}><option value="">Sin asociar</option>{obras.map(o=><option key={o.id} value={o.id}>{o.nombre}</option>)}</select></div>
+            <div className="field"><label>Encargado</label><input value={f.encargado} onChange={e=>u("encargado",e.target.value)}/></div>
+            <div className="field"><label>Estado</label><select value={f.estado} onChange={e=>u("estado",e.target.value)}><option>Activo</option><option>En preparacion</option><option>Cerrado</option></select></div>
+          </div>
+          <div className="form-row cols-4">
+            <div className="field"><label>Capacidad</label><input type="number" value={f.capacidad} onChange={e=>u("capacidad",+e.target.value)}/></div>
+            <div className="field"><label>Ocupacion</label><input type="number" value={f.ocupacion} onChange={e=>u("ocupacion",+e.target.value)}/></div>
+            <div className="field"><label>Combustible (L)</label><input type="number" value={f.combustibleStock} onChange={e=>u("combustibleStock",+e.target.value)}/></div>
+            <div className="field"><label>Alimentos (kg)</label><input type="number" value={f.alimentosStock} onChange={e=>u("alimentosStock",+e.target.value)}/></div>
+          </div>
+          <div className="form-row"><div className="field"><label>Apertura</label><input type="date" value={f.fechaApertura} onChange={e=>u("fechaApertura",e.target.value)}/></div></div>
+          <div className="form-row"><div className="field"><label>Observaciones</label><textarea rows="3" value={f.observaciones} onChange={e=>u("observaciones",e.target.value)}/></div></div>
+        </Modal>
+      );
+    }
+
+    function PageCampamentos({campamentos,setCampamentos,obras,empleados}){
+      const [editing,setEditing]=useState(null);
+      const empty={id:0,nombre:"",ubicacion:"",obraId:obras[0]?.id||null,encargado:"",capacidad:10,ocupacion:0,estado:"En preparacion",fechaApertura:"2026-01-01",combustibleStock:0,alimentosStock:0,observaciones:""};
+      function saveC(c){if(c.id===0){const nid=Math.max(...campamentos.map(x=>x.id),0)+1;setCampamentos([...campamentos,{...c,id:nid}]);}else{setCampamentos(campamentos.map(x=>x.id===c.id?c:x));}setEditing(null);}
+      function delC(id){if(confirm("Eliminar campamento?"))setCampamentos(campamentos.filter(c=>c.id!==id));}
+      const oN=(id)=>obras.find(o=>o.id===id)?.nombre||"—";
+      const pCamp=(id)=>empleados.filter(e=>e.campamentoId===id).length;
+      return (
+        <div className="page-enter">
+          <Topbar title="Campamentos" subtitle={`${campamentos.length} campamentos - ${campamentos.filter(c=>c.estado==="Activo").length} activos`}
+            actions={<button className="btn btn-primary" onClick={()=>setEditing(empty)}><Icon n="plus"/> Nuevo Campamento</button>}/>
+          <div className="kpi-grid">
+            <Kpi icon="tent" label="Activos" value={campamentos.filter(c=>c.estado==="Activo").length} color="green"/>
+            <Kpi icon="users" label="Personal en Campo" value={empleados.filter(e=>e.campamentoId).length} color="blue"/>
+            <Kpi icon="gas-station" label="Combustible Total" value={fmtNum(campamentos.reduce((s,c)=>s+c.combustibleStock,0))} unit="L" color="amber"/>
+            <Kpi icon="package" label="Alimentos Stock" value={fmtNum(campamentos.reduce((s,c)=>s+c.alimentosStock,0))} unit="kg" color="green"/>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:16}}>
+            {campamentos.map((c,i)=>{
+              const p=c.capacidad?Math.round(c.ocupacion/c.capacidad*100):0;
+              return (
+                <div key={c.id} className="card">
+                  <div className="hstack" style={{marginBottom:12}}>
+                    <div className={`ini ${colorByIdx(i)}`} style={{width:42,height:42,borderRadius:10,fontSize:14}}><Icon n="tent"/></div>
+                    <div style={{flex:1,minWidth:0}}><div className="strong" style={{fontFamily:"var(--font-display)",fontSize:16}}>{c.nombre}</div><div className="text-xs text-mute">{c.ubicacion}</div></div>
+                    <StatePill state={c.estado}/>
+                  </div>
+                  <div style={{padding:"10px 0",borderTop:"1px solid var(--border-soft)",borderBottom:"1px solid var(--border-soft)",marginBottom:12}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}>
+                      <span style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:700}}>{c.ocupacion}<span className="text-mute text-sm"> / {c.capacidad}</span></span>
+                      <span className="text-mono text-sm" style={{color:p>85?"var(--danger)":p>60?"var(--accent)":"var(--primary)"}}>{p}%</span>
+                    </div>
+                    <div className="progress"><div className={`progress-bar${p>85?" red":p>60?" amber":""}`} style={{width:p+"%"}}></div></div>
+                    <div className="text-xs text-mute" style={{marginTop:6}}>Asignados RRHH: {pCamp(c.id)} pers.</div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
+                    <div className="stat-mini"><span className="lbl">Combustible</span><span className="val" style={{fontSize:18}}>{fmtNum(c.combustibleStock)} <span className="text-mute text-sm">L</span></span></div>
+                    <div className="stat-mini"><span className="lbl">Alimentos</span><span className="val" style={{fontSize:18}}>{fmtNum(c.alimentosStock)} <span className="text-mute text-sm">kg</span></span></div>
+                  </div>
+                  <div className="text-xs text-mute" style={{marginBottom:4}}>Encargado</div>
+                  <div className="strong text-sm" style={{marginBottom:8}}>{c.encargado}</div>
+                  <div className="text-xs text-mute" style={{marginBottom:4}}>Obra</div>
+                  <div className="text-sm text-dim" style={{marginBottom:12}}>{oN(c.obraId)}</div>
+                  {c.observaciones&&<div className="text-xs text-mute" style={{padding:"8px 10px",background:"var(--bg-card-2)",borderRadius:8,marginBottom:12,fontStyle:"italic"}}>"{c.observaciones}"</div>}
+                  <div className="hstack" style={{gap:6}}>
+                    <button className="btn btn-sm" style={{flex:1}} onClick={()=>setEditing(c)}><Icon n="edit"/> Editar</button>
+                    <button className="btn btn-sm btn-icon btn-danger" onClick={()=>delC(c.id)}><Icon n="trash"/></button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {editing&&<CampModal c={editing} onClose={()=>setEditing(null)} onSave={saveC} obras={obras}/>}
+        </div>
+      );
+    }
+
+    /* ============================================================ DOCUMENTOS */
+    function DocModal({d,onClose,onSave,obras,maquinas,empleados}){
+      const [f,setF]=useState({...d});
+      const u=(k,v)=>setF({...f,[k]:v});
+      return (
+        <Modal title={d.id?"Editar Documento":"Nuevo Documento"} onClose={onClose} size="lg"
+          footer={<><button className="btn" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={()=>onSave(f)}><Icon n="check"/> Guardar</button></>}>
+          <div className="form-row cols-2">
+            <div className="field"><label>Nombre</label><input value={f.nombre} onChange={e=>u("nombre",e.target.value)}/></div>
+            <div className="field"><label>Tipo</label><select value={f.tipo} onChange={e=>u("tipo",e.target.value)}><option>POAT</option><option>Contrato</option><option>SOAT</option><option>Inspeccion Tec.</option><option>Licencia Op.</option><option>Seguro Equipo</option><option>NIT/Tributario</option><option>Permiso Mun.</option></select></div>
+          </div>
+          <div className="form-row cols-2">
+            <div className="field"><label>Entidad</label><input value={f.entidad} onChange={e=>u("entidad",e.target.value)}/></div>
+            <div className="field"><label>Tipo referente</label><select value={f.refTipo} onChange={e=>{u("refTipo",e.target.value);u("refId",null);}}><option value="empresa">Empresa (ALISAR)</option><option value="obra">Obra</option><option value="maquina">Maquinaria</option><option value="empleado">Empleado</option></select></div>
+          </div>
+          {f.refTipo!=="empresa"&&<div className="form-row"><div className="field"><label>Referente</label><select value={f.refId||""} onChange={e=>u("refId",e.target.value?+e.target.value:null)}><option value="">—</option>{f.refTipo==="obra"&&obras.map(o=><option key={o.id} value={o.id}>{o.nombre}</option>)}{f.refTipo==="maquina"&&maquinas.map(m=><option key={m.id} value={m.id}>{m.nombre} ({m.placa})</option>)}{f.refTipo==="empleado"&&empleados.map(e=><option key={e.id} value={e.id}>{e.nombres} {e.apellidos}</option>)}</select></div></div>}
+          <div className="form-row cols-2">
+            <div className="field"><label>Emision</label><input type="date" value={f.fechaEmision} onChange={e=>u("fechaEmision",e.target.value)}/></div>
+            <div className="field"><label>Vencimiento</label><input type="date" value={f.fechaVenc} onChange={e=>u("fechaVenc",e.target.value)}/></div>
+          </div>
+          <div className="form-row"><div className="field"><label>Observaciones</label><textarea rows="3" value={f.observ} onChange={e=>u("observ",e.target.value)}/></div></div>
+        </Modal>
+      );
+    }
+
+    function PageDocumentos({documentos,setDocumentos,obras,maquinas,empleados}){
+      const [editing,setEditing]=useState(null);
+      const [fTipo,setFTipo]=useState("Todos");
+      const [fEst,setFEst]=useState("Todos");
+      const tipos=["Todos",...Array.from(new Set(documentos.map(d=>d.tipo)))];
+      const empty={id:0,tipo:"POAT",nombre:"",entidad:"",refTipo:"empresa",refId:null,fechaEmision:"2026-01-01",fechaVenc:"2026-12-31",observ:""};
+      const enriched=documentos.map(d=>{const dias=diasHasta(d.fechaVenc);const estado=dias<0?"Vencido":dias<=30?"Por vencer":dias<=90?"Proximo":"Vigente";return{...d,dias,estado};});
+      const filtered=enriched.filter(d=>(fTipo==="Todos"||d.tipo===fTipo)&&(fEst==="Todos"||d.estado===fEst)).sort((a,b)=>a.dias-b.dias);
+      function saveD(d){if(d.id===0){const nid=Math.max(...documentos.map(x=>x.id),0)+1;setDocumentos([...documentos,{...d,id:nid}]);}else{setDocumentos(documentos.map(x=>x.id===d.id?d:x));}setEditing(null);}
+      function delD(id){if(confirm("Eliminar documento?"))setDocumentos(documentos.filter(d=>d.id!==id));}
+      function refN(d){if(d.refTipo==="obra")return obras.find(o=>o.id===d.refId)?.nombre||"—";if(d.refTipo==="maquina")return maquinas.find(m=>m.id===d.refId)?.nombre||"—";if(d.refTipo==="empleado"){const e=empleados.find(x=>x.id===d.refId);return e?`${e.nombres} ${e.apellidos}`:"—";}return"Empresa";}
+      const nVenc=enriched.filter(d=>d.estado==="Vencido").length;
+      const nPorV=enriched.filter(d=>d.estado==="Por vencer").length;
+      return (
+        <div className="page-enter">
+          <Topbar title="Documentos y Vencimientos" subtitle={`${documentos.length} documentos - alertas activas`}
+            actions={<button className="btn btn-primary" onClick={()=>setEditing(empty)}><Icon n="plus"/> Nuevo Documento</button>}/>
+          {nVenc>0&&<div className="callout red"><Icon n="alert-octagon"/><div className="callout-body"><strong>{nVenc} documento{nVenc>1?"s":""} vencido{nVenc>1?"s":""}</strong><p>Urgente renovar para mantener la operacion al dia.</p></div></div>}
+          <div className="kpi-grid">
+            <Kpi icon="file-text" label="Total" value={documentos.length} color="green"/>
+            <Kpi icon="check-circle" label="Vigentes" value={enriched.filter(d=>d.estado==="Vigente").length} color="green"/>
+            <Kpi icon="clock" label="Por vencer 30d" value={nPorV} color="amber"/>
+            <Kpi icon="alert-octagon" label="Vencidos" value={nVenc} color="red"/>
+          </div>
+          <div className="card">
+            <div className="toolbar">
+              <select value={fTipo} onChange={e=>setFTipo(e.target.value)}>{tipos.map(t=><option key={t}>{t}</option>)}</select>
+              <select value={fEst} onChange={e=>setFEst(e.target.value)}><option>Todos</option><option>Vigente</option><option>Proximo</option><option>Por vencer</option><option>Vencido</option></select>
+              <span className="text-xs text-mute" style={{marginLeft:"auto"}}>{filtered.length} resultado(s)</span>
+            </div>
+            <table className="tbl">
+              <thead><tr><th>Documento</th><th>Tipo</th><th>Entidad</th><th>Referente</th><th>Emision</th><th>Vencimiento</th><th>Estado</th><th></th></tr></thead>
+              <tbody>
+                {filtered.map(d=>(
+                  <tr key={d.id}>
+                    <td><div className="hstack"><div className={`ini ${d.estado==="Vencido"?"r":d.estado==="Por vencer"?"a":d.estado==="Proximo"?"b":"g"}`}><Icon n="file-text"/></div><div><div className="strong">{d.nombre}</div>{d.observ&&<div className="text-xs text-mute" style={{fontStyle:"italic"}}>{d.observ}</div>}</div></div></td>
+                    <td><span className="pill pill-gray">{d.tipo}</span></td>
+                    <td className="text-sm">{d.entidad}</td>
+                    <td className="text-sm text-dim">{refN(d)}</td>
+                    <td className="mono text-sm">{d.fechaEmision}</td>
+                    <td className="mono text-sm">{d.fechaVenc}</td>
+                    <td><span className={`pill ${d.estado==="Vencido"?"pill-red":d.estado==="Por vencer"?"pill-amber":d.estado==="Proximo"?"pill-blue":"pill-green"}`}>{d.dias<0?`Vencido ${-d.dias}d`:`${d.dias}d`}</span></td>
+                    <td><div className="hstack" style={{gap:4}}><button className="btn btn-sm btn-icon btn-ghost" onClick={()=>setEditing(d)}><Icon n="edit"/></button><button className="btn btn-sm btn-icon btn-ghost btn-danger" onClick={()=>delD(d.id)}><Icon n="trash"/></button></div></td>
+                  </tr>
+                ))}
+                {filtered.length===0&&<tr><td colSpan="8"><div className="empty"><Icon n="file-off"/>Sin documentos en este filtro</div></td></tr>}
+              </tbody>
+            </table>
+          </div>
+          {editing&&<DocModal d={editing} onClose={()=>setEditing(null)} onSave={saveD} obras={obras} maquinas={maquinas} empleados={empleados}/>}
+        </div>
+      );
+    }
+
+    /* ============================================================ APP ROOT */
+    function App(){
+      const [view,setView]=useState("dashboard");
+      const [obras,setObras]=useState(OBRAS_INIT);
+      const [maquinas,setMaquinas]=useState(MAQ_INIT);
+      const [empleados,setEmpleados]=useState(EMP_INIT);
+      const [campamentos,setCampamentos]=useState(CAMP_INIT);
+      const [rodeos,setRodeos]=useState(RODEOS_INIT);
+      const [documentos,setDocumentos]=useState(DOCS_INIT);
+      const alertCount=documentos.filter(d=>diasHasta(d.fechaVenc)<30).length;
+      return (
+        <div className="app">
+          <Sidebar view={view} setView={setView} alertCount={alertCount}/>
+          <main className="main">
+            {view==="dashboard"   &&<PageDashboard   obras={obras} maquinas={maquinas} empleados={empleados} rodeos={rodeos} campamentos={campamentos} documentos={documentos} setView={setView}/>}
+            {view==="obras"       &&<PageObras       obras={obras} setObras={setObras}/>}
+            {view==="maquinaria"  &&<PageMaquinaria  maquinas={maquinas} setMaquinas={setMaquinas} obras={obras}/>}
+            {view==="rrhh"        &&<PageRRHH        empleados={empleados} setEmpleados={setEmpleados} campamentos={campamentos}/>}
+            {view==="rodeos"      &&<PageRodeos      rodeos={rodeos} setRodeos={setRodeos} obras={obras} maquinas={maquinas}/>}
+            {view==="campamentos" &&<PageCampamentos campamentos={campamentos} setCampamentos={setCampamentos} obras={obras} empleados={empleados}/>}
+            {view==="documentos"  &&<PageDocumentos  documentos={documentos} setDocumentos={setDocumentos} obras={obras} maquinas={maquinas} empleados={empleados}/>}
+          </main>
+        </div>
+      );
+    }
+
+    const root=ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App/>);
+  </script>
+</body>
+</html>
