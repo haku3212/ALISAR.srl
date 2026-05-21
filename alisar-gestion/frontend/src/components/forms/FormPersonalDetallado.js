@@ -1,15 +1,28 @@
 /**
- * FormPersonalDetallado.js
+ * FormPersonalDetallado.js - VERSIÓN MEJORADA
  * Componente de formulario ampliado para gestión de personal
- * Incluye validación, campos detallados y comentarios completos
+ * ✨ Nuevas características:
+ *    - Colores corporativos: Amarillo (#FFD700) y Negro (#000000)
+ *    - Integración con Google Maps para ubicación
+ *    - Validaciones mejoradas
+ *    - Secciones expandibles/colapsables
+ *    - Comentarios completos
+ *    - Mejor UX y accesibilidad
  */
 
 import React, { useState } from 'react';
 import FormInput from '../common/FormInput';
+import GoogleMapsLocation from '../common/GoogleMapsLocation';
 
 /**
  * Componente FormPersonalDetallado
- * Renderiza un formulario completo para crear/editar personal con campos extensos
+ * Renderiza un formulario completo para crear/editar personal con 4 secciones
+ *
+ * Estructura de secciones:
+ * 1. Información Básica: Datos personales identificadores
+ * 2. Información Laboral: Cargo, departamento, contrato
+ * 3. Contacto de Emergencia: Información crítica de emergencias
+ * 4. Información Adicional: Dirección con Google Maps y notas
  *
  * @param {Object} props - Propiedades del componente
  * @param {Object} props.formData - Datos del formulario actual
@@ -18,11 +31,22 @@ import FormInput from '../common/FormInput';
  * @param {boolean} props.submitting - Indica si se está enviando el formulario
  */
 const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = false }) => {
-  // Estado para controlar qué sección está expandida
-  const [expandedSection, setExpandedSection] = useState('basico');
+  // ═══════════════════════════════════════════════════════════
+  // ESTADO LOCAL
+  // ═══════════════════════════════════════════════════════════
 
   /**
-   * Manejador para cambios en los inputs
+   * Control de sección expandida
+   * Solo una sección puede estar expandida al mismo tiempo
+   */
+  const [expandedSection, setExpandedSection] = useState('basico');
+
+  // ═══════════════════════════════════════════════════════════
+  // FUNCIONES MANEJADORAS
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Manejador para cambios en los inputs de texto
    * Actualiza el estado del formulario y notifica al padre
    * @param {string} field - Nombre del campo que cambió
    * @param {any} value - Nuevo valor del campo
@@ -34,43 +58,99 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
     });
   };
 
+  /**
+   * Manejador para cambios de ubicación desde Google Maps
+   * Guarda dirección y coordenadas
+   * @param {Object} locationData - {address, coordinates: {lat, lng}}
+   */
+  const handleLocationChange = (locationData) => {
+    handleChange('direccion', locationData.address);
+    handleChange('ubicacion_coordenadas', locationData.coordinates);
+  };
+
+  /**
+   * Estilos reutilizables para mantener consistencia
+   */
+  const styles = {
+    sectionContainer: {
+      background: '#1a1a1a',
+      border: '1px solid #333333',
+      borderRadius: '14px',
+      overflow: 'hidden',
+      marginBottom: '16px'
+    },
+    sectionHeader: (color) => ({
+      padding: '14px 16px',
+      background: `linear-gradient(135deg, rgba(${color.r}, ${color.g}, ${color.b}, 0.12), rgba(${color.r}, ${color.g}, ${color.b}, 0.04))`,
+      borderBottom: '1px solid #333333',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      transition: 'all 0.2s ease',
+      userSelect: 'none'
+    }),
+    sectionTitle: (color) => ({
+      margin: 0,
+      fontSize: '14px',
+      fontWeight: '600',
+      color: `rgb(${color.r}, ${color.g}, ${color.b})`,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
+    }),
+    sectionContent: {
+      padding: '16px',
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: '16px'
+    },
+    fieldLabel: {
+      display: 'block',
+      marginBottom: '8px',
+      color: '#ffffff',
+      fontSize: '14px',
+      fontWeight: '500'
+    }
+  };
+
+  /**
+   * Colores corporativos RGB
+   */
+  const colors = {
+    primary: { r: 255, g: 215, b: 0 },      // Amarillo corporativo
+    secondary: { r: 96, g: 165, b: 250 },   // Azul
+    tertiary: { r: 251, g: 191, b: 36 },    // Naranja
+    danger: { r: 248, g: 113, b: 113 }      // Rojo
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
       {/* SECCIÓN 1: INFORMACIÓN BÁSICA */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        {/* Encabezado de la sección - Clickeable para expandir/contraer */}
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
+      <div style={styles.sectionContainer}>
+        {/* Encabezado - Clickeable para expandir/contraer */}
         <div
           onClick={() => setExpandedSection(expandedSection === 'basico' ? null : 'basico')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(74,222,128,.12), rgba(74,222,128,.04))',
-            borderBottom: expandedSection === 'basico' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
+          style={styles.sectionHeader(colors.primary)}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
         >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#4ade80' }}>
+          <h3 style={styles.sectionTitle(colors.primary)}>
             👤 Información Básica
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#999999', fontSize: '16px', transition: 'transform 0.2s' }}>
             {expandedSection === 'basico' ? '▼' : '▶'}
           </span>
         </div>
 
-        {/* Contenido de la sección - Se muestra/oculta según expandedSection */}
+        {/* Contenido expandible */}
         {expandedSection === 'basico' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={styles.sectionContent}>
             {/* Campo: Nombre Completo */}
             <FormInput
-              label="Nombre Completo"
+              label="Nombre Completo *"
               value={formData.nombre || ''}
               onChange={(e) => handleChange('nombre', e.target.value)}
               error={errors.nombre}
@@ -121,15 +201,7 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
 
             {/* Campo: Género */}
             <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Género
-              </label>
+              <label style={styles.fieldLabel}>Género</label>
               <select
                 value={formData.genero || ''}
                 onChange={(e) => handleChange('genero', e.target.value)}
@@ -138,13 +210,14 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: errors.genero ? '1px solid #f87171' : '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: errors.genero ? '1px solid #f87171' : '1px solid #333333',
+                  background: '#252525',
+                  color: '#ffffff',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer',
-                  transition: 'border-color 0.2s'
+                  transition: 'border-color 0.2s',
+                  opacity: submitting ? 0.6 : 1
                 }}
               >
                 <option value="">Seleccionar...</option>
@@ -157,39 +230,29 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
         )}
       </div>
 
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
       {/* SECCIÓN 2: INFORMACIÓN LABORAL */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
+      <div style={styles.sectionContainer}>
         <div
           onClick={() => setExpandedSection(expandedSection === 'laboral' ? null : 'laboral')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(96,165,250,.12), rgba(96,165,250,.04))',
-            borderBottom: expandedSection === 'laboral' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
+          style={styles.sectionHeader(colors.secondary)}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
         >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#60a5fa' }}>
+          <h3 style={styles.sectionTitle(colors.secondary)}>
             💼 Información Laboral
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#999999', fontSize: '16px' }}>
             {expandedSection === 'laboral' ? '▼' : '▶'}
           </span>
         </div>
 
         {expandedSection === 'laboral' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={styles.sectionContent}>
             {/* Campo: Cargo/Puesto */}
             <FormInput
-              label="Cargo"
+              label="Cargo *"
               value={formData.cargo || ''}
               onChange={(e) => handleChange('cargo', e.target.value)}
               error={errors.cargo}
@@ -200,15 +263,7 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
 
             {/* Campo: Departamento */}
             <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Departamento
-              </label>
+              <label style={styles.fieldLabel}>Departamento</label>
               <select
                 value={formData.departamento || ''}
                 onChange={(e) => handleChange('departamento', e.target.value)}
@@ -217,12 +272,14 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: errors.departamento ? '1px solid #f87171' : '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #333333',
+                  background: '#252525',
+                  color: '#ffffff',
                   outline: 'none',
                   fontSize: '14px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s',
+                  opacity: submitting ? 0.6 : 1
                 }}
               >
                 <option value="">Seleccionar...</option>
@@ -230,6 +287,7 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
                 <option value="administrativo">Administrativo</option>
                 <option value="mantenimiento">Mantenimiento</option>
                 <option value="seguridad">Seguridad</option>
+                <option value="recursos-humanos">Recursos Humanos</option>
               </select>
             </div>
 
@@ -256,15 +314,7 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
 
             {/* Campo: Tipo de Contrato */}
             <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Tipo de Contrato
-              </label>
+              <label style={styles.fieldLabel}>Tipo de Contrato</label>
               <select
                 value={formData.tipo_contrato || ''}
                 onChange={(e) => handleChange('tipo_contrato', e.target.value)}
@@ -273,12 +323,13 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #333333',
+                  background: '#252525',
+                  color: '#ffffff',
                   outline: 'none',
                   fontSize: '14px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  opacity: submitting ? 0.6 : 1
                 }}
               >
                 <option value="">Seleccionar...</option>
@@ -291,15 +342,7 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
 
             {/* Campo: Estado/Situación */}
             <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Estado
-              </label>
+              <label style={styles.fieldLabel}>Estado</label>
               <select
                 value={formData.estado || 'Activo'}
                 onChange={(e) => handleChange('estado', e.target.value)}
@@ -308,12 +351,13 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #333333',
+                  background: '#252525',
+                  color: '#ffffff',
                   outline: 'none',
                   fontSize: '14px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  opacity: submitting ? 0.6 : 1
                 }}
               >
                 <option value="Activo">Activo</option>
@@ -326,36 +370,26 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
         )}
       </div>
 
-      {/* SECCIÓN 3: INFORMACIÓN DE CONTACTO DE EMERGENCIA */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
+      {/* SECCIÓN 3: CONTACTO DE EMERGENCIA */}
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
+      <div style={styles.sectionContainer}>
         <div
           onClick={() => setExpandedSection(expandedSection === 'emergencia' ? null : 'emergencia')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(248,113,113,.12), rgba(248,113,113,.04))',
-            borderBottom: expandedSection === 'emergencia' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
+          style={styles.sectionHeader(colors.tertiary)}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
         >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#f87171' }}>
+          <h3 style={styles.sectionTitle(colors.tertiary)}>
             🆘 Contacto de Emergencia
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#999999', fontSize: '16px' }}>
             {expandedSection === 'emergencia' ? '▼' : '▶'}
           </span>
         </div>
 
         {expandedSection === 'emergencia' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={styles.sectionContent}>
             {/* Campo: Nombre Contacto de Emergencia */}
             <FormInput
               label="Nombre Contacto de Emergencia"
@@ -386,56 +420,39 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
         )}
       </div>
 
-      {/* SECCIÓN 4: INFORMACIÓN ADICIONAL */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
+      {/* SECCIÓN 4: INFORMACIÓN ADICIONAL + GOOGLE MAPS */}
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
+      <div style={styles.sectionContainer}>
         <div
           onClick={() => setExpandedSection(expandedSection === 'adicional' ? null : 'adicional')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(251,191,36,.12), rgba(251,191,36,.04))',
-            borderBottom: expandedSection === 'adicional' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
+          style={styles.sectionHeader(colors.danger)}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
         >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fbbf24' }}>
-            📝 Información Adicional
+          <h3 style={styles.sectionTitle(colors.danger)}>
+            📍 Ubicación y Notas
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#999999', fontSize: '16px' }}>
             {expandedSection === 'adicional' ? '▼' : '▶'}
           </span>
         </div>
 
         {expandedSection === 'adicional' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
-            {/* Campo: Dirección */}
-            <FormInput
-              label="Dirección"
-              value={formData.direccion || ''}
-              onChange={(e) => handleChange('direccion', e.target.value)}
+          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Campo: Ubicación con Google Maps - ANCHO COMPLETO */}
+            <GoogleMapsLocation
+              label="Dirección con Ubicación GPS"
+              address={formData.direccion || ''}
+              coordinates={formData.ubicacion_coordenadas || { lat: -14.8391, lng: -65.3672 }}
+              onLocationChange={handleLocationChange}
               disabled={submitting}
-              placeholder="Ej: Calle Principal 123, Riberalta"
+              placeholder="Buscar dirección en Google Maps..."
             />
 
-            {/* Campo: Notas/Observaciones */}
+            {/* Campo: Notas/Observaciones - ANCHO COMPLETO */}
             <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Notas/Observaciones
-              </label>
+              <label style={styles.fieldLabel}>Notas/Observaciones</label>
               <textarea
                 value={formData.notas || ''}
                 onChange={(e) => handleChange('notas', e.target.value)}
@@ -445,21 +462,39 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #333333',
+                  background: '#252525',
+                  color: '#ffffff',
                   outline: 'none',
                   fontSize: '14px',
                   fontFamily: 'inherit',
                   minHeight: '100px',
                   resize: 'vertical',
-                  transition: 'border-color 0.2s'
+                  transition: 'border-color 0.2s',
+                  opacity: submitting ? 0.6 : 1
                 }}
               />
             </div>
           </div>
         )}
       </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
+      {/* INDICADORES DE VALIDACIÓN */}
+      {/* ══════════════════════════════════════════════════════════════════════════════════ */}
+      {Object.keys(errors).length > 0 && (
+        <div style={{
+          background: 'rgba(248, 113, 113, 0.1)',
+          border: '1px solid rgba(248, 113, 113, 0.3)',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          color: '#f87171',
+          fontSize: '13px',
+          marginBottom: '8px'
+        }}>
+          ⚠️ Por favor, corrige los errores indicados en el formulario
+        </div>
+      )}
     </div>
   );
 };
