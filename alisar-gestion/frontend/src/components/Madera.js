@@ -229,7 +229,7 @@ const Madera = () => {
             <Download size={16} /> Excel
           </button>
           <button onClick={handleNew} style={{
-            background: '#4ade80',
+            background: '#FFD700',
             color: '#000',
             border: 'none',
             padding: '10px 20px',
@@ -277,7 +277,7 @@ const Madera = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
                   <div style={{ background: '#1a221a', padding: '8px', borderRadius: '50%' }}>
-                    <Trees size={18} color="#4ade80" />
+                    <Trees size={18} color="#FFD700" />
                   </div>
                   <div>
                     <h3 style={{ margin: 0, color: '#e0e0e0' }}>{m.especie}</h3>
@@ -301,7 +301,7 @@ const Madera = () => {
                 </div>
                 <div>
                   <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>VOLUMEN</p>
-                  <p style={{ color: '#4ade80', fontSize: '16px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{m.volumen}</p>
+                  <p style={{ color: '#FFD700', fontSize: '16px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{m.volumen}</p>
                 </div>
               </div>
 
@@ -329,7 +329,7 @@ const Madera = () => {
             type="submit"
             disabled={submitting}
             style={{
-              background: '#4ade80',
+              background: '#FFD700',
               color: '#000',
               border: 'none',
               padding: '12px 24px',

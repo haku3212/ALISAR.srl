@@ -7,6 +7,8 @@
 
 import React, { useState } from 'react';
 import FormInput from '../common/FormInput';
+import GoogleMapsLocation from '../common/GoogleMapsLocation';
+import { validateRequired, validatePositive, validateNonNegative } from '../../utils/validators';
 
 /**
  * Componente FormMaquinariaDetallado
@@ -60,7 +62,7 @@ const FormMaquinariaDetallado = ({ formData, onChange, errors = {}, submitting =
           onClick={() => setExpandedSection(expandedSection === 'basico' ? null : 'basico')}
           style={{
             padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(74,222,128,.12), rgba(74,222,128,.04))',
+            background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
             borderBottom: expandedSection === 'basico' ? '1px solid #28342a' : 'none',
             cursor: 'pointer',
             display: 'flex',
@@ -69,7 +71,7 @@ const FormMaquinariaDetallado = ({ formData, onChange, errors = {}, submitting =
             transition: 'all 0.2s ease'
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#4ade80' }}>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
             🏗️ Información Básica
           </h3>
           <span style={{ color: '#9aa39a' }}>
@@ -482,6 +484,20 @@ const FormMaquinariaDetallado = ({ formData, onChange, errors = {}, submitting =
               disabled={submitting}
               placeholder="Ej: Factura #001234"
             />
+
+            {/* Campo: Ubicación del Equipo con Google Maps */}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <GoogleMapsLocation
+                label="Ubicación del Equipo (GPS)"
+                address={formData.ubicacion_equipo || ''}
+                coordinates={formData.ubicacion_coords || { lat: null, lng: null }}
+                onLocationChange={(data) => {
+                  handleChange('ubicacion_equipo', data.address);
+                  handleChange('ubicacion_coords', data.coordinates);
+                }}
+                placeholder="Buscar ubicación del equipo..."
+              />
+            </div>
 
             {/* Campo: Notas/Observaciones */}
             <div>

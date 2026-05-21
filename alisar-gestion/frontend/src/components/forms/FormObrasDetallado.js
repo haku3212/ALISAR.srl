@@ -7,6 +7,8 @@
 
 import React, { useState } from 'react';
 import FormInput from '../common/FormInput';
+import GoogleMapsLocation from '../common/GoogleMapsLocation';
+import { validateRequired, validatePercentage, validatePositive } from '../../utils/validators';
 
 /**
  * Componente FormObrasDetallado
@@ -57,7 +59,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           onClick={() => setExpandedSection(expandedSection === 'general' ? null : 'general')}
           style={{
             padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(74,222,128,.12), rgba(74,222,128,.04))',
+            background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
             borderBottom: expandedSection === 'general' ? '1px solid #28342a' : 'none',
             cursor: 'pointer',
             display: 'flex',
@@ -66,7 +68,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
             transition: 'all 0.2s ease'
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#4ade80' }}>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
             📋 Información General
           </h3>
           <span style={{ color: '#9aa39a' }}>
@@ -244,6 +246,20 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
               disabled={submitting}
               placeholder="Ej: Calle Principal km 5"
             />
+
+            {/* Campo: Ubicación Exacta con Google Maps */}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <GoogleMapsLocation
+                label="Ubicación Exacta de la Obra (GPS)"
+                address={formData.ubicacion_obra || ''}
+                coordinates={formData.ubicacion_obra_coords || { lat: null, lng: null }}
+                onLocationChange={(data) => {
+                  handleChange('ubicacion_obra', data.address);
+                  handleChange('ubicacion_obra_coords', data.coordinates);
+                }}
+                placeholder="Buscar ubicación exacta de la obra..."
+              />
+            </div>
 
             {/* Campo: Fase Actual */}
             <div>

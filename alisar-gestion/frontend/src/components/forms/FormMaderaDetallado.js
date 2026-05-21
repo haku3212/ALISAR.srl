@@ -7,6 +7,8 @@
 
 import React, { useState } from 'react';
 import FormInput from '../common/FormInput';
+import GoogleMapsLocation from '../common/GoogleMapsLocation';
+import { validateRequired, validatePositive, validateNonNegative } from '../../utils/validators';
 
 /**
  * Componente FormMaderaDetallado
@@ -57,7 +59,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           onClick={() => setExpandedSection(expandedSection === 'especie' ? null : 'especie')}
           style={{
             padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(74,222,128,.12), rgba(74,222,128,.04))',
+            background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
             borderBottom: expandedSection === 'especie' ? '1px solid #28342a' : 'none',
             cursor: 'pointer',
             display: 'flex',
@@ -66,7 +68,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
             transition: 'all 0.2s ease'
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#4ade80' }}>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
             🌳 Información de Especie
           </h3>
           <span style={{ color: '#9aa39a' }}>
@@ -532,6 +534,20 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
               disabled={submitting}
               placeholder="Ej: Fila 3, Pila 5"
             />
+
+            {/* Campo: Ubicación del Campamento/Depósito con Google Maps */}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <GoogleMapsLocation
+                label="Ubicación del Campamento/Depósito (GPS)"
+                address={formData.ubicacion_campamento || ''}
+                coordinates={formData.ubicacion_campamento_coords || { lat: null, lng: null }}
+                onLocationChange={(data) => {
+                  handleChange('ubicacion_campamento', data.address);
+                  handleChange('ubicacion_campamento_coords', data.coordinates);
+                }}
+                placeholder="Buscar ubicación del campamento o depósito..."
+              />
+            </div>
 
             {/* Campo: Fecha de Recepción */}
             <FormInput

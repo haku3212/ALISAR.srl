@@ -223,7 +223,7 @@ const Personal = () => {
             <Download size={16} /> Excel
           </button>
           <button onClick={handleNew} style={{
-            background: '#4ade80',
+            background: '#FFD700',
             color: '#000',
             border: 'none',
             padding: '10px 20px',
@@ -274,7 +274,7 @@ const Personal = () => {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }}>
                 <div style={{ background: '#1a221a', padding: '10px', borderRadius: '50%' }}>
-                  <Users size={20} color="#4ade80" />
+                  <Users size={20} color="#FFD700" />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, color: '#e0e0e0' }}>{p.nombre}</h3>
@@ -322,7 +322,7 @@ const Personal = () => {
             type="submit"
             disabled={submitting}
             style={{
-              background: '#4ade80',
+              background: '#FFD700',
               color: '#000',
               border: 'none',
               padding: '12px 24px',

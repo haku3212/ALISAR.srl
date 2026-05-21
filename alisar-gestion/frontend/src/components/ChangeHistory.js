@@ -31,7 +31,7 @@ const ChangeHistory = () => {
   const getActionColor = (accion) => {
     switch (accion.toLowerCase()) {
       case 'crear':
-        return '#4ade80'; // Verde
+        return '#FFD700'; // Verde
       case 'actualizar':
         return '#60a5fa'; // Azul
       case 'eliminar':
@@ -77,9 +77,9 @@ const ChangeHistory = () => {
           style={{
             padding: '8px 16px',
             borderRadius: '6px',
-            border: !filtroTabla ? '2px solid #4ade80' : '1px solid #1f241f',
+            border: !filtroTabla ? '2px solid #FFD700' : '1px solid #1f241f',
             background: !filtroTabla ? '#1a221a' : '#111411',
-            color: !filtroTabla ? '#4ade80' : '#999',
+            color: !filtroTabla ? '#FFD700' : '#999',
             cursor: 'pointer',
             fontSize: '13px',
             fontWeight: !filtroTabla ? '600' : '400',
@@ -219,7 +219,7 @@ const ChangeHistory = () => {
                       background: '#0d0f0d',
                       padding: '8px',
                       borderRadius: '4px',
-                      color: '#4ade80',
+                      color: '#FFD700',
                       fontSize: '11px',
                       overflow: 'auto',
                       margin: 0

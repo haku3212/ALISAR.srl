@@ -228,7 +228,7 @@ const Maquinaria = () => {
             <Download size={16} /> Excel
           </button>
           <button onClick={handleNew} style={{
-            background: '#4ade80',
+            background: '#FFD700',
             color: '#000',
             border: 'none',
             padding: '10px 20px',
@@ -279,7 +279,7 @@ const Maquinaria = () => {
               <tr key={m.id}>
                 <td style={{ padding: '16px', borderBottom: '1px solid #1f241f' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Drill size={16} color="#4ade80" /> {m.nombre}
+                    <Drill size={16} color="#FFD700" /> {m.nombre}
                   </div>
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #1f241f' }}>{m.tipo}</td>
@@ -289,7 +289,7 @@ const Maquinaria = () => {
                     borderRadius: '6px',
                     fontSize: '12px',
                     background: m.estado === 'Operativo' ? '#1a221a' : '#221a1a',
-                    color: m.estado === 'Operativo' ? '#4ade80' : '#f87171',
+                    color: m.estado === 'Operativo' ? '#FFD700' : '#f87171',
                     fontWeight: '600'
                   }}>
                     {m.estado}
@@ -324,7 +324,7 @@ const Maquinaria = () => {
             type="submit"
             disabled={submitting}
             style={{
-              background: '#4ade80',
+              background: '#FFD700',
               color: '#000',
               border: 'none',
               padding: '12px 24px',

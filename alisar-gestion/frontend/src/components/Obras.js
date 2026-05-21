@@ -209,7 +209,7 @@ const Obras = () => {
             <Download size={16} /> Excel
           </button>
           <button onClick={handleNew} style={{
-            background: '#4ade80',
+            background: '#FFD700',
             color: '#000',
             border: 'none',
             padding: '10px 20px',
@@ -257,7 +257,7 @@ const Obras = () => {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                 <div>
-                  <h3 style={{ margin: 0, color: '#4ade80', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h3 style={{ margin: 0, color: '#FFD700', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <HardHat size={18} /> {obra.nombre}
                   </h3>
                   <p style={{ color: '#666', fontSize: '12px', margin: '8px 0 0 0' }}>
@@ -283,7 +283,7 @@ const Obras = () => {
                 </div>
                 <div>
                   <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>AVANCE</p>
-                  <p style={{ color: '#4ade80', fontSize: '18px', fontWeight: 'bold', margin: '4px 0 0 0' }}>
+                  <p style={{ color: '#FFD700', fontSize: '18px', fontWeight: 'bold', margin: '4px 0 0 0' }}>
                     {obra.avance}%
                   </p>
                 </div>
@@ -291,7 +291,7 @@ const Obras = () => {
 
               <div style={{ background: '#1f241f', height: '8px', borderRadius: '4px' }}>
                 <div style={{
-                  background: '#4ade80',
+                  background: '#FFD700',
                   width: obra.avance + '%',
                   height: '100%',
                   borderRadius: '4px',
@@ -319,7 +319,7 @@ const Obras = () => {
             type="submit"
             disabled={submitting}
             style={{
-              background: '#4ade80',
+              background: '#FFD700',
               color: '#000',
               border: 'none',
               padding: '12px 24px',

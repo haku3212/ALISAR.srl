@@ -1,3 +1,10 @@
+/**
+ * Dashboard.js - VERSIÓN CON COLORES CORPORATIVOS
+ * Panel de control principal de ALISAR
+ * ✨ Actualizado con colores corporativos: Amarillo (#FFD700) y Negro (#000000)
+ * Incluye estadísticas, gráficos, alertas y navegación
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -94,8 +101,8 @@ const Dashboard = ({ content }) => {
     const pageHeight = pdf.internal.pageSize.getHeight();
     let yPos = 20;
 
-    // Header
-    pdf.setFillColor(74, 222, 128);
+    // Header - Amarillo corporativo
+    pdf.setFillColor(255, 215, 0);
     pdf.rect(0, 0, pageWidth, 30, 'F');
 
     pdf.setTextColor(255, 255, 255);
@@ -183,7 +190,7 @@ const Dashboard = ({ content }) => {
   ];
 
   const pieData = [
-    { name: 'Operativo', value: 65, fill: '#4ade80' },
+    { name: 'Operativo', value: 65, fill: '#FFD700' },
     { name: 'Mantenimiento', value: 25, fill: '#f97316' },
     { name: 'Inactivo', value: 10, fill: '#f87171' }
   ];
@@ -214,7 +221,7 @@ const Dashboard = ({ content }) => {
       gap: '12px',
       padding: '12px 16px',
       borderRadius: '10px',
-      color: isActive(path) ? '#4ade80' : '#8a8a8a',
+      color: isActive(path) ? '#FFD700' : '#8a8a8a',
       cursor: 'pointer',
       marginBottom: '4px',
       fontSize: '14px',
@@ -239,7 +246,7 @@ const Dashboard = ({ content }) => {
     menuBtn: {
       background: 'transparent',
       border: 'none',
-      color: '#4ade80',
+      color: '#FFD700',
       cursor: 'pointer',
       fontSize: '20px'
     }
@@ -274,7 +281,7 @@ const Dashboard = ({ content }) => {
       {/* Tarjetas de estadísticas */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {[
-          { label: 'Obras Activas', value: stats.obras, icon: '🔨', color: '#4ade80' },
+          { label: 'Obras Activas', value: stats.obras, icon: '🔨', color: '#FFD700' },
           { label: 'Maquinaria', value: stats.maquinaria, icon: '⚙️', color: '#60a5fa' },
           { label: 'Personal', value: stats.personal, icon: '👥', color: '#a78bfa' },
           { label: 'Piezas Madera', value: stats.madera, icon: '📦', color: '#f97316' }
@@ -342,7 +349,7 @@ const Dashboard = ({ content }) => {
               />
               <Legend />
               <Area type="monotone" dataKey="presupuesto" stroke="#60a5fa" fill="#1a221a" fillOpacity={0.3} />
-              <Area type="monotone" dataKey="ejecutado" stroke="#4ade80" fill="#1a221a" fillOpacity={0.3} />
+              <Area type="monotone" dataKey="ejecutado" stroke="#FFD700" fill="#1a221a" fillOpacity={0.3} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -406,7 +413,7 @@ const Dashboard = ({ content }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
         <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
           <h3 style={{ margin: '0 0 16px 0', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <HardHat size={20} color="#4ade80" /> Últimas 5 Obras
+            <HardHat size={20} color="#FFD700" /> Últimas 5 Obras
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {lastObras.length === 0 ? (
@@ -423,7 +430,7 @@ const Dashboard = ({ content }) => {
                     <h4 style={{ margin: 0, color: '#e0e0e0', fontSize: '14px' }}>{obra.nombre}</h4>
                     <span style={{
                       background: obra.avance >= 75 ? '#1a221a' : obra.avance >= 50 ? '#1a1f22' : '#221a1a',
-                      color: obra.avance >= 75 ? '#4ade80' : obra.avance >= 50 ? '#60a5fa' : '#f87171',
+                      color: obra.avance >= 75 ? '#FFD700' : obra.avance >= 50 ? '#60a5fa' : '#f87171',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '12px',
@@ -434,7 +441,7 @@ const Dashboard = ({ content }) => {
                   </div>
                   <div style={{ background: '#0d0f0d', height: '4px', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{
-                      background: obra.avance >= 75 ? '#4ade80' : obra.avance >= 50 ? '#60a5fa' : '#f97316',
+                      background: obra.avance >= 75 ? '#FFD700' : obra.avance >= 50 ? '#60a5fa' : '#f97316',
                       width: `${obra.avance}%`,
                       height: '100%',
                       transition: 'width 0.3s'
@@ -492,7 +499,7 @@ const Dashboard = ({ content }) => {
   return (
     <div style={styles.container}>
       <div style={styles.sidebar}>
-        <div style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '18px', marginBottom: '32px' }}>ALISAR</div>
+        <div style={{ color: '#FFD700', fontWeight: 'bold', fontSize: '18px', marginBottom: '32px' }}>ALISAR</div>
         <nav style={{ flex: 1 }}>
           <div style={styles.navItem('/dashboard')} onClick={() => navigate('/dashboard')}>
             <LayoutDashboard size={18} /> Dashboard

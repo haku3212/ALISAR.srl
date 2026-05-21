@@ -13,6 +13,7 @@
 import React, { useState } from 'react';
 import FormInput from '../common/FormInput';
 import GoogleMapsLocation from '../common/GoogleMapsLocation';
+import { validateCedula, validatePhone, validateEmail, validateRequired } from '../../utils/validators';
 
 /**
  * Componente FormPersonalDetallado

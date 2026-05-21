@@ -77,9 +77,9 @@ const SearchBar = ({
               gap: '6px',
               padding: '10px 14px',
               borderRadius: '8px',
-              border: hasActiveFilters ? '1px solid #4ade80' : '1px solid #1f241f',
+              border: hasActiveFilters ? '1px solid #FFD700' : '1px solid #1f241f',
               background: hasActiveFilters ? '#1a221a' : '#111411',
-              color: hasActiveFilters ? '#4ade80' : '#999',
+              color: hasActiveFilters ? '#FFD700' : '#999',
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: hasActiveFilters ? '600' : '400',
@@ -160,7 +160,7 @@ const SearchBar = ({
                     color: '#999'
                   }}>
                     <span>{filter.min}</span>
-                    <span style={{ color: '#4ade80', fontWeight: '600' }}>
+                    <span style={{ color: '#FFD700', fontWeight: '600' }}>
                       {activeFilters[filter.id] || filter.min}
                     </span>
                     <span>{filter.max}</span>

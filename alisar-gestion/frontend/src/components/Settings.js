@@ -119,7 +119,7 @@ const Settings = () => {
             borderRadius: '12px',
             padding: '24px'
           }}>
-            <h3 style={{ margin: '0 0 16px 0', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ margin: '0 0 16px 0', color: '#FFD700', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <SettingsIcon size={20} /> Información de la Empresa
             </h3>
 
@@ -260,7 +260,7 @@ const Settings = () => {
               type="submit"
               disabled={saving}
               style={{
-                background: '#4ade80',
+                background: '#FFD700',
                 color: '#000',
                 border: 'none',
                 padding: '12px 24px',
