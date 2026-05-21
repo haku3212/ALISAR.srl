@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "alisar-desktop": "file:..",
     "axios": "^1.16.1",
     "html2canvas": "^1.4.1",
     "html2pdf": "^0.0.11",
