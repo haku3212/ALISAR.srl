@@ -1,3 +1,9 @@
+/**
+ * Componente Obras
+ * Gestiona la interfaz de usuario para administrar obras/proyectos
+ * Incluye funcionalidades CRUD, visualización de progreso, filtrado y exportación
+ */
+
 import React, { useState, useMemo } from 'react';
 import { HardHat, MapPin, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
@@ -5,11 +11,15 @@ import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
-import FormInput from './common/FormInput';
+import FormObrasDetallado from './forms/FormObrasDetallado';
 import SearchBar from './common/SearchBar';
 import { generateObrasReport, generateExcelReport } from '../utils/reportGenerator';
 
+/**
+ * Componente Principal de Gestión de Obras
+ */
 const Obras = () => {
+  // Hook CRUD para gestionar obras
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
     dataService.getObras,
     dataService.createObra,
@@ -17,10 +27,44 @@ const Obras = () => {
     dataService.deleteObra
   );
 
+  // Estados para controlar el modal, búsqueda y formulario
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({});
-  const [formData, setFormData] = useState({ nombre: '', avance: 0, presupuesto: '' });
+
+  // Estado del formulario con todos los campos expandidos
+  const [formData, setFormData] = useState({
+    // Sección: Información General
+    nombre: '',
+    codigo: '',
+    descripcion: '',
+    tipo: '',
+    cliente: '',
+
+    // Sección: Ubicación y Fases
+    provincia: '',
+    municipio: '',
+    localidad: '',
+    direccion_exacta: '',
+    fase_actual: '',
+    avance: 0,
+
+    // Sección: Personal y Responsables
+    responsable_tecnico: '',
+    supervisor: '',
+    contratista: '',
+    personal_asignado: '',
+
+    // Sección: Presupuesto y Cronograma
+    presupuesto: '',
+    monto_ejecutado: '',
+    inicio_planeado: '',
+    fin_planeado: '',
+    inicio_real: '',
+    fin_real: '',
+    observaciones: ''
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
@@ -49,15 +93,35 @@ const Obras = () => {
     return result;
   }, [data, search, filters]);
 
+  /**
+   * Valida los campos requeridos del formulario
+   */
   const validate = () => {
     const errors = {};
     if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
-    if (!formData.presupuesto.trim()) errors.presupuesto = 'Presupuesto requerido';
+    if (!formData.presupuesto.toString().trim()) errors.presupuesto = 'Presupuesto requerido';
     if (formData.avance === '' || formData.avance < 0 || formData.avance > 100) errors.avance = 'Avance debe ser 0-100';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
+  /**
+   * Resetea el formulario a su estado inicial
+   */
+  const resetFormData = () => {
+    setFormData({
+      nombre: '', codigo: '', descripcion: '', tipo: '', cliente: '',
+      provincia: '', municipio: '', localidad: '', direccion_exacta: '',
+      fase_actual: '', avance: 0,
+      responsable_tecnico: '', supervisor: '', contratista: '', personal_asignado: '',
+      presupuesto: '', monto_ejecutado: '', inicio_planeado: '', fin_planeado: '',
+      inicio_real: '', fin_real: '', observaciones: ''
+    });
+  };
+
+  /**
+   * Maneja el envío del formulario
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -69,21 +133,27 @@ const Obras = () => {
       } else {
         await create(formData);
       }
-      setFormData({ nombre: '', avance: 0, presupuesto: '' });
+      resetFormData();
       setShowModal(false);
     } finally {
       setSubmitting(false);
     }
   };
 
+  /**
+   * Prepara el formulario para editar una obra existente
+   */
   const handleEdit = (obra) => {
     setFormData(obra);
     setEditingId(obra.id);
     setShowModal(true);
   };
 
+  /**
+   * Abre el modal para crear una nueva obra
+   */
   const handleNew = () => {
-    setFormData({ nombre: '', avance: 0, presupuesto: '' });
+    resetFormData();
     setEditingId(null);
     setFormErrors({});
     setShowModal(true);
@@ -236,11 +306,32 @@ const Obras = () => {
 
       <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Obra' : 'Nueva Obra'}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <FormInput label="Nombre" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} error={formErrors.nombre} required disabled={submitting} />
-          <FormInput label="Avance (%)" type="number" value={formData.avance} onChange={(e) => setFormData({ ...formData, avance: parseInt(e.target.value) })} error={formErrors.avance} required min="0" max="100" disabled={submitting} />
-          <FormInput label="Presupuesto" value={formData.presupuesto} onChange={(e) => setFormData({ ...formData, presupuesto: e.target.value })} error={formErrors.presupuesto} required placeholder="Ej: 150,000 Bs" disabled={submitting} />
-          <button type="submit" disabled={submitting} style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
-            {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+          {/* Usar el formulario detallado con todas las secciones expandibles */}
+          <FormObrasDetallado
+            formData={formData}
+            onChange={(updatedData) => setFormData(updatedData)}
+            errors={formErrors}
+            submitting={submitting}
+          />
+
+          {/* Botón de envío */}
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{
+              background: '#4ade80',
+              color: '#000',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.6 : 1,
+              marginTop: '16px',
+              fontSize: '14px'
+            }}
+          >
+            {submitting ? 'Guardando...' : editingId ? 'Actualizar Obra' : 'Crear Obra'}
           </button>
         </form>
       </Modal>

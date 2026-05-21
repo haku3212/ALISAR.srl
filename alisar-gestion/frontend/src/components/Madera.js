@@ -1,3 +1,10 @@
+/**
+ * Componente Madera
+ * Gestiona la interfaz de usuario para administrar inventario de madera/rodeos
+ * Incluye funcionalidades CRUD con búsqueda, filtrado por especie y campamento,
+ * y exportación a PDF/Excel con formulario detallado
+ */
+
 import React, { useState, useMemo } from 'react';
 import { Trees, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
@@ -5,11 +12,15 @@ import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
-import FormInput from './common/FormInput';
+import FormMaderaDetallado from './forms/FormMaderaDetallado';
 import SearchBar from './common/SearchBar';
 import { generateMaderaReport, generateExcelReport } from '../utils/reportGenerator';
 
+/**
+ * Componente Principal de Gestión de Madera
+ */
 const Madera = () => {
+  // Hook CRUD para gestionar madera
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
     dataService.getMadera,
     dataService.createMadera,
@@ -17,10 +28,45 @@ const Madera = () => {
     dataService.deleteMadera
   );
 
+  // Estados para controlar el modal, búsqueda y formulario
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({});
-  const [formData, setFormData] = useState({ especie: '', piezas: '', volumen: '', campamento: '' });
+
+  // Estado del formulario con todos los campos expandidos
+  const [formData, setFormData] = useState({
+    // Sección: Información de Especie
+    especie: '',
+    nombre_comun: '',
+    nombre_cientifico: '',
+    procedencia: '',
+    destino: '',
+    tipo_corte: '',
+
+    // Sección: Dimensiones y Medidas
+    largo: '',
+    ancho: '',
+    espesor: '',
+    volumen: '',
+    cantidad: '',
+    peso_estimado: '',
+
+    // Sección: Calidad y Condición
+    grado_calidad: '',
+    estado_conservacion: '',
+    humedad: '',
+    defectos: '',
+
+    // Sección: Ubicación y Logística
+    campamento: '',
+    ubicacion_exacta: '',
+    fecha_recepcion: '',
+    fecha_aserrado: '',
+    precio_unitario: '',
+    valor_total: '',
+    notas: ''
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
@@ -67,16 +113,34 @@ const Madera = () => {
     return result;
   }, [data, search, filters]);
 
+  /**
+   * Valida los campos requeridos del formulario
+   */
   const validate = () => {
     const errors = {};
     if (!formData.especie.trim()) errors.especie = 'Especie requerida';
-    if (!formData.piezas || formData.piezas < 1) errors.piezas = 'Piezas debe ser mayor a 0';
-    if (!formData.volumen.trim()) errors.volumen = 'Volumen requerido';
-    if (!formData.campamento.trim()) errors.campamento = 'Campamento requerido';
+    if (!formData.volumen.toString().trim()) errors.volumen = 'Volumen requerido';
+    if (!formData.cantidad || formData.cantidad < 1) errors.cantidad = 'Cantidad debe ser mayor a 0';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
+  /**
+   * Resetea el formulario a su estado inicial
+   */
+  const resetFormData = () => {
+    setFormData({
+      especie: '', nombre_comun: '', nombre_cientifico: '', procedencia: '', destino: '', tipo_corte: '',
+      largo: '', ancho: '', espesor: '', volumen: '', cantidad: '', peso_estimado: '',
+      grado_calidad: '', estado_conservacion: '', humedad: '', defectos: '',
+      campamento: '', ubicacion_exacta: '', fecha_recepcion: '', fecha_aserrado: '',
+      precio_unitario: '', valor_total: '', notas: ''
+    });
+  };
+
+  /**
+   * Maneja el envío del formulario
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -88,21 +152,27 @@ const Madera = () => {
       } else {
         await create(formData);
       }
-      setFormData({ especie: '', piezas: '', volumen: '', campamento: '' });
+      resetFormData();
       setShowModal(false);
     } finally {
       setSubmitting(false);
     }
   };
 
+  /**
+   * Prepara el formulario para editar un registro de madera existente
+   */
   const handleEdit = (madera) => {
     setFormData(madera);
     setEditingId(madera.id);
     setShowModal(true);
   };
 
+  /**
+   * Abre el modal para crear un nuevo registro de madera
+   */
   const handleNew = () => {
-    setFormData({ especie: '', piezas: '', volumen: '', campamento: '' });
+    resetFormData();
     setEditingId(null);
     setFormErrors({});
     setShowModal(true);
@@ -246,12 +316,32 @@ const Madera = () => {
 
       <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Rodeo' : 'Nuevo Rodeo'}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <FormInput label="Especie" value={formData.especie} onChange={(e) => setFormData({ ...formData, especie: e.target.value })} error={formErrors.especie} required disabled={submitting} placeholder="Ej: Almendrillo" />
-          <FormInput label="Piezas" type="number" value={formData.piezas} onChange={(e) => setFormData({ ...formData, piezas: parseInt(e.target.value) })} error={formErrors.piezas} required min="1" disabled={submitting} />
-          <FormInput label="Volumen" value={formData.volumen} onChange={(e) => setFormData({ ...formData, volumen: e.target.value })} error={formErrors.volumen} required disabled={submitting} placeholder="Ej: 12.5 m3" />
-          <FormInput label="Campamento" value={formData.campamento} onChange={(e) => setFormData({ ...formData, campamento: e.target.value })} error={formErrors.campamento} required disabled={submitting} placeholder="Ej: Sena" />
-          <button type="submit" disabled={submitting} style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
-            {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+          {/* Usar el formulario detallado con todas las secciones expandibles */}
+          <FormMaderaDetallado
+            formData={formData}
+            onChange={(updatedData) => setFormData(updatedData)}
+            errors={formErrors}
+            submitting={submitting}
+          />
+
+          {/* Botón de envío */}
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{
+              background: '#4ade80',
+              color: '#000',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.6 : 1,
+              marginTop: '16px',
+              fontSize: '14px'
+            }}
+          >
+            {submitting ? 'Guardando...' : editingId ? 'Actualizar Rodeo' : 'Crear Rodeo'}
           </button>
         </form>
       </Modal>

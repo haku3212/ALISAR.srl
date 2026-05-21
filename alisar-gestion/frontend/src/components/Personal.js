@@ -1,3 +1,10 @@
+/**
+ * Componente Personal
+ * Gestiona la interfaz de usuario para administrar personal operativo
+ * Incluye funcionalidades CRUD (Crear, Leer, Actualizar, Eliminar) con búsqueda,
+ * filtrado, y exportación a PDF/Excel con formulario detallado
+ */
+
 import React, { useState, useMemo } from 'react';
 import { Users, UserPlus, Phone, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
@@ -5,11 +12,22 @@ import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
-import FormInput from './common/FormInput';
+import FormPersonalDetallado from './forms/FormPersonalDetallado';
 import SearchBar from './common/SearchBar';
 import { generatePersonalReport, generateExcelReport } from '../utils/reportGenerator';
 
+/**
+ * Componente Principal de Gestión de Personal
+ * Proporciona interfaz completa para CRUD de personal con:
+ * - Listado de personal con búsqueda en tiempo real
+ * - Filtrado por cargo
+ * - Creación y edición con formulario detallado
+ * - Exportación a PDF y Excel
+ * - Eliminación de registros
+ */
 const Personal = () => {
+  // Hook personalizado que maneja toda la lógica CRUD
+  // Proporciona: data (lista), loading, error, métodos (create, update, delete)
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem, refresh } = useCRUD(
     dataService.getPersonal,
     dataService.createPersonal,
@@ -17,10 +35,39 @@ const Personal = () => {
     dataService.deletePersonal
   );
 
+  // Estados para controlar el modal, búsqueda y formulario
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({});
-  const [formData, setFormData] = useState({ nombre: '', cargo: '', celular: '' });
+
+  // Estado del formulario con todos los campos expandidos
+  const [formData, setFormData] = useState({
+    // Sección: Información Básica
+    nombre: '',
+    cedula: '',
+    email: '',
+    celular: '',
+    fecha_nacimiento: '',
+    genero: '',
+
+    // Sección: Información Laboral
+    cargo: '',
+    departamento: '',
+    fecha_ingreso: '',
+    salario: '',
+    tipo_contrato: '',
+    estado: 'Activo',
+
+    // Sección: Contacto de Emergencia
+    contacto_emergencia_nombre: '',
+    contacto_emergencia_tel: '',
+    contacto_emergencia_relacion: '',
+
+    // Sección: Información Adicional
+    direccion: '',
+    notas: ''
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
@@ -54,6 +101,11 @@ const Personal = () => {
     return result;
   }, [data, search, filters]);
 
+  /**
+   * Valida los campos requeridos del formulario
+   * Verifica que nombre y cargo sean proporcionados
+   * @returns {boolean} true si el formulario es válido, false si hay errores
+   */
   const validate = () => {
     const errors = {};
     if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
@@ -62,6 +114,11 @@ const Personal = () => {
     return Object.keys(errors).length === 0;
   };
 
+  /**
+   * Maneja el envío del formulario
+   * Valida los datos, luego crea o actualiza el personal según sea necesario
+   * @param {Event} e - Evento del formulario
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -73,21 +130,43 @@ const Personal = () => {
       } else {
         await create(formData);
       }
-      setFormData({ nombre: '', cargo: '', celular: '' });
+      // Resetear el formulario a su estado vacío inicial
+      resetFormData();
       setShowModal(false);
     } finally {
       setSubmitting(false);
     }
   };
 
+  /**
+   * Resetea el formulario a su estado inicial con todos los campos vacíos
+   */
+  const resetFormData = () => {
+    setFormData({
+      nombre: '', cedula: '', email: '', celular: '', fecha_nacimiento: '', genero: '',
+      cargo: '', departamento: '', fecha_ingreso: '', salario: '', tipo_contrato: '',
+      estado: 'Activo', contacto_emergencia_nombre: '', contacto_emergencia_tel: '',
+      contacto_emergencia_relacion: '', direccion: '', notas: ''
+    });
+  };
+
+  /**
+   * Prepara el formulario para editar un personal existente
+   * Carga todos los datos del personal seleccionado en el formulario
+   * @param {Object} person - Objeto personal a editar
+   */
   const handleEdit = (person) => {
     setFormData(person);
     setEditingId(person.id);
     setShowModal(true);
   };
 
+  /**
+   * Abre el modal para crear un nuevo personal
+   * Resetea el formulario y limpia los errores
+   */
   const handleNew = () => {
-    setFormData({ nombre: '', cargo: '', celular: '' });
+    resetFormData();
     setEditingId(null);
     setFormErrors({});
     setShowModal(true);
@@ -230,31 +309,15 @@ const Personal = () => {
 
       <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Personal' : 'Nuevo Personal'}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <FormInput
-            label="Nombre"
-            name="nombre"
-            value={formData.nombre}
-            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-            error={formErrors.nombre}
-            required
-            disabled={submitting}
+          {/* Usar el formulario detallado con todas las secciones expandibles */}
+          <FormPersonalDetallado
+            formData={formData}
+            onChange={(updatedData) => setFormData(updatedData)}
+            errors={formErrors}
+            submitting={submitting}
           />
-          <FormInput
-            label="Cargo"
-            name="cargo"
-            value={formData.cargo}
-            onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
-            error={formErrors.cargo}
-            required
-            disabled={submitting}
-          />
-          <FormInput
-            label="Celular"
-            name="celular"
-            value={formData.celular}
-            onChange={(e) => setFormData({ ...formData, celular: e.target.value })}
-            disabled={submitting}
-          />
+
+          {/* Botón de envío */}
           <button
             type="submit"
             disabled={submitting}
@@ -262,15 +325,16 @@ const Personal = () => {
               background: '#4ade80',
               color: '#000',
               border: 'none',
-              padding: '10px',
+              padding: '12px 24px',
               borderRadius: '8px',
               fontWeight: 'bold',
               cursor: submitting ? 'not-allowed' : 'pointer',
               opacity: submitting ? 0.6 : 1,
-              marginTop: '8px'
+              marginTop: '16px',
+              fontSize: '14px'
             }}
           >
-            {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+            {submitting ? 'Guardando...' : editingId ? 'Actualizar Personal' : 'Crear Personal'}
           </button>
         </form>
       </Modal>

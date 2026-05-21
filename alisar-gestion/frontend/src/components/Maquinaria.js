@@ -1,3 +1,10 @@
+/**
+ * Componente Maquinaria
+ * Gestiona la interfaz de usuario para administrar maquinaria y equipos
+ * Incluye funcionalidades CRUD con búsqueda, filtrado por tipo y estado,
+ * y exportación a PDF/Excel con formulario detallado
+ */
+
 import React, { useState, useMemo } from 'react';
 import { Drill, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
@@ -5,11 +12,15 @@ import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
-import FormInput from './common/FormInput';
+import FormMaquinariaDetallado from './forms/FormMaquinariaDetallado';
 import SearchBar from './common/SearchBar';
 import { generateMaquinariaReport, generateExcelReport } from '../utils/reportGenerator';
 
+/**
+ * Componente Principal de Gestión de Maquinaria
+ */
 const Maquinaria = () => {
+  // Hook CRUD para gestionar maquinaria
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
     dataService.getMaquinaria,
     dataService.createMaquinaria,
@@ -17,10 +28,44 @@ const Maquinaria = () => {
     dataService.deleteMaquinaria
   );
 
+  // Estados para controlar el modal, búsqueda y formulario
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({});
-  const [formData, setFormData] = useState({ nombre: '', tipo: '', estado: 'Operativo', ultimaRevision: '' });
+
+  // Estado del formulario con todos los campos expandidos
+  const [formData, setFormData] = useState({
+    // Sección: Información Básica
+    nombre: '',
+    tipo: '',
+    modelo: '',
+    anio: '',
+    numero_serie: '',
+    placa: '',
+
+    // Sección: Especificaciones Técnicas
+    potencia: '',
+    capacidad_carga: '',
+    consumo_combustible: '',
+    tipo_combustible: '',
+    ancho_trabajo: '',
+    profundidad_maxima: '',
+
+    // Sección: Operación y Mantenimiento
+    estado: 'Operativo',
+    horas_operacion: '',
+    mantenimiento_proximo: '',
+    ultima_revision: '',
+    operador_asignado: '',
+    costo_mantenimiento_anual: '',
+
+    // Sección: Documentación
+    numero_garantia: '',
+    fecha_vencimiento_garantia: '',
+    documento_adquisicion: '',
+    notas: ''
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
@@ -67,6 +112,9 @@ const Maquinaria = () => {
     return result;
   }, [data, search, filters]);
 
+  /**
+   * Valida los campos requeridos del formulario
+   */
   const validate = () => {
     const errors = {};
     if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
@@ -75,6 +123,23 @@ const Maquinaria = () => {
     return Object.keys(errors).length === 0;
   };
 
+  /**
+   * Resetea el formulario a su estado inicial
+   */
+  const resetFormData = () => {
+    setFormData({
+      nombre: '', tipo: '', modelo: '', anio: '', numero_serie: '', placa: '',
+      potencia: '', capacidad_carga: '', consumo_combustible: '', tipo_combustible: '',
+      ancho_trabajo: '', profundidad_maxima: '',
+      estado: 'Operativo', horas_operacion: '', mantenimiento_proximo: '', ultima_revision: '',
+      operador_asignado: '', costo_mantenimiento_anual: '',
+      numero_garantia: '', fecha_vencimiento_garantia: '', documento_adquisicion: '', notas: ''
+    });
+  };
+
+  /**
+   * Maneja el envío del formulario
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -86,21 +151,27 @@ const Maquinaria = () => {
       } else {
         await create(formData);
       }
-      setFormData({ nombre: '', tipo: '', estado: 'Operativo', ultimaRevision: '' });
+      resetFormData();
       setShowModal(false);
     } finally {
       setSubmitting(false);
     }
   };
 
+  /**
+   * Prepara el formulario para editar una máquina existente
+   */
   const handleEdit = (maquina) => {
     setFormData(maquina);
     setEditingId(maquina.id);
     setShowModal(true);
   };
 
+  /**
+   * Abre el modal para crear una nueva máquina
+   */
   const handleNew = () => {
-    setFormData({ nombre: '', tipo: '', estado: 'Operativo', ultimaRevision: '' });
+    resetFormData();
     setEditingId(null);
     setFormErrors({});
     setShowModal(true);
@@ -240,27 +311,32 @@ const Maquinaria = () => {
 
       <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Maquinaria' : 'Nuevo Equipo'}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <FormInput label="Nombre" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} error={formErrors.nombre} required disabled={submitting} />
-          <FormInput label="Tipo" value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} error={formErrors.tipo} required disabled={submitting} />
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#e0e0e0', fontSize: '14px' }}>Estado</label>
-            <select value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })} disabled={submitting} style={{
-              width: '100%',
-              padding: '10px 12px',
+          {/* Usar el formulario detallado con todas las secciones expandibles */}
+          <FormMaquinariaDetallado
+            formData={formData}
+            onChange={(updatedData) => setFormData(updatedData)}
+            errors={formErrors}
+            submitting={submitting}
+          />
+
+          {/* Botón de envío */}
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{
+              background: '#4ade80',
+              color: '#000',
+              border: 'none',
+              padding: '12px 24px',
               borderRadius: '8px',
-              border: '1px solid #1f241f',
-              background: '#111411',
-              color: '#e0e0e0',
-              outline: 'none'
-            }}>
-              <option>Operativo</option>
-              <option>Mantenimiento</option>
-              <option>Inactivo</option>
-            </select>
-          </div>
-          <FormInput label="Última Revisión" type="date" value={formData.ultimaRevision} onChange={(e) => setFormData({ ...formData, ultimaRevision: e.target.value })} disabled={submitting} />
-          <button type="submit" disabled={submitting} style={{ background: '#4ade80', color: '#000', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
-            {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+              fontWeight: 'bold',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.6 : 1,
+              marginTop: '16px',
+              fontSize: '14px'
+            }}
+          >
+            {submitting ? 'Guardando...' : editingId ? 'Actualizar Maquinaria' : 'Crear Maquinaria'}
           </button>
         </form>
       </Modal>
