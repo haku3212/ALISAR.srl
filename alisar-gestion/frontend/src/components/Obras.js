@@ -6,6 +6,7 @@ import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
 import FormInput from './common/FormInput';
+import SearchBar from './common/SearchBar';
 
 const Obras = () => {
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
@@ -17,16 +18,35 @@ const Obras = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({});
   const [formData, setFormData] = useState({ nombre: '', avance: 0, presupuesto: '' });
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
+  // Configuración de filtros avanzados
+  const filterConfigs = useMemo(() => [
+    {
+      id: 'avance',
+      label: 'Avance Mínimo',
+      type: 'range',
+      min: 0,
+      max: 100
+    }
+  ], []);
+
   const filtered = useMemo(() => {
-    return data.filter(o =>
+    let result = data.filter(o =>
       o.nombre.toLowerCase().includes(search.toLowerCase()) ||
       o.presupuesto.toLowerCase().includes(search.toLowerCase())
     );
-  }, [data, search]);
+
+    // Aplicar filtro de avance
+    if (filters.avance) {
+      result = result.filter(o => o.avance >= parseInt(filters.avance));
+    }
+
+    return result;
+  }, [data, search, filters]);
 
   const validate = () => {
     const errors = {};
@@ -100,22 +120,11 @@ const Obras = () => {
 
       {error && <ErrorMessage message={error} onDismiss={() => {}} />}
 
-      <input
-        type="text"
+      <SearchBar
         placeholder="Buscar por nombre o presupuesto..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          marginBottom: '24px',
-          borderRadius: '8px',
-          border: '1px solid #1f241f',
-          background: '#111411',
-          color: '#e0e0e0',
-          outline: 'none',
-          boxSizing: 'border-box'
-        }}
+        onSearch={setSearch}
+        onFilterChange={setFilters}
+        filters={filterConfigs}
       />
 
       <div style={{ display: 'grid', gap: '16px' }}>

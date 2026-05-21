@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Users, UserPlus, Phone, Edit2, Trash2, X } from 'lucide-react';
+import { Users, UserPlus, Phone, Edit2, Trash2 } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
 import FormInput from './common/FormInput';
+import SearchBar from './common/SearchBar';
 
 const Personal = () => {
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem, refresh } = useCRUD(
@@ -17,17 +18,40 @@ const Personal = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({});
   const [formData, setFormData] = useState({ nombre: '', cargo: '', celular: '' });
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
+  // Obtener cargos únicos para filtros
+  const uniqueCargos = useMemo(() => {
+    return [...new Set(data.map(p => p.cargo))];
+  }, [data]);
+
+  // Configuración de filtros avanzados
+  const filterConfigs = useMemo(() => [
+    {
+      id: 'cargo',
+      label: 'Cargo',
+      type: 'select',
+      options: uniqueCargos.map(cargo => ({ label: cargo, value: cargo }))
+    }
+  ], [uniqueCargos]);
+
   const filtered = useMemo(() => {
-    return data.filter(p =>
+    let result = data.filter(p =>
       p.nombre.toLowerCase().includes(search.toLowerCase()) ||
       p.cargo.toLowerCase().includes(search.toLowerCase()) ||
       p.celular.includes(search)
     );
-  }, [data, search]);
+
+    // Aplicar filtro de cargo
+    if (filters.cargo) {
+      result = result.filter(p => p.cargo === filters.cargo);
+    }
+
+    return result;
+  }, [data, search, filters]);
 
   const validate = () => {
     const errors = {};
@@ -101,22 +125,11 @@ const Personal = () => {
 
       {error && <ErrorMessage message={error} onDismiss={() => {}} />}
 
-      <input
-        type="text"
+      <SearchBar
         placeholder="Buscar por nombre, cargo o celular..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          marginBottom: '24px',
-          borderRadius: '8px',
-          border: '1px solid #1f241f',
-          background: '#111411',
-          color: '#e0e0e0',
-          outline: 'none',
-          boxSizing: 'border-box'
-        }}
+        onSearch={setSearch}
+        onFilterChange={setFilters}
+        filters={filterConfigs}
       />
 
       <div>

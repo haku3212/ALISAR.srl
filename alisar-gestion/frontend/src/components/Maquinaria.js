@@ -6,6 +6,7 @@ import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
 import FormInput from './common/FormInput';
+import SearchBar from './common/SearchBar';
 
 const Maquinaria = () => {
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
@@ -17,17 +18,53 @@ const Maquinaria = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({});
   const [formData, setFormData] = useState({ nombre: '', tipo: '', estado: 'Operativo', ultimaRevision: '' });
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
+  // Obtener tipos y estados únicos para filtros
+  const uniqueTypes = useMemo(() => {
+    return [...new Set(data.map(m => m.tipo).filter(Boolean))];
+  }, [data]);
+
+  const uniqueStates = useMemo(() => {
+    return [...new Set(data.map(m => m.estado).filter(Boolean))];
+  }, [data]);
+
+  // Configuración de filtros avanzados
+  const filterConfigs = useMemo(() => [
+    {
+      id: 'tipo',
+      label: 'Tipo',
+      type: 'select',
+      options: uniqueTypes.map(tipo => ({ label: tipo, value: tipo }))
+    },
+    {
+      id: 'estado',
+      label: 'Estado',
+      type: 'select',
+      options: uniqueStates.map(estado => ({ label: estado, value: estado }))
+    }
+  ], [uniqueTypes, uniqueStates]);
+
   const filtered = useMemo(() => {
-    return data.filter(m =>
+    let result = data.filter(m =>
       m.nombre.toLowerCase().includes(search.toLowerCase()) ||
       m.tipo.toLowerCase().includes(search.toLowerCase()) ||
       m.estado.toLowerCase().includes(search.toLowerCase())
     );
-  }, [data, search]);
+
+    // Aplicar filtros
+    if (filters.tipo) {
+      result = result.filter(m => m.tipo === filters.tipo);
+    }
+    if (filters.estado) {
+      result = result.filter(m => m.estado === filters.estado);
+    }
+
+    return result;
+  }, [data, search, filters]);
 
   const validate = () => {
     const errors = {};
@@ -100,22 +137,11 @@ const Maquinaria = () => {
 
       {error && <ErrorMessage message={error} onDismiss={() => {}} />}
 
-      <input
-        type="text"
+      <SearchBar
         placeholder="Buscar por nombre, tipo o estado..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          marginBottom: '24px',
-          borderRadius: '8px',
-          border: '1px solid #1f241f',
-          background: '#111411',
-          color: '#e0e0e0',
-          outline: 'none',
-          boxSizing: 'border-box'
-        }}
+        onSearch={setSearch}
+        onFilterChange={setFilters}
+        filters={filterConfigs}
       />
 
       {filtered.length === 0 ? (

@@ -6,6 +6,7 @@ import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
 import FormInput from './common/FormInput';
+import SearchBar from './common/SearchBar';
 
 const Madera = () => {
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
@@ -17,17 +18,53 @@ const Madera = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({});
   const [formData, setFormData] = useState({ especie: '', piezas: '', volumen: '', campamento: '' });
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
+  // Obtener especies y campamentos únicos para filtros
+  const uniqueEspecies = useMemo(() => {
+    return [...new Set(data.map(m => m.especie).filter(Boolean))];
+  }, [data]);
+
+  const uniqueCampamentos = useMemo(() => {
+    return [...new Set(data.map(m => m.campamento).filter(Boolean))];
+  }, [data]);
+
+  // Configuración de filtros avanzados
+  const filterConfigs = useMemo(() => [
+    {
+      id: 'especie',
+      label: 'Especie',
+      type: 'select',
+      options: uniqueEspecies.map(especie => ({ label: especie, value: especie }))
+    },
+    {
+      id: 'campamento',
+      label: 'Campamento',
+      type: 'select',
+      options: uniqueCampamentos.map(campamento => ({ label: campamento, value: campamento }))
+    }
+  ], [uniqueEspecies, uniqueCampamentos]);
+
   const filtered = useMemo(() => {
-    return data.filter(m =>
+    let result = data.filter(m =>
       m.especie.toLowerCase().includes(search.toLowerCase()) ||
       m.campamento.toLowerCase().includes(search.toLowerCase()) ||
       m.volumen.toLowerCase().includes(search.toLowerCase())
     );
-  }, [data, search]);
+
+    // Aplicar filtros
+    if (filters.especie) {
+      result = result.filter(m => m.especie === filters.especie);
+    }
+    if (filters.campamento) {
+      result = result.filter(m => m.campamento === filters.campamento);
+    }
+
+    return result;
+  }, [data, search, filters]);
 
   const validate = () => {
     const errors = {};
@@ -102,22 +139,11 @@ const Madera = () => {
 
       {error && <ErrorMessage message={error} onDismiss={() => {}} />}
 
-      <input
-        type="text"
+      <SearchBar
         placeholder="Buscar por especie, volumen o campamento..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          marginBottom: '24px',
-          borderRadius: '8px',
-          border: '1px solid #1f241f',
-          background: '#111411',
-          color: '#e0e0e0',
-          outline: 'none',
-          boxSizing: 'border-box'
-        }}
+        onSearch={setSearch}
+        onFilterChange={setFilters}
+        filters={filterConfigs}
       />
 
       {filtered.length === 0 ? (

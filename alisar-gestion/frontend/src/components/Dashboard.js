@@ -1,14 +1,80 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { dataService } from '../services/api';
+import LoadingSpinner from './common/LoadingSpinner';
 
 const Dashboard = ({ content }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [stats, setStats] = useState({ obras: 0, maquinaria: 0, personal: 0, madera: 0 });
+  const [lastObras, setLastObras] = useState([]);
+  const [maintenanceNeeded, setMaintenanceNeeded] = useState([]);
+  const [personalByRole, setPersonalByRole] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [obraRes, maquinariaRes, personalRes, maderaRes] = await Promise.all([
+          dataService.getObras(),
+          dataService.getMaquinaria(),
+          dataService.getPersonal(),
+          dataService.getMadera()
+        ]);
+
+        const obras = obraRes.data || [];
+        const maquinaria = maquinariaRes.data || [];
+        const personal = personalRes.data || [];
+        const madera = maderaRes.data || [];
+
+        // Actualizar estadísticas
+        setStats({
+          obras: obras.length,
+          maquinaria: maquinaria.length,
+          personal: personal.length,
+          madera: madera.reduce((sum, m) => sum + (m.piezas || 0), 0)
+        });
+
+        // Últimas 5 obras
+        setLastObras(obras.slice(-5).reverse());
+
+        // Máquinas que necesitan mantenimiento (avance próximo)
+        const maintenance = maquinaria
+          .filter(m => {
+            if (!m.ultimaRevision) return true;
+            const lastReview = new Date(m.ultimaRevision);
+            const now = new Date();
+            const daysAgo = (now - lastReview) / (1000 * 60 * 60 * 24);
+            return daysAgo > 90;
+          })
+          .slice(0, 3);
+        setMaintenanceNeeded(maintenance);
+
+        // Personal por cargo (para BarChart)
+        const roleMap = {};
+        personal.forEach(p => {
+          roleMap[p.cargo] = (roleMap[p.cargo] || 0) + 1;
+        });
+        const roleData = Object.entries(roleMap).map(([cargo, count]) => ({
+          name: cargo,
+          personal: count
+        }));
+        setPersonalByRole(roleData);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -17,11 +83,11 @@ const Dashboard = ({ content }) => {
 
   // Datos para gráficos del dashboard
   const chartData = [
-    { name: 'Ene', works: 40, machinery: 24 },
-    { name: 'Feb', works: 30, machinery: 13 },
-    { name: 'Mar', works: 20, machinery: 98 },
-    { name: 'Abr', works: 27, machinery: 39 },
-    { name: 'May', works: 45, machinery: 48 }
+    { name: 'Ene', presupuesto: 40000, ejecutado: 24000 },
+    { name: 'Feb', presupuesto: 30000, ejecutado: 13000 },
+    { name: 'Mar', presupuesto: 20000, ejecutado: 9800 },
+    { name: 'Abr', presupuesto: 27000, ejecutado: 15500 },
+    { name: 'May', presupuesto: 45000, ejecutado: 32200 }
   ];
 
   const pieData = [
@@ -87,18 +153,24 @@ const Dashboard = ({ content }) => {
     }
   };
 
+  if (loading) return <LoadingSpinner />;
+
   const home = (
     <div style={{ padding: '32px' }}>
-      <h1 style={{ color: '#fff', marginBottom: '8px' }}>Panel de Control ALISAR</h1>
-      <p style={{ color: '#666', marginBottom: '32px' }}>Resumen operativo - Riberalta 2026</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '32px' }}>
+        <div>
+          <h1 style={{ color: '#fff', marginBottom: '8px' }}>Panel de Control ALISAR</h1>
+          <p style={{ color: '#666', marginBottom: '0' }}>Resumen operativo - Riberalta 2026</p>
+        </div>
+      </div>
 
       {/* Tarjetas de estadísticas */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {[
-          { label: 'Obras Activas', value: '5', icon: '🔨' },
-          { label: 'Maquinaria', value: '12', icon: '⚙️' },
-          { label: 'Personal', value: '24', icon: '👥' },
-          { label: 'Volumen Procesado', value: '177 m³', icon: '📦' }
+          { label: 'Obras Activas', value: stats.obras, icon: '🔨', color: '#4ade80' },
+          { label: 'Maquinaria', value: stats.maquinaria, icon: '⚙️', color: '#60a5fa' },
+          { label: 'Personal', value: stats.personal, icon: '👥', color: '#a78bfa' },
+          { label: 'Piezas Madera', value: stats.madera, icon: '📦', color: '#f97316' }
         ].map((stat, i) => (
           <div key={i} style={{
             background: '#111411',
@@ -112,19 +184,44 @@ const Dashboard = ({ content }) => {
             <div style={{ fontSize: '32px' }}>{stat.icon}</div>
             <div>
               <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>{stat.label}</p>
-              <h3 style={{ color: '#4ade80', fontSize: '24px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{stat.value}</h3>
+              <h3 style={{ color: stat.color, fontSize: '24px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{stat.value}</h3>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Gráficos */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
-        {/* Gráfico de líneas */}
+      {/* Alertas y Warnings */}
+      {maintenanceNeeded.length > 0 && (
+        <div style={{ background: '#1a1a1a', border: '1px solid #f97316', borderRadius: '12px', padding: '16px', marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'start' }}>
+          <AlertCircle size={24} color="#f97316" style={{ flexShrink: 0, marginTop: '4px' }} />
+          <div>
+            <h3 style={{ color: '#f97316', margin: '0 0 8px 0', fontSize: '16px' }}>Equipos con Mantenimiento Próximo</h3>
+            <p style={{ color: '#999', margin: '0 0 12px 0', fontSize: '14px' }}>Los siguientes equipos necesitan revisión en breve:</p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {maintenanceNeeded.map(m => (
+                <span key={m.id} style={{
+                  background: '#1f241f',
+                  color: '#f97316',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  border: '1px solid #f97316'
+                }}>
+                  {m.nombre}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gráficos principales */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        {/* Evolución de Presupuesto */}
         <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
-          <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Evolución Mensual</h3>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Evolución Presupuesto (Bs)</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+            <AreaChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1f241f" />
               <XAxis dataKey="name" stroke="#666" />
               <YAxis stroke="#666" />
@@ -137,13 +234,13 @@ const Dashboard = ({ content }) => {
                 }}
               />
               <Legend />
-              <Line type="monotone" dataKey="works" stroke="#4ade80" strokeWidth={2} />
-              <Line type="monotone" dataKey="machinery" stroke="#60a5fa" strokeWidth={2} />
-            </LineChart>
+              <Area type="monotone" dataKey="presupuesto" stroke="#60a5fa" fill="#1a221a" fillOpacity={0.3} />
+              <Area type="monotone" dataKey="ejecutado" stroke="#4ade80" fill="#1a221a" fillOpacity={0.3} />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Gráfico de pastel */}
+        {/* Estado de Maquinaria */}
         <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
           <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Estado de Maquinaria</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -172,6 +269,114 @@ const Dashboard = ({ content }) => {
               />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Personal por Cargo */}
+      {personalByRole.length > 0 && (
+        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f', marginBottom: '32px' }}>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Distribución de Personal por Cargo</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={personalByRole}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f241f" />
+              <XAxis dataKey="name" stroke="#666" angle={-45} textAnchor="end" height={80} />
+              <YAxis stroke="#666" />
+              <Tooltip
+                contentStyle={{
+                  background: '#1a1d1a',
+                  border: '1px solid #1f241f',
+                  borderRadius: '8px',
+                  color: '#e0e0e0'
+                }}
+              />
+              <Bar dataKey="personal" fill="#a78bfa" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Últimas Obras */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <HardHat size={20} color="#4ade80" /> Últimas 5 Obras
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {lastObras.length === 0 ? (
+              <p style={{ color: '#666', margin: 0 }}>No hay obras registradas</p>
+            ) : (
+              lastObras.map(obra => (
+                <div key={obra.id} style={{
+                  background: '#1a1d1a',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid #1f241f'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                    <h4 style={{ margin: 0, color: '#e0e0e0', fontSize: '14px' }}>{obra.nombre}</h4>
+                    <span style={{
+                      background: obra.avance >= 75 ? '#1a221a' : obra.avance >= 50 ? '#1a1f22' : '#221a1a',
+                      color: obra.avance >= 75 ? '#4ade80' : obra.avance >= 50 ? '#60a5fa' : '#f87171',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      {obra.avance}%
+                    </span>
+                  </div>
+                  <div style={{ background: '#0d0f0d', height: '4px', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{
+                      background: obra.avance >= 75 ? '#4ade80' : obra.avance >= 50 ? '#60a5fa' : '#f97316',
+                      width: `${obra.avance}%`,
+                      height: '100%',
+                      transition: 'width 0.3s'
+                    }} />
+                  </div>
+                  <p style={{ color: '#666', fontSize: '12px', margin: '8px 0 0 0' }}>{obra.presupuesto}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Próximos Eventos */}
+        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Clock size={20} color="#f97316" /> Próximos Eventos
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{
+              background: '#1a1d1a',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #1f241f',
+              borderLeft: '4px solid #f97316'
+            }}>
+              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Mantenimiento Maquinaria</p>
+              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Próximos 30 días</p>
+            </div>
+            <div style={{
+              background: '#1a1d1a',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #1f241f',
+              borderLeft: '4px solid #a78bfa'
+            }}>
+              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Revisión de Personal</p>
+              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Evaluaciones programadas</p>
+            </div>
+            <div style={{
+              background: '#1a1d1a',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #1f241f',
+              borderLeft: '4px solid #60a5fa'
+            }}>
+              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Control de Madera</p>
+              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Inventario a finales de mes</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
