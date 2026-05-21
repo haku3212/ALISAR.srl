@@ -299,6 +299,87 @@ export const generateMaquinariaReport = (maquinaria) => {
 };
 
 /**
+ * Genera un PDF con formato profesional para reportes de Rodeos
+ */
+export const generateRodeoReport = (rodeos) => {
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  let yPos = 20;
+
+  // Header
+  pdf.setFillColor(255, 215, 0);
+  pdf.rect(0, 0, pageWidth, 25, 'F');
+
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(24);
+  pdf.text('REPORTE DE RODEOS FORESTALES', pageWidth / 2, 12, { align: 'center' });
+
+  // Fecha
+  pdf.setFontSize(10);
+  pdf.setTextColor(100, 100, 100);
+  pdf.text(`Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 20, { align: 'center' });
+
+  // Contenido
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(11);
+
+  yPos = 40;
+  const colX = [20, 55, 85, 120, 155];
+  const headers = ['Fecha', 'Volumen (m³)', 'Especie', 'Procedencia', 'Responsable'];
+
+  // Encabezados
+  pdf.setFillColor(240, 240, 240);
+  pdf.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
+  pdf.setFont(undefined, 'bold');
+  headers.forEach((header, i) => {
+    pdf.text(header, colX[i], yPos);
+  });
+
+  yPos += 15;
+  pdf.setFont(undefined, 'normal');
+  pdf.setFontSize(9);
+
+  let totalVolumen = 0;
+
+  // Datos
+  rodeos.forEach((item) => {
+    if (yPos > pageHeight - 30) {
+      pdf.addPage();
+      yPos = 20;
+    }
+
+    const fecha = item.fecha_rodeo ? new Date(item.fecha_rodeo).toLocaleDateString('es-ES') : '';
+    pdf.text(fecha, colX[0], yPos);
+    pdf.text((item.volumen_total || 0).toString(), colX[1], yPos);
+    pdf.text(item.especie_principal || '', colX[2], yPos);
+    pdf.text(item.procedencia || '', colX[3], yPos);
+    pdf.text(item.responsable_rodeo || '', colX[4], yPos);
+
+    totalVolumen += parseFloat(item.volumen_total) || 0;
+    yPos += 10;
+  });
+
+  // Resumen
+  yPos += 10;
+  pdf.setFont(undefined, 'bold');
+  pdf.text(`Volumen Total Extraído: ${totalVolumen.toFixed(2)} m³`, 20, yPos);
+
+  // Footer
+  pdf.setFontSize(8);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text(`Total de rodeos: ${rodeos.length}`, 20, pageHeight - 10);
+  pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth - 60, pageHeight - 10);
+
+  pdf.save(`Reporte_Rodeos_${new Date().getTime()}.pdf`);
+};
+
+/**
  * Genera un PDF con formato profesional para reportes de Madera
  */
 export const generateMaderaReport = (madera) => {
