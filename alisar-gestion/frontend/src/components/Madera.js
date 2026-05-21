@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Trees, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Trees, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -7,6 +7,7 @@ import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
 import FormInput from './common/FormInput';
 import SearchBar from './common/SearchBar';
+import { generateMaderaReport, generateExcelReport } from '../utils/reportGenerator';
 
 const Madera = () => {
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
@@ -121,20 +122,57 @@ const Madera = () => {
           <h1 style={{ margin: 0, color: '#fff' }}>Control de Rodeos / Madera</h1>
           <p style={{ color: '#666', fontSize: '14px', margin: '8px 0 0 0' }}>Gestión de volúmenes y especies</p>
         </div>
-        <button onClick={handleNew} style={{
-          background: '#4ade80',
-          color: '#000',
-          border: 'none',
-          padding: '10px 20px',
-          borderRadius: '8px',
-          fontWeight: 'bold',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: 'pointer'
-        }}>
-          <Plus size={18} /> Nuevo Rodeo
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => generateMaderaReport(data)} title="Generar reporte en PDF" style={{
+            background: '#f87171',
+            color: '#fff',
+            border: 'none',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}>
+            <FileText size={16} /> PDF
+          </button>
+          <button onClick={() => generateExcelReport(data, [
+            { label: 'Especie', key: 'especie' },
+            { label: 'Piezas', key: 'piezas' },
+            { label: 'Volumen', key: 'volumen' },
+            { label: 'Campamento', key: 'campamento' }
+          ], 'Madera')} title="Exportar a Excel" style={{
+            background: '#60a5fa',
+            color: '#fff',
+            border: 'none',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}>
+            <Download size={16} /> Excel
+          </button>
+          <button onClick={handleNew} style={{
+            background: '#4ade80',
+            color: '#000',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer'
+          }}>
+            <Plus size={18} /> Nuevo Rodeo
+          </button>
+        </div>
       </div>
 
       {error && <ErrorMessage message={error} onDismiss={() => {}} />}

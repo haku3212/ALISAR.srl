@@ -5,6 +5,8 @@ import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X, AlertCi
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { dataService } from '../services/api';
 import LoadingSpinner from './common/LoadingSpinner';
+import { FileText } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 const Dashboard = ({ content }) => {
   const navigate = useNavigate();
@@ -79,6 +81,96 @@ const Dashboard = ({ content }) => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const generateDashboardReport = () => {
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    let yPos = 20;
+
+    // Header
+    pdf.setFillColor(74, 222, 128);
+    pdf.rect(0, 0, pageWidth, 30, 'F');
+
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(28);
+    pdf.text('REPORTE GENERAL - ALISAR', pageWidth / 2, 15, { align: 'center' });
+
+    pdf.setFontSize(10);
+    pdf.text(`Fecha: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 25, { align: 'center' });
+
+    // Contenido
+    pdf.setTextColor(0, 0, 0);
+    yPos = 45;
+
+    // Estadísticas
+    pdf.setFontSize(14);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('RESUMEN ESTADÍSTICO', 20, yPos);
+    yPos += 15;
+
+    pdf.setFontSize(11);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`• Obras Activas: ${stats.obras}`, 25, yPos);
+    yPos += 7;
+    pdf.text(`• Equipos de Maquinaria: ${stats.maquinaria}`, 25, yPos);
+    yPos += 7;
+    pdf.text(`• Personal Total: ${stats.personal}`, 25, yPos);
+    yPos += 7;
+    pdf.text(`• Piezas de Madera: ${stats.madera}`, 25, yPos);
+    yPos += 15;
+
+    // Últimas obras
+    if (lastObras.length > 0) {
+      pdf.setFontSize(14);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('ÚLTIMAS OBRAS', 20, yPos);
+      yPos += 10;
+
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'normal');
+      lastObras.slice(0, 5).forEach((obra) => {
+        if (yPos > pageHeight - 30) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        pdf.text(`${obra.nombre} - Avance: ${obra.avance}% - Presupuesto: ${obra.presupuesto}`, 25, yPos);
+        yPos += 6;
+      });
+      yPos += 10;
+    }
+
+    // Equipos en mantenimiento
+    if (maintenanceNeeded.length > 0) {
+      pdf.setFontSize(14);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('EQUIPOS CON MANTENIMIENTO PRÓXIMO', 20, yPos);
+      yPos += 10;
+
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'normal');
+      maintenanceNeeded.forEach((maq) => {
+        if (yPos > pageHeight - 30) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        pdf.text(`• ${maq.nombre} (${maq.tipo})`, 25, yPos);
+        yPos += 6;
+      });
+    }
+
+    // Footer
+    pdf.setFontSize(8);
+    pdf.setTextColor(150, 150, 150);
+    pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+    pdf.save(`Reporte_Dashboard_${new Date().getTime()}.pdf`);
   };
 
   // Datos para gráficos del dashboard
@@ -162,6 +254,21 @@ const Dashboard = ({ content }) => {
           <h1 style={{ color: '#fff', marginBottom: '8px' }}>Panel de Control ALISAR</h1>
           <p style={{ color: '#666', marginBottom: '0' }}>Resumen operativo - Riberalta 2026</p>
         </div>
+        <button onClick={generateDashboardReport} style={{
+          background: '#f97316',
+          color: '#fff',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          fontWeight: 'bold',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+          fontSize: '14px'
+        }}>
+          <FileText size={18} /> Generar Reporte
+        </button>
       </div>
 
       {/* Tarjetas de estadísticas */}
