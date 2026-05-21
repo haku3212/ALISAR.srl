@@ -516,6 +516,9 @@ const Dashboard = ({ content }) => {
           <div style={styles.navItem('/madera')} onClick={() => navigate('/madera')}>
             <Trees size={18} /> Madera
           </div>
+          <div style={styles.navItem('/rodeos')} onClick={() => navigate('/rodeos')}>
+            <Trees size={18} /> Rodeos
+          </div>
 
           {/* Separador */}
           <div style={{ height: '1px', background: '#1f241f', margin: '16px 0' }} />
