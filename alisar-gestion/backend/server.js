@@ -58,6 +58,23 @@ let db;
             volumen TEXT,
             campamento TEXT
         );
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT,
+            accion TEXT NOT NULL,
+            tabla TEXT NOT NULL,
+            registro_id INTEGER,
+            valores_anteriores TEXT,
+            valores_nuevos TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS config (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            clave TEXT UNIQUE NOT NULL,
+            valor TEXT,
+            tipo TEXT DEFAULT 'string',
+            actualizado DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     `);
 
     // Inserción de datos semilla para Personal si la tabla está vacía
@@ -93,13 +110,38 @@ let db;
         console.log("🌱 Datos de madera inicializados.");
     }
 
+    // Inserción de configuración por defecto
+    const checkConfig = await db.get('SELECT COUNT(*) as total FROM config');
+    if (checkConfig.total === 0) {
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_nombre', 'ALISAR SRL', 'string')");
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_ubicacion', 'Riberalta, Beni, Bolivia', 'string')");
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_moneda', 'Bs', 'string')");
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_idioma', 'es', 'string')");
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('tema_modo', 'oscuro', 'string')");
+        console.log("🌱 Configuración inicializada.");
+    }
+
     console.log("✅ Base de Datos SQLite sincronizada correctamente.");
 
     // Configurar rutas autenticadas después de inicializar la BD
     app.use('/api/auth', createAuthRoutes(db));
 })();
 
-// 2. ENDPOINTS DE LA API REST
+// 2. FUNCIONES AUXILIARES
+
+// Registrar cambios en audit log
+const logAudit = async (usuario, accion, tabla, registro_id, valores_anteriores, valores_nuevos) => {
+    try {
+        await db.run(
+            'INSERT INTO audit_logs (usuario, accion, tabla, registro_id, valores_anteriores, valores_nuevos) VALUES (?, ?, ?, ?, ?, ?)',
+            [usuario || 'sistema', accion, tabla, registro_id, JSON.stringify(valores_anteriores), JSON.stringify(valores_nuevos)]
+        );
+    } catch (err) {
+        console.error('Error registrando audit log:', err);
+    }
+};
+
+// 3. ENDPOINTS DE LA API REST
 
 // --- Módulo: Maquinaria ---
 app.get('/api/maquinaria', verifyToken, async (req, res) => {
@@ -323,6 +365,52 @@ app.delete('/api/madera/:id', verifyToken, async (req, res) => {
     try {
         await db.run('DELETE FROM madera WHERE id = ?', [req.params.id]);
         res.json({ status: "Rodeo eliminado con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+// --- Módulo: Auditoría ---
+app.get('/api/audit', verifyToken, async (req, res) => {
+    try {
+        const logs = await db.all('SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 100');
+        res.json(logs);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+// --- Módulo: Configuración ---
+app.get('/api/config', verifyToken, async (req, res) => {
+    try {
+        const configs = await db.all('SELECT * FROM config');
+        const result = {};
+        configs.forEach(config => {
+            result[config.clave] = config.valor;
+        });
+        res.json(result);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.put('/api/config/:clave', verifyToken, async (req, res) => {
+    const { valor } = req.body;
+    const { clave } = req.params;
+
+    if (!valor) {
+        return res.status(400).json({ msg: 'Campo requerido: valor' });
+    }
+
+    try {
+        await db.run(
+            'INSERT INTO config (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizado = CURRENT_TIMESTAMP',
+            [clave, valor]
+        );
+        res.json({ status: "Configuración actualizada con éxito" });
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: 'Error al procesar solicitud' });

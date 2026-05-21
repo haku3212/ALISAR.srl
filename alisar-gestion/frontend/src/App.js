@@ -9,6 +9,8 @@ import Maquinaria from './components/Maquinaria';
 import Obras from './components/Obras';
 import Personal from './components/Personal';
 import Madera from './components/Madera';
+import ChangeHistory from './components/ChangeHistory';
+import Settings from './components/Settings';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -24,6 +26,8 @@ function AppRoutes() {
       <Route path="/obras" element={<ProtectedRoute><Dashboard content={<Obras />} /></ProtectedRoute>} />
       <Route path="/personal" element={<ProtectedRoute><Dashboard content={<Personal />} /></ProtectedRoute>} />
       <Route path="/madera" element={<ProtectedRoute><Dashboard content={<Madera />} /></ProtectedRoute>} />
+      <Route path="/historial" element={<ProtectedRoute><Dashboard content={<ChangeHistory />} /></ProtectedRoute>} />
+      <Route path="/configuracion" element={<ProtectedRoute><Dashboard content={<Settings />} /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X, AlertCircle, CheckCircle, Clock, History, Settings as SettingsIcon } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { dataService } from '../services/api';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -508,6 +508,16 @@ const Dashboard = ({ content }) => {
           </div>
           <div style={styles.navItem('/madera')} onClick={() => navigate('/madera')}>
             <Trees size={18} /> Madera
+          </div>
+
+          {/* Separador */}
+          <div style={{ height: '1px', background: '#1f241f', margin: '16px 0' }} />
+
+          <div style={styles.navItem('/historial')} onClick={() => navigate('/historial')}>
+            <History size={18} /> Historial
+          </div>
+          <div style={styles.navItem('/configuracion')} onClick={() => navigate('/configuracion')}>
+            <SettingsIcon size={18} /> Configuración
           </div>
         </nav>
         <div style={{ ...styles.navItem('/logout'), color: '#f87171', marginTop: 'auto' }} onClick={handleLogout}>

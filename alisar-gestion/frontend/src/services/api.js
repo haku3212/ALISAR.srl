@@ -66,7 +66,14 @@ export const dataService = {
   getMadera: () => api.get('/madera'),
   createMadera: (data) => api.post('/madera', data),
   updateMadera: (id, data) => api.put(`/madera/${id}`, data),
-  deleteMadera: (id) => api.delete(`/madera/${id}`)
+  deleteMadera: (id) => api.delete(`/madera/${id}`),
+
+  // Auditoría
+  getAuditLogs: () => api.get('/audit'),
+
+  // Configuración
+  getConfig: () => api.get('/config'),
+  updateConfig: (clave, valor) => api.put(`/config/${clave}`, { valor })
 };
 
 export default api;
