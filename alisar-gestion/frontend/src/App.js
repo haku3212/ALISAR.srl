@@ -15,6 +15,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/common/ToastContainer';
+import './styles/theme.css';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Maquinaria from './components/Maquinaria';
