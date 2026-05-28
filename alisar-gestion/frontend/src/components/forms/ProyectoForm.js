@@ -5,7 +5,6 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import ResumenFinanciero from '../common/ResumenFinanciero';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 
 const ProyectoForm = ({ proyecto, maquinaria = [], personal = [], onSubmit = () => {}, onCancel = () => {} }) => {
@@ -549,9 +548,6 @@ const ProyectoForm = ({ proyecto, maquinaria = [], personal = [], onSubmit = () 
           ))}
         </div>
       )}
-
-      {/* SECCIÓN 6: RESUMEN FINANCIERO */}
-      <ResumenFinanciero proyecto={formData} />
 
       {/* BOTONES */}
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '32px', marginBottom: '32px' }}>

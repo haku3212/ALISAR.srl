@@ -5,7 +5,7 @@
  * Incluye CRUD completo y cálculos en tiempo real
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Download, FileText, ChevronDown } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
@@ -34,6 +34,29 @@ const Proyectos = () => {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({});
   const [editingProyecto, setEditingProyecto] = useState(null);
+  const [maquinaria, setMaquinaria] = useState([]);
+  const [personal, setPersonal] = useState([]);
+  const [loadingData, setLoadingData] = useState(false);
+
+  // Cargar maquinaria y personal disponibles
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        setLoadingData(true);
+        const [maqRes, perRes] = await Promise.all([
+          dataService.getMaquinaria(),
+          dataService.getPersonal()
+        ]);
+        setMaquinaria(maqRes.data || []);
+        setPersonal(perRes.data || []);
+      } catch (err) {
+        console.error('Error cargando datos:', err);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+    cargarDatos();
+  }, []);
 
   // Configuración de filtros avanzados
   const filterConfigs = useMemo(() => [
@@ -502,17 +525,28 @@ const Proyectos = () => {
         )}
       </div>
 
-      {/* Modal con Formulario */}
+      {/* Modal con Formulario y ResumenFinanciero */}
       <Modal
         isOpen={showModal}
         onClose={handleCloseModal}
         title={editingId ? `Editar: ${editingProyecto?.nombre}` : 'Nuevo Proyecto'}
       >
-        <ProyectoForm
-          proyecto={editingProyecto}
-          onSubmit={handleFormSubmit}
-          onCancel={handleCloseModal}
-        />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
+          {/* Formulario a la izquierda */}
+          <div style={{ overflow: 'auto', maxHeight: '70vh' }}>
+            <ProyectoForm
+              proyecto={editingProyecto}
+              maquinaria={maquinaria}
+              personal={personal}
+              onSubmit={handleFormSubmit}
+              onCancel={handleCloseModal}
+            />
+          </div>
+          {/* ResumenFinanciero a la derecha */}
+          <div style={{ position: 'sticky', top: 0 }}>
+            <ResumenFinanciero proyecto={editingProyecto || {}} />
+          </div>
+        </div>
       </Modal>
     </div>
   );
