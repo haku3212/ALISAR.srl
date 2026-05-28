@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
+import InputGroup from './InputGroup';
 
 const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit = () => {}, onCancel = () => {} }) => {
   const [formData, setFormData] = useState({
@@ -155,30 +156,6 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
       {expandedSections[section] ? <ChevronUp size={20} color="#FFD700" /> : <ChevronDown size={20} color="#666" />}
     </div>
   );
-
-  const InputGroup = ({ label, value, onChange, type = 'text', required = false }) => (
-    <div style={{ marginBottom: '16px' }}>
-      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#e7ebe5', fontWeight: '500' }}>
-        {label} {required && <span style={{ color: '#f87171' }}>*</span>}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          border: '1px solid #1f241f',
-          borderRadius: '8px',
-          background: '#0d0f0d',
-          color: '#e0e0e0',
-          fontSize: '14px',
-          boxSizing: 'border-box'
-        }}
-      />
-    </div>
-  );
-
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: '900px', margin: '0 auto' }}>
       {/* SECCIÓN 1: DATOS BÁSICOS */}
