@@ -62,12 +62,6 @@ export const dataService = {
   updateMaquinaria: (id, data) => api.put(`/maquinaria/${id}`, data),
   deleteMaquinaria: (id) => api.delete(`/maquinaria/${id}`),
 
-  // Madera
-  getMadera: () => api.get('/madera'),
-  createMadera: (data) => api.post('/madera', data),
-  updateMadera: (id, data) => api.put(`/madera/${id}`, data),
-  deleteMadera: (id) => api.delete(`/madera/${id}`),
-
   // Auditoría
   getAuditLogs: () => api.get('/audit'),
 

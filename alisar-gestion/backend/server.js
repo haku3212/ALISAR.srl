@@ -316,61 +316,6 @@ app.post('/api/maquinaria', verifyToken, async (req, res) => {
     }
 });
 
-// --- Módulo: Madera ---
-app.get('/api/madera', verifyToken, async (req, res) => {
-    try {
-        const rows = await db.all('SELECT * FROM madera');
-        res.json(rows);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.post('/api/madera', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
-
-    if (!especie || !piezas || !volumen || !campamento) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
-    }
-
-    try {
-        await db.run('INSERT INTO madera (especie, piezas, volumen, campamento) VALUES (?, ?, ?, ?)',
-            [especie, piezas, volumen, campamento]);
-        res.json({ status: "Rodeo registrado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.put('/api/madera/:id', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
-
-    if (!especie || !piezas || !volumen || !campamento) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
-    }
-
-    try {
-        await db.run('UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ? WHERE id = ?',
-            [especie, piezas, volumen, campamento, req.params.id]);
-        res.json({ status: "Rodeo actualizado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.delete('/api/madera/:id', verifyToken, async (req, res) => {
-    try {
-        await db.run('DELETE FROM madera WHERE id = ?', [req.params.id]);
-        res.json({ status: "Rodeo eliminado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
 // --- Módulo: Auditoría ---
 app.get('/api/audit', verifyToken, async (req, res) => {
     try {
