@@ -14,6 +14,7 @@ import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
 import ProyectoForm from './forms/ProyectoForm';
 import SearchBar from './common/SearchBar';
+import ResumenFinanciero from './common/ResumenFinanciero';
 import { calcularResumenFinanciero } from '../utils/calculosFinancieros';
 import { generateExcelReport } from '../utils/reportGenerator';
 
