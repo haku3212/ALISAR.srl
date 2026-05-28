@@ -5,7 +5,7 @@
  * Incluye CRUD completo y cálculos en tiempo real
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Download, FileText, ChevronDown } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
@@ -141,16 +141,16 @@ const Proyectos = () => {
   /**
    * Prepara el formulario para editar un proyecto existente
    */
-  const handleEdit = (proyecto) => {
+  const handleEdit = useCallback((proyecto) => {
     setEditingProyecto(proyecto);
     setEditingId(proyecto.id);
     setShowModal(true);
-  };
+  }, []);
 
   /**
    * Abre el modal para crear un nuevo proyecto
    */
-  const handleNew = () => {
+  const handleNew = useCallback(() => {
     setEditingProyecto({
       nombre: '',
       descripcion: '',
@@ -177,18 +177,18 @@ const Proyectos = () => {
     });
     setEditingId(null);
     setShowModal(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setShowModal(false);
     setEditingId(null);
     setEditingProyecto(null);
-  };
+  }, []);
 
   /**
    * Maneja el envío del formulario (crear o actualizar)
    */
-  const handleFormSubmit = async (formData) => {
+  const handleFormSubmit = useCallback(async (formData) => {
     try {
       if (editingId) {
         await update(editingId, formData);
@@ -199,7 +199,7 @@ const Proyectos = () => {
     } catch (err) {
       console.error('Error al guardar proyecto:', err);
     }
-  };
+  }, [editingId, update, create, handleCloseModal]);
 
   /**
    * Exporta tabla a Excel

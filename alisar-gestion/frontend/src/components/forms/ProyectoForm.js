@@ -4,10 +4,10 @@
  * 6 secciones totalmente editables con cálculos automáticos
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 
-const ProyectoForm = ({ proyecto, maquinaria = [], personal = [], onSubmit = () => {}, onCancel = () => {} }) => {
+const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit = () => {}, onCancel = () => {} }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -585,6 +585,17 @@ const ProyectoForm = ({ proyecto, maquinaria = [], personal = [], onSubmit = () 
       </div>
     </form>
   );
-};
+}, (prevProps, nextProps) => {
+  // Comparación personalizada para evitar re-renders innecesarios
+  return (
+    prevProps.proyecto === nextProps.proyecto &&
+    prevProps.maquinaria === nextProps.maquinaria &&
+    prevProps.personal === nextProps.personal &&
+    prevProps.onSubmit === nextProps.onSubmit &&
+    prevProps.onCancel === nextProps.onCancel
+  );
+});
+
+ProyectoForm.displayName = 'ProyectoForm';
 
 export default ProyectoForm;
