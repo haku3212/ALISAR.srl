@@ -4,10 +4,10 @@
  * Todos los cálculos son automáticos en tiempo real
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { calcularResumenFinanciero } from '../../utils/calculosFinancieros';
 
-const ResumenFinanciero = ({ proyecto }) => {
+const ResumenFinanciero = memo(({ proyecto }) => {
   // Calcular resumen financiero automáticamente
   const resumen = useMemo(() => {
     // Asegurar que proyecto sea un objeto válido
@@ -253,6 +253,8 @@ const ResumenFinanciero = ({ proyecto }) => {
       </div>
     </div>
   );
-};
+});
+
+ResumenFinanciero.displayName = 'ResumenFinanciero';
 
 export default ResumenFinanciero;

@@ -4,7 +4,7 @@
  * 6 secciones totalmente editables con cálculos automáticos
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ResumenFinanciero from '../common/ResumenFinanciero';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 
@@ -63,44 +63,46 @@ const ProyectoForm = ({ proyecto, maquinaria = [], personal = [], onSubmit = () 
     }
   }, [proyecto]);
 
-  const toggleSection = (section) => {
+  const toggleSection = useCallback((section) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
-  };
+  }, []);
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = useCallback((field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
-  const handleEmpleadoChange = (index, field, value) => {
-    const updatedEmpleados = [...formData.empleados];
-    updatedEmpleados[index][field] = value;
-    setFormData(prev => ({
-      ...prev,
-      empleados: updatedEmpleados
-    }));
-  };
+  const handleEmpleadoChange = useCallback((index, field, value) => {
+    setFormData(prev => {
+      const updatedEmpleados = [...prev.empleados];
+      updatedEmpleados[index][field] = value;
+      return {
+        ...prev,
+        empleados: updatedEmpleados
+      };
+    });
+  }, []);
 
-  const handleAgregarEmpleado = () => {
+  const handleAgregarEmpleado = useCallback(() => {
     setFormData(prev => ({
       ...prev,
       empleados: [...prev.empleados, { nombre: 'Nuevo Empleado', cantidad: 1, salario: 0, dias: 0 }]
     }));
-  };
+  }, []);
 
-  const handleEliminarEmpleado = (index) => {
+  const handleEliminarEmpleado = useCallback((index) => {
     setFormData(prev => ({
       ...prev,
       empleados: prev.empleados.filter((_, i) => i !== index)
     }));
-  };
+  }, []);
 
-  const handleToggleMaquinaria = (machineId) => {
+  const handleToggleMaquinaria = useCallback((machineId) => {
     setFormData(prev => {
       const asignada = prev.maquinaria_asignada.includes(machineId);
       return {
@@ -113,21 +115,21 @@ const ProyectoForm = ({ proyecto, maquinaria = [], personal = [], onSubmit = () 
           : prev.cantidad_maquinas + 1
       };
     });
-  };
+  }, []);
 
-  const handleTogglePersonal = (personaId) => {
+  const handleTogglePersonal = useCallback((personaId) => {
     setFormData(prev => ({
       ...prev,
       personal_asignado: prev.personal_asignado.includes(personaId)
         ? prev.personal_asignado.filter(id => id !== personaId)
         : [...prev.personal_asignado, personaId]
     }));
-  };
+  }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
     onSubmit(formData);
-  };
+  }, [formData, onSubmit]);
 
   const SectionHeader = ({ title, section, icon }) => (
     <div
