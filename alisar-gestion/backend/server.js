@@ -108,6 +108,51 @@ let db;
         );
     `);
 
+    // 🔧 MIGRACIÓN: Agregar columnas faltantes si no existen
+    try {
+        // Obtener información de todas las columnas de la tabla obras
+        const tableInfo = await db.all("PRAGMA table_info(obras)");
+        const existingColumns = tableInfo.map(col => col.name);
+
+        // Lista de columnas requeridas
+        const columnasRequeridas = {
+            'descripcion': 'TEXT',
+            'presupuesto_bruto': 'DECIMAL(12,2) DEFAULT 0',
+            'presupuesto_neto': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_diesel': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_personal': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_comida': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_mantenimiento': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_otros': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_total': 'DECIMAL(12,2) DEFAULT 0',
+            'ganancia_neta': 'DECIMAL(12,2) DEFAULT 0',
+            'margen_ganancia': 'DECIMAL(5,2) DEFAULT 0',
+            'kilometros_totales': 'INTEGER DEFAULT 0',
+            'duracion_dias': 'INTEGER DEFAULT 0',
+            'tipo_presupuesto': "TEXT DEFAULT 'fijo'",
+            'presupuesto_adjudicado': 'DECIMAL(12,2)',
+            'fecha_inicio': 'DATE',
+            'fecha_fin': 'DATE'
+        };
+
+        // Agregar columnas faltantes
+        let columnasAgregadas = 0;
+        for (const [columna, tipo] of Object.entries(columnasRequeridas)) {
+            if (!existingColumns.includes(columna)) {
+                console.log(`🔧 Agregando columna ${columna} a tabla obras...`);
+                await db.run(`ALTER TABLE obras ADD COLUMN ${columna} ${tipo}`);
+                columnasAgregadas++;
+                console.log(`✅ Columna ${columna} agregada exitosamente`);
+            }
+        }
+
+        if (columnasAgregadas > 0) {
+            console.log(`\n✨ Se agregaron ${columnasAgregadas} columnas a la tabla obras\n`);
+        }
+    } catch (err) {
+        console.warn('⚠️ Error durante migración:', err.message);
+    }
+
     // Inserción de datos semilla para Personal si la tabla está vacía
     const checkPersonal = await db.get('SELECT COUNT(*) as total FROM personal');
     if (checkPersonal.total === 0) {
