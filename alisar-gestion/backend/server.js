@@ -106,6 +106,14 @@ let db;
             tipo TEXT DEFAULT 'string',
             actualizado DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+        CREATE TABLE IF NOT EXISTS madera (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            especie TEXT NOT NULL,
+            piezas INTEGER,
+            volumen TEXT,
+            campamento TEXT,
+            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     `);
 
     // 🔧 MIGRACIÓN: Agregar columnas faltantes si no existen
