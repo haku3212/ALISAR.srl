@@ -127,7 +127,30 @@ const Proyectos = () => {
    * Abre el modal para crear un nuevo proyecto
    */
   const handleNew = () => {
-    setEditingProyecto(null);
+    setEditingProyecto({
+      nombre: '',
+      descripcion: '',
+      estado: 'planeado',
+      tipo_presupuesto: 'fijo',
+      presupuesto_adjudicado: 0,
+      presupuesto_bruto: 0,
+      presupuesto_neto: 0,
+      kilometros_totales: 0,
+      duracion_dias: 0,
+      fecha_inicio: '',
+      fecha_fin: '',
+      diesel_litros: 0,
+      diesel_precio: 9.8,
+      empleados: [],
+      gasto_comida: 0,
+      dias_comida: 0,
+      costo_comida_dia: 0,
+      cantidad_maquinas: 0,
+      costo_mantenimiento_maquina: 0,
+      gasto_otros: 0,
+      maquinaria_asignada: [],
+      personal_asignado: []
+    });
     setEditingId(null);
     setShowModal(true);
   };

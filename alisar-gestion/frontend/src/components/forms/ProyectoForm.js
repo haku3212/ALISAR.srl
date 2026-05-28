@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import ResumenFinanciero from '../common/ResumenFinanciero';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 
-const ProyectoForm = ({ proyecto = {}, maquinaria = [], personal = [], onSubmit = () => {}, onCancel = () => {} }) => {
+const ProyectoForm = ({ proyecto, maquinaria = [], personal = [], onSubmit = () => {}, onCancel = () => {} }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -47,8 +47,19 @@ const ProyectoForm = ({ proyecto = {}, maquinaria = [], personal = [], onSubmit 
   });
 
   useEffect(() => {
-    if (Object.keys(proyecto).length > 0) {
-      setFormData(prev => ({ ...prev, ...proyecto }));
+    // Solo actualizar si proyecto es un objeto válido con propiedades
+    if (proyecto && typeof proyecto === 'object') {
+      const proyectoKeys = Object.keys(proyecto);
+      if (proyectoKeys.length > 0) {
+        // Filtra solo las propiedades que existen en el proyecto
+        const proyectoData = {};
+        proyectoKeys.forEach(key => {
+          if (key in formData || key === 'id') {
+            proyectoData[key] = proyecto[key];
+          }
+        });
+        setFormData(prev => ({ ...prev, ...proyectoData }));
+      }
     }
   }, [proyecto]);
 

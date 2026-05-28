@@ -7,10 +7,12 @@
 import React, { useMemo } from 'react';
 import { calcularResumenFinanciero } from '../../utils/calculosFinancieros';
 
-const ResumenFinanciero = ({ proyecto = {} }) => {
+const ResumenFinanciero = ({ proyecto }) => {
   // Calcular resumen financiero automáticamente
   const resumen = useMemo(() => {
-    return calcularResumenFinanciero(proyecto);
+    // Asegurar que proyecto sea un objeto válido
+    const proyectoData = proyecto && typeof proyecto === 'object' ? proyecto : {};
+    return calcularResumenFinanciero(proyectoData);
   }, [proyecto]);
 
   const formatCurrency = (value) => {
