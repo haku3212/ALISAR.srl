@@ -41,8 +41,46 @@ let db;
         CREATE TABLE IF NOT EXISTS obras (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
+            descripcion TEXT,
             avance INTEGER DEFAULT 0,
-            presupuesto TEXT
+            presupuesto TEXT,
+            presupuesto_bruto DECIMAL(12,2),
+            presupuesto_neto DECIMAL(12,2),
+            gasto_diesel DECIMAL(12,2) DEFAULT 0,
+            gasto_personal DECIMAL(12,2) DEFAULT 0,
+            gasto_comida DECIMAL(12,2) DEFAULT 0,
+            gasto_mantenimiento DECIMAL(12,2) DEFAULT 0,
+            gasto_otros DECIMAL(12,2) DEFAULT 0,
+            gasto_total DECIMAL(12,2) DEFAULT 0,
+            ganancia_neta DECIMAL(12,2) DEFAULT 0,
+            margen_ganancia DECIMAL(5,2) DEFAULT 0,
+            kilometros_totales INT,
+            duracion_dias INT,
+            estado TEXT DEFAULT 'planeado',
+            tipo_presupuesto TEXT DEFAULT 'fijo',
+            presupuesto_adjudicado DECIMAL(12,2),
+            fecha_inicio DATE,
+            fecha_fin DATE,
+            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            ultimaActualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS proyecto_maquinaria (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            proyecto_id INTEGER NOT NULL,
+            maquinaria_id INTEGER NOT NULL,
+            dias_utilizados INTEGER DEFAULT 0,
+            FOREIGN KEY (proyecto_id) REFERENCES obras(id),
+            FOREIGN KEY (maquinaria_id) REFERENCES maquinaria(id)
+        );
+        CREATE TABLE IF NOT EXISTS proyecto_personal (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            proyecto_id INTEGER NOT NULL,
+            personal_id INTEGER NOT NULL,
+            rol TEXT,
+            dias_trabajados INTEGER DEFAULT 0,
+            salario_dia DECIMAL(12,2) DEFAULT 0,
+            FOREIGN KEY (proyecto_id) REFERENCES obras(id),
+            FOREIGN KEY (personal_id) REFERENCES personal(id)
         );
         CREATE TABLE IF NOT EXISTS personal (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,13 +88,6 @@ let db;
             cargo TEXT,
             celular TEXT,
             estado TEXT DEFAULT 'Activo'
-        );
-        CREATE TABLE IF NOT EXISTS madera (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            especie TEXT NOT NULL,
-            piezas INTEGER,
-            volumen TEXT,
-            campamento TEXT
         );
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

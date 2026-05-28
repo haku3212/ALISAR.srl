@@ -488,8 +488,8 @@ const Dashboard = ({ content }) => {
           <div style={styles.navItem('/dashboard')} onClick={() => navigate('/dashboard')}>
             <LayoutDashboard size={18} /> Dashboard
           </div>
-          <div style={styles.navItem('/obras')} onClick={() => navigate('/obras')}>
-            <HardHat size={18} /> Obras
+          <div style={styles.navItem('/proyectos')} onClick={() => navigate('/proyectos')}>
+            <HardHat size={18} /> Proyectos
           </div>
           <div style={styles.navItem('/maquinaria')} onClick={() => navigate('/maquinaria')}>
             <Drill size={18} /> Maquinaria
