@@ -103,14 +103,22 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
   }, []);
 
   const handleToggleMaquinaria = useCallback((machineId) => {
+    if (!machineId && machineId !== 0) {
+      console.error('Error: machineId is invalid', machineId);
+      return;
+    }
+
     setFormData(prev => {
-      const asignada = prev.maquinaria_asignada.includes(machineId);
+      const idAsString = String(machineId);
+      const currentAsignada = prev.maquinaria_asignada || [];
+      const isSelected = currentAsignada.some(id => String(id) === idAsString);
+
       return {
         ...prev,
-        maquinaria_asignada: asignada
-          ? prev.maquinaria_asignada.filter(id => id !== machineId)
-          : [...prev.maquinaria_asignada, machineId],
-        cantidad_maquinas: asignada
+        maquinaria_asignada: isSelected
+          ? currentAsignada.filter(id => String(id) !== idAsString)
+          : [...currentAsignada, machineId],
+        cantidad_maquinas: isSelected
           ? prev.cantidad_maquinas - 1
           : prev.cantidad_maquinas + 1
       };
@@ -118,12 +126,23 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
   }, []);
 
   const handleTogglePersonal = useCallback((personaId) => {
-    setFormData(prev => ({
-      ...prev,
-      personal_asignado: prev.personal_asignado.includes(personaId)
-        ? prev.personal_asignado.filter(id => id !== personaId)
-        : [...prev.personal_asignado, personaId]
-    }));
+    if (!personaId && personaId !== 0) {
+      console.error('Error: personaId is invalid', personaId);
+      return;
+    }
+
+    setFormData(prev => {
+      const idAsString = String(personaId);
+      const currentAsignado = prev.personal_asignado || [];
+      const isSelected = currentAsignado.some(id => String(id) === idAsString);
+
+      return {
+        ...prev,
+        personal_asignado: isSelected
+          ? currentAsignado.filter(id => String(id) !== idAsString)
+          : [...currentAsignado, personaId]
+      };
+    });
   }, []);
 
   const handleSubmit = useCallback((e) => {
@@ -478,17 +497,21 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                   padding: '12px',
                   background: '#111411',
                   borderRadius: '8px',
-                  border: formData.maquinaria_asignada.includes(maq.id) ? '2px solid #FFD700' : '1px solid #1f241f',
+                  border: (formData.maquinaria_asignada || []).some(id => String(id) === String(maq.id)) ? '2px solid #FFD700' : '1px solid #1f241f',
                   cursor: 'pointer',
-                  color: '#e0e0e0'
+                  color: '#e0e0e0',
+                  transition: 'all 0.2s ease',
+                  userSelect: 'none'
                 }}>
                   <input
                     type="checkbox"
-                    checked={formData.maquinaria_asignada.includes(maq.id)}
+                    checked={(formData.maquinaria_asignada || []).some(id => String(id) === String(maq.id))}
                     onChange={() => handleToggleMaquinaria(maq.id)}
-                    style={{ marginRight: '8px', cursor: 'pointer' }}
+                    style={{ marginRight: '8px', cursor: 'pointer', accentColor: '#FFD700' }}
                   />
-                  {maq.nombre}
+                  <span style={{ flex: 1 }}>
+                    {maq.nombre}
+                  </span>
                 </label>
               );
             })
@@ -522,17 +545,21 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                   padding: '12px',
                   background: '#111411',
                   borderRadius: '8px',
-                  border: formData.personal_asignado.includes(pers.id) ? '2px solid #FFD700' : '1px solid #1f241f',
+                  border: (formData.personal_asignado || []).some(id => String(id) === String(pers.id)) ? '2px solid #FFD700' : '1px solid #1f241f',
                   cursor: 'pointer',
-                  color: '#e0e0e0'
+                  color: '#e0e0e0',
+                  transition: 'all 0.2s ease',
+                  userSelect: 'none'
                 }}>
                   <input
                     type="checkbox"
-                    checked={formData.personal_asignado.includes(pers.id)}
+                    checked={(formData.personal_asignado || []).some(id => String(id) === String(pers.id))}
                     onChange={() => handleTogglePersonal(pers.id)}
-                    style={{ marginRight: '8px', cursor: 'pointer' }}
+                    style={{ marginRight: '8px', cursor: 'pointer', accentColor: '#FFD700' }}
                   />
-                  {pers.nombre} ({pers.cargo})
+                  <span style={{ flex: 1 }}>
+                    {pers.nombre} ({pers.cargo})
+                  </span>
                 </label>
               );
             })
