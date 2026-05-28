@@ -63,6 +63,32 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
     }
   }, [proyecto]);
 
+  // Recalcular gasto de personal cuando cambian los días o el personal asignado
+  useEffect(() => {
+    setFormData(prev => {
+      const personalAsignado = prev.personal_asignado || [];
+
+      if (Array.isArray(personal) && personal.length > 0 && personalAsignado.length > 0) {
+        const gastoCalculado = personalAsignado.reduce((total, pId) => {
+          const empleado = personal.find(p => p.id === pId || String(p.id) === String(pId));
+          if (empleado && empleado.salario) {
+            const salarioDiario = (empleado.salario / 30);
+            const costePorPersona = salarioDiario * (prev.duracion_dias || 1);
+            return total + costePorPersona;
+          }
+          return total;
+        }, 0);
+
+        return {
+          ...prev,
+          gasto_personal: gastoCalculado
+        };
+      }
+
+      return prev;
+    });
+  }, [formData.duracion_dias, formData.personal_asignado, personal]);
+
   const toggleSection = useCallback((section) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -171,14 +197,33 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
       const currentAsignado = prev.personal_asignado || [];
       const isSelected = currentAsignado.some(id => String(id) === idAsString);
 
+      // Calcular automáticamente el gasto de personal asignado
+      const newPersonalAsignado = isSelected
+        ? currentAsignado.filter(id => String(id) !== idAsString)
+        : [...currentAsignado, personaId];
+
+      // Calcular gasto_personal basado en el personal asignado del sistema
+      let gastoPersonalCalculado = 0;
+      if (Array.isArray(personal) && personal.length > 0 && newPersonalAsignado.length > 0) {
+        gastoPersonalCalculado = newPersonalAsignado.reduce((total, pId) => {
+          const empleado = personal.find(p => p.id === pId || String(p.id) === String(pId));
+          if (empleado && empleado.salario) {
+            // Salario mensual / 30 días × duracion_dias del proyecto
+            const salarioDiario = (empleado.salario / 30);
+            const costePorPersona = salarioDiario * (prev.duracion_dias || 1);
+            return total + costePorPersona;
+          }
+          return total;
+        }, 0);
+      }
+
       return {
         ...prev,
-        personal_asignado: isSelected
-          ? currentAsignado.filter(id => String(id) !== idAsString)
-          : [...currentAsignado, personaId]
+        personal_asignado: newPersonalAsignado,
+        gasto_personal: gastoPersonalCalculado
       };
     });
-  }, []);
+  }, [personal]);
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
@@ -383,7 +428,31 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
 
           {/* Personal */}
           <div style={{ marginBottom: '24px', padding: '12px', background: '#111411', borderRadius: '8px', borderLeft: '4px solid #60a5fa' }}>
-            <h4 style={{ color: '#60a5fa', margin: '0 0 12px 0' }}>👥 Personal</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h4 style={{ color: '#60a5fa', margin: '0 0 4px 0' }}>💼 Costos de Personal Personalizados</h4>
+                <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>Usa esto para roles genéricos o costos adicionales no cubiertos por personal del sistema</p>
+              </div>
+              <div style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 'bold', whiteSpace: 'nowrap', marginLeft: '12px' }}>
+                Subtotal: <span style={{ color: '#FFD700' }}>{(formData.empleados.reduce((sum, emp) => sum + (emp.cantidad * emp.salario * emp.dias), 0)).toLocaleString('es-BO', { maximumFractionDigits: 0 })} Bs</span>
+              </div>
+            </div>
+
+            {/* Nota sobre gasto_personal total */}
+            {(formData.gasto_personal || 0) > 0 && (
+              <div style={{
+                background: '#0d0f0d',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                marginBottom: '12px',
+                borderLeft: '3px solid #FFD700',
+                fontSize: '11px',
+                color: '#FFD700'
+              }}>
+                💡 Costo Total de Personal (del sistema): <strong>{(formData.gasto_personal || 0).toLocaleString('es-BO', { maximumFractionDigits: 0 })} Bs</strong>
+              </div>
+            )}
+
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #1f241f' }}>
@@ -600,50 +669,71 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
       )}
 
       {/* SECCIÓN 5: PERSONAL ASIGNADO */}
-      <SectionHeader title="Personal Asignado" section="personal_" icon="👥" />
+      <SectionHeader title="Personal Asignado del Sistema" section="personal_" icon="👥" />
       {expandedSections.personal_ && (
         <div style={{
           background: '#0d0f0d',
           padding: '16px',
           borderRadius: '8px',
-          marginBottom: '24px',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '12px'
+          marginBottom: '24px'
         }}>
-          {personal && personal.length > 0 ? (
-            personal.map((pers) => {
-              if (!pers || !pers.id) return null;
-              return (
-                <label key={pers.id} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '12px',
-                  background: '#111411',
-                  borderRadius: '8px',
-                  border: (formData.personal_asignado || []).some(id => String(id) === String(pers.id)) ? '2px solid #FFD700' : '1px solid #1f241f',
-                  cursor: 'pointer',
-                  color: '#e0e0e0',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={(formData.personal_asignado || []).some(id => String(id) === String(pers.id))}
-                    onChange={() => handleTogglePersonal(pers.id)}
-                    style={{ marginRight: '8px', cursor: 'pointer', accentColor: '#FFD700' }}
-                  />
-                  <span style={{ flex: 1 }}>
-                    {pers.nombre} ({pers.cargo})
-                  </span>
-                </label>
-              );
-            })
-          ) : (
-            <p style={{ color: '#999', fontSize: '12px', gridColumn: '1 / -1' }}>
-              No hay personal disponible. Crea personal primero en el módulo "Personal".
-            </p>
-          )}
+          <div style={{
+            background: '#111411',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            borderLeft: '3px solid #60a5fa',
+            fontSize: '12px',
+            color: '#999'
+          }}>
+            ℹ️ Selecciona el personal de tu sistema. El costo se calcula automáticamente: <br/>
+            <strong>Salario mensual ÷ 30 × Días del proyecto</strong>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px'
+          }}>
+            {personal && personal.length > 0 ? (
+              personal.map((pers) => {
+                if (!pers || !pers.id) return null;
+                const isSelected = (formData.personal_asignado || []).some(id => String(id) === String(pers.id));
+                const salarioDiario = pers.salario ? (pers.salario / 30).toFixed(0) : 0;
+                return (
+                  <label key={pers.id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '12px',
+                    background: '#111411',
+                    borderRadius: '8px',
+                    border: isSelected ? '2px solid #FFD700' : '1px solid #1f241f',
+                    cursor: 'pointer',
+                    color: '#e0e0e0',
+                    transition: 'all 0.2s ease',
+                    userSelect: 'none'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleTogglePersonal(pers.id)}
+                      style={{ marginRight: '8px', cursor: 'pointer', accentColor: '#FFD700' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{pers.nombre}</div>
+                      <div style={{ fontSize: '11px', color: '#999' }}>
+                        {pers.cargo} • {pers.salario.toLocaleString('es-BO')} Bs/mes ({salarioDiario} Bs/día)
+                      </div>
+                    </div>
+                  </label>
+                );
+              })
+            ) : (
+              <p style={{ color: '#999', fontSize: '12px', gridColumn: '1 / -1' }}>
+                No hay personal disponible. Crea personal primero en el módulo "Personal".
+              </p>
+            )}
+          </div>
         </div>
       )}
 

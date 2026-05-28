@@ -48,20 +48,24 @@ export const calcularGastoDiesel = (litros, precioPorLitro) => {
 
 /**
  * Calcula el costo total de personal
- * @param {Array} empleados - Array de empleados con {cantidad, salario, dias}
+ * @param {Array} empleados - Array de empleados personalizados con {cantidad, salario, dias}
+ * @param {number} gastoPersonalDelSistema - Gasto del personal asignado del sistema
  * @returns {number} Gasto total de personal
  */
-export const calcularGastoPersonal = (empleados) => {
-  if (!Array.isArray(empleados) || empleados.length === 0) {
-    return 0;
+export const calcularGastoPersonal = (empleados, gastoPersonalDelSistema = 0) => {
+  let gastoEmpleadosPersonalizados = 0;
+
+  if (Array.isArray(empleados) && empleados.length > 0) {
+    gastoEmpleadosPersonalizados = empleados.reduce((total, emp) => {
+      const cantidad = emp.cantidad || 0;
+      const salario = emp.salario || 0;
+      const dias = emp.dias || 1;
+      return total + (cantidad * salario * dias);
+    }, 0);
   }
 
-  return empleados.reduce((total, emp) => {
-    const cantidad = emp.cantidad || 0;
-    const salario = emp.salario || 0;
-    const dias = emp.dias || 1;
-    return total + (cantidad * salario * dias);
-  }, 0);
+  // Suma ambos: empleados personalizados + personal del sistema
+  return gastoEmpleadosPersonalizados + (gastoPersonalDelSistema || 0);
 };
 
 /**
@@ -163,6 +167,7 @@ export const calcularResumenFinanciero = (proyecto) => {
     diesel_litros = 0,
     diesel_precio = 9.8,
     empleados = [],
+    gasto_personal = 0, // Gasto del personal asignado del sistema
     gasto_comida = 0,
     dias_comida = 0,
     costo_comida_dia = 0,
@@ -184,7 +189,7 @@ export const calcularResumenFinanciero = (proyecto) => {
 
   // Calcular gastos individuales
   const gastoDiesel = calcularGastoDiesel(diesel_litros, diesel_precio);
-  const gastoPersonal = calcularGastoPersonal(empleados);
+  const gastoPersonal = calcularGastoPersonal(empleados, gasto_personal);
   const gastoComida = calcularGastoComida(
     gasto_comida > 0 ? gasto_comida : 0,
     dias_comida,
