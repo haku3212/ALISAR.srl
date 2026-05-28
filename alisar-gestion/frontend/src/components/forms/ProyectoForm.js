@@ -147,7 +147,30 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    // Validación básica
+    if (!formData.nombre || formData.nombre.trim() === '') {
+      console.error('Error: Nombre del proyecto es requerido');
+      alert('Por favor ingresa un nombre para el proyecto');
+      return;
+    }
+
+    // Preparar datos para envío
+    const dataToSubmit = {
+      ...formData,
+      nombre: formData.nombre.trim(),
+      descripcion: formData.descripcion?.trim() || '',
+      // Asegurar que los arrays de IDs sean válidos
+      personal_asignado: Array.isArray(formData.personal_asignado)
+        ? formData.personal_asignado.filter(id => id || id === 0)
+        : [],
+      maquinaria_asignada: Array.isArray(formData.maquinaria_asignada)
+        ? formData.maquinaria_asignada.filter(id => id || id === 0)
+        : []
+    };
+
+    console.log('Enviando datos del proyecto:', dataToSubmit);
+    onSubmit(dataToSubmit);
   }, [formData, onSubmit]);
 
   const SectionHeader = ({ title, section, icon }) => (

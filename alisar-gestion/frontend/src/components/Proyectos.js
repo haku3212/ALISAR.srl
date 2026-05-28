@@ -190,14 +190,23 @@ const Proyectos = () => {
    */
   const handleFormSubmit = useCallback(async (formData) => {
     try {
+      console.log('Guardando proyecto:', {
+        isEdit: !!editingId,
+        formData: formData
+      });
+
       if (editingId) {
         await update(editingId, formData);
+        alert('✅ Proyecto actualizado exitosamente');
       } else {
         await create(formData);
+        alert('✅ Proyecto creado exitosamente');
       }
       handleCloseModal();
     } catch (err) {
       console.error('Error al guardar proyecto:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Error desconocido al guardar';
+      alert(`❌ Error al guardar proyecto:\n\n${errorMessage}`);
     }
   }, [editingId, update, create, handleCloseModal]);
 

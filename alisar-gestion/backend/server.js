@@ -276,29 +276,36 @@ app.post('/api/obras', verifyToken, async (req, res) => {
         const obraId = result.lastID;
 
         // Guardar maquinaria asignada
-        if (Array.isArray(maquinaria_asignada)) {
+        if (Array.isArray(maquinaria_asignada) && maquinaria_asignada.length > 0) {
             for (const maquinariaId of maquinaria_asignada) {
-                await db.run(
-                    'INSERT INTO proyecto_maquinaria (proyecto_id, maquinaria_id) VALUES (?, ?)',
-                    [obraId, maquinariaId]
-                );
+                if (maquinariaId || maquinariaId === 0) {
+                    await db.run(
+                        'INSERT INTO proyecto_maquinaria (proyecto_id, maquinaria_id) VALUES (?, ?)',
+                        [obraId, maquinariaId]
+                    );
+                }
             }
         }
 
         // Guardar personal asignado
-        if (Array.isArray(personal_asignado)) {
+        if (Array.isArray(personal_asignado) && personal_asignado.length > 0) {
             for (const personalId of personal_asignado) {
-                await db.run(
-                    'INSERT INTO proyecto_personal (proyecto_id, personal_id) VALUES (?, ?)',
-                    [obraId, personalId]
-                );
+                if (personalId || personalId === 0) {
+                    await db.run(
+                        'INSERT INTO proyecto_personal (proyecto_id, personal_id) VALUES (?, ?)',
+                        [obraId, personalId]
+                    );
+                }
             }
         }
 
         res.json({ status: "Proyecto registrado con éxito", id: obraId });
     } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
+        console.error('Error al crear proyecto:', err);
+        res.status(500).json({
+            error: `Error al procesar solicitud: ${err.message}`,
+            details: err.toString()
+        });
     }
 });
 
@@ -439,22 +446,30 @@ app.put('/api/obras/:id', verifyToken, async (req, res) => {
         // Actualizar maquinaria asignada (eliminar existentes y agregar nuevos)
         if (Array.isArray(maquinaria_asignada)) {
             await db.run('DELETE FROM proyecto_maquinaria WHERE proyecto_id = ?', [obraId]);
-            for (const maquinariaId of maquinaria_asignada) {
-                await db.run(
-                    'INSERT INTO proyecto_maquinaria (proyecto_id, maquinaria_id) VALUES (?, ?)',
-                    [obraId, maquinariaId]
-                );
+            if (maquinaria_asignada.length > 0) {
+                for (const maquinariaId of maquinaria_asignada) {
+                    if (maquinariaId || maquinariaId === 0) {
+                        await db.run(
+                            'INSERT INTO proyecto_maquinaria (proyecto_id, maquinaria_id) VALUES (?, ?)',
+                            [obraId, maquinariaId]
+                        );
+                    }
+                }
             }
         }
 
         // Actualizar personal asignado (eliminar existentes y agregar nuevos)
         if (Array.isArray(personal_asignado)) {
             await db.run('DELETE FROM proyecto_personal WHERE proyecto_id = ?', [obraId]);
-            for (const personalId of personal_asignado) {
-                await db.run(
-                    'INSERT INTO proyecto_personal (proyecto_id, personal_id) VALUES (?, ?)',
-                    [obraId, personalId]
-                );
+            if (personal_asignado.length > 0) {
+                for (const personalId of personal_asignado) {
+                    if (personalId || personalId === 0) {
+                        await db.run(
+                            'INSERT INTO proyecto_personal (proyecto_id, personal_id) VALUES (?, ?)',
+                            [obraId, personalId]
+                        );
+                    }
+                }
             }
         }
 
