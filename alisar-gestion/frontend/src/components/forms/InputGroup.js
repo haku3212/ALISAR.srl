@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { Calendar } from 'lucide-react';
+import CalendarPicker from '../common/CalendarPicker';
 
 /**
  * InputGroup Component
@@ -15,23 +16,13 @@ const InputGroup = memo(({ label, value, onChange, type = 'text', required = fal
         </label>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Calendar size={18} color="#60a5fa" style={{ flexShrink: 0 }} />
-          <input
-            type="date"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            disabled={disabled}
-            style={{
-              flex: 1,
-              padding: '10px 12px',
-              border: '1px solid #1f241f',
-              borderRadius: '8px',
-              background: '#0d0f0d',
-              color: '#e0e0e0',
-              fontSize: '14px',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              opacity: disabled ? 0.5 : 1
-            }}
-          />
+          <div style={{ flex: 1 }}>
+            <CalendarPicker
+              value={value || ''}
+              onChange={onChange}
+              disabled={disabled}
+            />
+          </div>
         </div>
       </div>
     );

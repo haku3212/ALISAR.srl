@@ -165,12 +165,17 @@ const Proyectos = () => {
       fecha_fin: '',
       diesel_litros: 0,
       diesel_precio: 9.8,
-      empleados: [],
+      empleados: [
+        { nombre: 'Operarios', cantidad: 0, salario: 6000, dias: 0 },
+        { nombre: 'Ayudantes', cantidad: 0, salario: 5250, dias: 0 },
+        { nombre: 'Encargado', cantidad: 0, salario: 6000, dias: 0 },
+        { nombre: 'Cocinera', cantidad: 0, salario: 35, dias: 0 }
+      ],
       gasto_comida: 0,
       dias_comida: 0,
-      costo_comida_dia: 0,
+      costo_comida_dia: 400,
       cantidad_maquinas: 0,
-      costo_mantenimiento_maquina: 0,
+      costo_mantenimiento_maquina: 1200,
       gasto_otros: 0,
       maquinaria_asignada: [],
       personal_asignado: []

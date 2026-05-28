@@ -71,10 +71,36 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
   }, []);
 
   const handleInputChange = useCallback((field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [field]: value
+      };
+
+      // Auto-calculate duracion_dias when dates change
+      if (field === 'fecha_inicio' || field === 'fecha_fin') {
+        if (updated.fecha_inicio && updated.fecha_fin) {
+          try {
+            const start = new Date(updated.fecha_inicio);
+            const end = new Date(updated.fecha_fin);
+
+            // Validar que las fechas sean válidas
+            if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+              // Asegurar que la fecha inicio sea menor o igual a la fecha fin
+              if (start <= end) {
+                const diffTime = end - start;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both days
+                updated.duracion_dias = Math.max(1, diffDays);
+              }
+            }
+          } catch (err) {
+            console.warn('Error calculating duration:', err);
+          }
+        }
+      }
+
+      return updated;
+    });
   }, []);
 
   const handleEmpleadoChange = useCallback((index, field, value) => {
@@ -89,10 +115,19 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
   }, []);
 
   const handleAgregarEmpleado = useCallback(() => {
-    setFormData(prev => ({
-      ...prev,
-      empleados: [...prev.empleados, { nombre: 'Nuevo Empleado', cantidad: 1, salario: 0, dias: 0 }]
-    }));
+    setFormData(prev => {
+      // Validar que no existan empleados vacíos antes de agregar uno nuevo
+      const hasEmptyEmployees = prev.empleados.some(emp => !emp.nombre || emp.nombre.trim() === '');
+      if (hasEmptyEmployees) {
+        alert('Por favor completa los campos vacíos de los empleados existentes antes de agregar otro.');
+        return prev;
+      }
+
+      return {
+        ...prev,
+        empleados: [...prev.empleados, { nombre: '', cantidad: 0, salario: 0, dias: 0 }]
+      };
+    });
   }, []);
 
   const handleEliminarEmpleado = useCallback((index) => {
@@ -155,11 +190,18 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
       return;
     }
 
+    // Validar que los empleados tengan datos válidos si tienen valores
+    const empleadosValidos = formData.empleados.filter(emp => {
+      // Permitir empleados vacíos al inicio, pero si tienen datos deben ser válidos
+      return emp.nombre && emp.nombre.trim() !== '';
+    });
+
     // Preparar datos para envío
     const dataToSubmit = {
       ...formData,
       nombre: formData.nombre.trim(),
       descripcion: formData.descripcion?.trim() || '',
+      empleados: empleadosValidos, // Solo incluir empleados con datos válidos
       // Asegurar que los arrays de IDs sean válidos
       personal_asignado: Array.isArray(formData.personal_asignado)
         ? formData.personal_asignado.filter(id => id || id === 0)
@@ -431,6 +473,8 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             </table>
             <button
               onClick={handleAgregarEmpleado}
+              type="button"
+              title="Agregar una nueva fila de costos de personal para este proyecto"
               style={{
                 marginTop: '12px',
                 padding: '8px 12px',
@@ -443,10 +487,19 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                 alignItems: 'center',
                 gap: '6px',
                 fontSize: '12px',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = '#1a1d1a';
+                e.currentTarget.style.borderColor = '#a78bfa';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = '#111411';
+                e.currentTarget.style.borderColor = '#60a5fa';
               }}
             >
-              <Plus size={14} /> Agregar empleado
+              <Plus size={14} /> Agregar fila de costo
             </button>
           </div>
 
