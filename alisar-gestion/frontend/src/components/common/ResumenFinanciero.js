@@ -7,7 +7,7 @@
 import React, { useMemo, memo } from 'react';
 import { calcularResumenFinanciero } from '../../utils/calculosFinancieros';
 
-const ResumenFinanciero = memo(({ proyecto }) => {
+const ResumenFinanciero = memo(function ResumenFinanciero({ proyecto }) {
   // Calcular resumen financiero automáticamente
   const resumen = useMemo(() => {
     // Asegurar que proyecto sea un objeto válido
@@ -212,7 +212,7 @@ const ResumenFinanciero = memo(({ proyecto }) => {
             </div>
           </div>
 
-          {proyecto.kilometros_totales > 0 && (
+          {proyecto && proyecto.kilometros_totales > 0 && (
             <div>
               <div style={{
                 color: '#999',
@@ -231,7 +231,7 @@ const ResumenFinanciero = memo(({ proyecto }) => {
             </div>
           )}
 
-          {proyecto.duracion_dias > 0 && (
+          {proyecto && proyecto.duracion_dias > 0 && (
             <div>
               <div style={{
                 color: '#999',
@@ -254,7 +254,5 @@ const ResumenFinanciero = memo(({ proyecto }) => {
     </div>
   );
 });
-
-ResumenFinanciero.displayName = 'ResumenFinanciero';
 
 export default ResumenFinanciero;
