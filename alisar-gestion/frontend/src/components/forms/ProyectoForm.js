@@ -491,26 +491,35 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
           gridTemplateColumns: '1fr 1fr',
           gap: '12px'
         }}>
-          {maquinaria.map((maq) => (
-            <label key={maq.id} style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '12px',
-              background: '#111411',
-              borderRadius: '8px',
-              border: formData.maquinaria_asignada.includes(maq.id) ? '2px solid #FFD700' : '1px solid #1f241f',
-              cursor: 'pointer',
-              color: '#e0e0e0'
-            }}>
-              <input
-                type="checkbox"
-                checked={formData.maquinaria_asignada.includes(maq.id)}
-                onChange={() => handleToggleMaquinaria(maq.id)}
-                style={{ marginRight: '8px', cursor: 'pointer' }}
-              />
-              {maq.nombre}
-            </label>
-          ))}
+          {maquinaria && maquinaria.length > 0 ? (
+            maquinaria.map((maq) => {
+              if (!maq || !maq.id) return null;
+              return (
+                <label key={maq.id} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '12px',
+                  background: '#111411',
+                  borderRadius: '8px',
+                  border: formData.maquinaria_asignada.includes(maq.id) ? '2px solid #FFD700' : '1px solid #1f241f',
+                  cursor: 'pointer',
+                  color: '#e0e0e0'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.maquinaria_asignada.includes(maq.id)}
+                    onChange={() => handleToggleMaquinaria(maq.id)}
+                    style={{ marginRight: '8px', cursor: 'pointer' }}
+                  />
+                  {maq.nombre}
+                </label>
+              );
+            })
+          ) : (
+            <p style={{ color: '#999', fontSize: '12px', gridColumn: '1 / -1' }}>
+              No hay maquinaria disponible. Crea maquinaria primero en el módulo "Maquinaria".
+            </p>
+          )}
         </div>
       )}
 
@@ -526,26 +535,35 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
           gridTemplateColumns: '1fr 1fr',
           gap: '12px'
         }}>
-          {personal.map((pers) => (
-            <label key={pers.id} style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '12px',
-              background: '#111411',
-              borderRadius: '8px',
-              border: formData.personal_asignado.includes(pers.id) ? '2px solid #FFD700' : '1px solid #1f241f',
-              cursor: 'pointer',
-              color: '#e0e0e0'
-            }}>
-              <input
-                type="checkbox"
-                checked={formData.personal_asignado.includes(pers.id)}
-                onChange={() => handleTogglePersonal(pers.id)}
-                style={{ marginRight: '8px', cursor: 'pointer' }}
-              />
-              {pers.nombre} ({pers.cargo})
-            </label>
-          ))}
+          {personal && personal.length > 0 ? (
+            personal.map((pers) => {
+              if (!pers || !pers.id) return null;
+              return (
+                <label key={pers.id} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '12px',
+                  background: '#111411',
+                  borderRadius: '8px',
+                  border: formData.personal_asignado.includes(pers.id) ? '2px solid #FFD700' : '1px solid #1f241f',
+                  cursor: 'pointer',
+                  color: '#e0e0e0'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.personal_asignado.includes(pers.id)}
+                    onChange={() => handleTogglePersonal(pers.id)}
+                    style={{ marginRight: '8px', cursor: 'pointer' }}
+                  />
+                  {pers.nombre} ({pers.cargo})
+                </label>
+              );
+            })
+          ) : (
+            <p style={{ color: '#999', fontSize: '12px', gridColumn: '1 / -1' }}>
+              No hay personal disponible. Crea personal primero en el módulo "Personal".
+            </p>
+          )}
         </div>
       )}
 
