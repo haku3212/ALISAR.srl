@@ -1,7 +1,14 @@
 /**
- * ProyectoForm Component
- * Formulario completo para crear/editar proyectos con análisis financiero
- * 6 secciones totalmente editables con cálculos automáticos
+ * ProyectoForm Component - VERSIÓN CORREGIDA
+ *
+ * Formulario para crear/editar proyectos con análisis financiero.
+ * Calcula automáticamente:
+ * - duracion_dias: a partir de fecha_inicio y fecha_fin
+ * - gasto_personal: salario_diario × duracion_dias para cada personal asignado
+ *
+ * IMPORTANTE: El cálculo de gasto_personal se hace:
+ * 1. Cuando se asigna/desasigna personal (handleTogglePersonal)
+ * 2. Cuando cambian los días y hay personal asignado (handleInputChange)
  */
 
 import React, { useState, useEffect, useCallback, memo } from 'react';
@@ -9,6 +16,8 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import InputGroup from './InputGroup';
 
 const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit = () => {}, onCancel = () => {} }) => {
+  // ==================== STATE ====================
+  // Estado principal del formulario con todos los datos del proyecto
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -28,16 +37,21 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
     cantidad_maquinas: 0,
     costo_mantenimiento_maquina: 1200,
     gasto_otros: 0,
+    // ⚠️ NOTA: gasto_personal se calcula automáticamente, NO se edita manualmente
+    gasto_personal: 0,
+    // ⚠️ NOTA: empleados[] es para costos personalizados, NO para personal del sistema
     empleados: [
       { nombre: 'Operarios', cantidad: 0, salario: 6000, dias: 0 },
       { nombre: 'Ayudantes', cantidad: 0, salario: 5250, dias: 0 },
       { nombre: 'Encargado', cantidad: 0, salario: 6000, dias: 0 },
       { nombre: 'Cocinera', cantidad: 0, salario: 35, dias: 0 }
     ],
+    // personal_asignado = IDs del personal del sistema (no salarios)
     maquinaria_asignada: [],
     personal_asignado: []
   });
 
+  // Estado para controlar qué secciones están expandidas/colapsadas
   const [expandedSections, setExpandedSections] = useState({
     basico: true,
     presupuesto: true,
@@ -46,12 +60,17 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
     personal_: false
   });
 
+  // ==================== EFFECTS ====================
+  /**
+   * Efecto 1: Cargar datos de proyecto al abrir (edición)
+   * Corre una sola vez cuando el prop "proyecto" cambia
+   */
   useEffect(() => {
-    // Solo actualizar si proyecto es un objeto válido con propiedades
+    // Si proyecto existe y tiene propiedades, cargarlo al estado
     if (proyecto && typeof proyecto === 'object') {
       const proyectoKeys = Object.keys(proyecto);
       if (proyectoKeys.length > 0) {
-        // Filtra solo las propiedades que existen en el proyecto
+        // Filtra solo las propiedades que existen en formData
         const proyectoData = {};
         proyectoKeys.forEach(key => {
           if (key in formData || key === 'id') {
@@ -61,34 +80,55 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
         setFormData(prev => ({ ...prev, ...proyectoData }));
       }
     }
-  }, [proyecto]);
+  }, [proyecto]); // Solo depende de proyecto, no de formData
 
-  // Recalcular gasto de personal cuando cambian los días o el personal asignado
-  useEffect(() => {
-    setFormData(prev => {
-      const personalAsignado = prev.personal_asignado || [];
+  // ==================== FUNCIONES AUXILIARES ====================
+  /**
+   * Calcula el gasto de personal del sistema basado en los IDs asignados
+   * Fórmula: (salario_mensual / 30) × duracion_dias para cada persona
+   *
+   * @param {number[]} personalAsignadoIds - Array de IDs de personal asignado
+   * @param {number} dias - Número de días del proyecto
+   * @returns {number} Gasto total de personal
+   */
+  const calcularGastoPersonal = useCallback((personalAsignadoIds, dias) => {
+    // Si no hay personal asignado o no tenemos datos, retorna 0
+    if (!Array.isArray(personalAsignadoIds) || personalAsignadoIds.length === 0) {
+      return 0;
+    }
 
-      if (Array.isArray(personal) && personal.length > 0 && personalAsignado.length > 0) {
-        const gastoCalculado = personalAsignado.reduce((total, pId) => {
-          const empleado = personal.find(p => p.id === pId || String(p.id) === String(pId));
-          if (empleado && empleado.salario) {
-            const salarioDiario = (empleado.salario / 30);
-            const costePorPersona = salarioDiario * (prev.duracion_dias || 1);
-            return total + costePorPersona;
-          }
-          return total;
-        }, 0);
+    // Si no hay días definidos, retorna 0 (el usuario aún no seleccionó fechas)
+    if (!dias || dias <= 0) {
+      return 0;
+    }
 
-        return {
-          ...prev,
-          gasto_personal: gastoCalculado
-        };
+    // Suma el costo de cada persona asignada
+    return personalAsignadoIds.reduce((total, personaId) => {
+      // Busca el empleado en el array de personal disponible
+      // Compara tanto como número como string por si acaso
+      const empleado = personal.find(p =>
+        p.id === personaId || String(p.id) === String(personaId)
+      );
+
+      // Si encontramos el empleado y tiene salario, calcula su costo
+      if (empleado && empleado.salario) {
+        // Divide salario mensual por 30 para obtener salario diario
+        const salarioDiario = empleado.salario / 30;
+        // Multiplica por el número de días del proyecto
+        const costePorPersona = salarioDiario * dias;
+        // Suma al total
+        return total + costePorPersona;
       }
 
-      return prev;
-    });
-  }, [formData.duracion_dias, formData.personal_asignado, personal]);
+      // Si no hay salario, no agrega nada
+      return total;
+    }, 0);
+  }, [personal]); // Depende de personal (datos del backend)
 
+  // ==================== HANDLERS ====================
+  /**
+   * Alternar expandir/colapsar una sección del formulario
+   */
   const toggleSection = useCallback((section) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -96,43 +136,75 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
     }));
   }, []);
 
+  /**
+   * Maneja cambios en inputs de texto, números y fechas
+   *
+   * Casos especiales:
+   * - Si es una fecha (fecha_inicio o fecha_fin): calcula duracion_dias automáticamente
+   * - Si es duracion_dias y hay personal asignado: recalcula gasto_personal
+   *
+   * @param {string} field - Nombre del campo que cambió
+   * @param {any} value - Nuevo valor del campo
+   */
   const handleInputChange = useCallback((field, value) => {
     setFormData(prev => {
+      // Copia el estado anterior
       const updated = {
         ...prev,
         [field]: value
       };
 
-      // Auto-calculate duracion_dias when dates change
+      // ⚠️ CASO ESPECIAL: Si cambian las fechas, calcula duracion_dias automáticamente
       if (field === 'fecha_inicio' || field === 'fecha_fin') {
+        // Solo calcula si AMBAS fechas están definidas
         if (updated.fecha_inicio && updated.fecha_fin) {
           try {
+            // Convierte strings a objetos Date
             const start = new Date(updated.fecha_inicio);
             const end = new Date(updated.fecha_fin);
 
-            // Validar que las fechas sean válidas
+            // Valida que las fechas sean válidas (no son NaN)
             if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-              // Asegurar que la fecha inicio sea menor o igual a la fecha fin
+              // Asegura que fecha inicio <= fecha fin
               if (start <= end) {
+                // Calcula la diferencia en milisegundos
                 const diffTime = end - start;
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both days
+                // Convierte a días: ms / (1000 * 60 * 60 * 24)
+                // +1 para incluir ambas fechas (ej: 1 al 2 = 2 días)
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                // Asegura que sea al menos 1 día
                 updated.duracion_dias = Math.max(1, diffDays);
               }
             }
           } catch (err) {
-            console.warn('Error calculating duration:', err);
+            // Si hay error en el cálculo, solo log, no rompe la app
+            console.warn('Error calculando duracion_dias:', err);
           }
         }
       }
 
+      // ⚠️ CASO ESPECIAL: Si cambia duracion_dias y hay personal asignado, recalcula gasto
+      if (field === 'duracion_dias' && Array.isArray(prev.personal_asignado) && prev.personal_asignado.length > 0) {
+        updated.gasto_personal = calcularGastoPersonal(prev.personal_asignado, value);
+      }
+
       return updated;
     });
-  }, []);
+  }, [calcularGastoPersonal]);
 
+  /**
+   * Maneja cambios en la tabla de empleados personalizados
+   * @param {number} index - Índice del empleado en el array
+   * @param {string} field - Campo que cambió (nombre, cantidad, salario, dias)
+   * @param {any} value - Nuevo valor
+   */
   const handleEmpleadoChange = useCallback((index, field, value) => {
     setFormData(prev => {
+      // Copia el array de empleados
       const updatedEmpleados = [...prev.empleados];
+      // Actualiza el campo específico
       updatedEmpleados[index][field] = value;
+      // Retorna el estado actualizado
       return {
         ...prev,
         empleados: updatedEmpleados
@@ -140,15 +212,24 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
     });
   }, []);
 
+  /**
+   * Agrega una nueva fila de empleado personalizado
+   * Valida que no haya empleados vacíos antes de agregar uno nuevo
+   */
   const handleAgregarEmpleado = useCallback(() => {
     setFormData(prev => {
-      // Validar que no existan empleados vacíos antes de agregar uno nuevo
-      const hasEmptyEmployees = prev.empleados.some(emp => !emp.nombre || emp.nombre.trim() === '');
+      // Verifica si hay empleados con nombre vacío
+      const hasEmptyEmployees = prev.empleados.some(emp =>
+        !emp.nombre || emp.nombre.trim() === ''
+      );
+
+      // Si hay vacíos, muestra alerta y no agrega nada
       if (hasEmptyEmployees) {
         alert('Por favor completa los campos vacíos de los empleados existentes antes de agregar otro.');
         return prev;
       }
 
+      // Agrega un nuevo empleado vacío
       return {
         ...prev,
         empleados: [...prev.empleados, { nombre: '', cantidad: 0, salario: 0, dias: 0 }]
@@ -156,29 +237,45 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
     });
   }, []);
 
+  /**
+   * Elimina un empleado personalizado de la tabla
+   * @param {number} index - Índice del empleado a eliminar
+   */
   const handleEliminarEmpleado = useCallback((index) => {
     setFormData(prev => ({
       ...prev,
+      // Filtra el empleado en el índice especificado
       empleados: prev.empleados.filter((_, i) => i !== index)
     }));
   }, []);
 
+  /**
+   * Alterna la asignación de una maquinaria
+   *
+   * @param {number} machineId - ID de la máquina
+   */
   const handleToggleMaquinaria = useCallback((machineId) => {
+    // Valida que el ID sea válido (puede ser 0, por eso se comprueba así)
     if (!machineId && machineId !== 0) {
       console.error('Error: machineId is invalid', machineId);
       return;
     }
 
     setFormData(prev => {
+      // Convierte el ID a string para comparación consistente
       const idAsString = String(machineId);
+      // Obtiene el array actual de máquinas asignadas
       const currentAsignada = prev.maquinaria_asignada || [];
+      // Verifica si esta máquina ya está asignada
       const isSelected = currentAsignada.some(id => String(id) === idAsString);
 
+      // Toglea: si está asignada, la quita; si no está, la agrega
       return {
         ...prev,
         maquinaria_asignada: isSelected
-          ? currentAsignada.filter(id => String(id) !== idAsString)
-          : [...currentAsignada, machineId],
+          ? currentAsignada.filter(id => String(id) !== idAsString) // Quita
+          : [...currentAsignada, machineId], // Agrega
+        // Actualiza la cantidad de máquinas (para el resumen financiero)
         cantidad_maquinas: isSelected
           ? prev.cantidad_maquinas - 1
           : prev.cantidad_maquinas + 1
@@ -186,80 +283,108 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
     });
   }, []);
 
+  /**
+   * Alterna la asignación de una persona del sistema
+   *
+   * ⚠️ IMPORTANTE: AQUÍ SE CALCULA EL GASTO DE PERSONAL AUTOMÁTICAMENTE
+   * - Cuando se asigna: suma el costo de esa persona
+   * - Cuando se desasigna: resta su costo
+   * - El cálculo es: (salario_mensual / 30) × duracion_dias
+   *
+   * @param {number} personaId - ID de la persona
+   */
   const handleTogglePersonal = useCallback((personaId) => {
+    // Valida que el ID sea válido
     if (!personaId && personaId !== 0) {
       console.error('Error: personaId is invalid', personaId);
       return;
     }
 
     setFormData(prev => {
+      // Convierte el ID a string para comparación consistente
       const idAsString = String(personaId);
+      // Obtiene el array actual de personal asignado
       const currentAsignado = prev.personal_asignado || [];
+      // Verifica si esta persona ya está asignada
       const isSelected = currentAsignado.some(id => String(id) === idAsString);
 
-      // Calcular automáticamente el gasto de personal asignado
+      // Calcula el nuevo array de personal asignado
       const newPersonalAsignado = isSelected
-        ? currentAsignado.filter(id => String(id) !== idAsString)
-        : [...currentAsignado, personaId];
+        ? currentAsignado.filter(id => String(id) !== idAsString) // Quita la persona
+        : [...currentAsignado, personaId]; // Agrega la persona
 
-      // Calcular gasto_personal basado en el personal asignado del sistema
-      let gastoPersonalCalculado = 0;
-      if (Array.isArray(personal) && personal.length > 0 && newPersonalAsignado.length > 0) {
-        gastoPersonalCalculado = newPersonalAsignado.reduce((total, pId) => {
-          const empleado = personal.find(p => p.id === pId || String(p.id) === String(pId));
-          if (empleado && empleado.salario) {
-            // Salario mensual / 30 días × duracion_dias del proyecto
-            const salarioDiario = (empleado.salario / 30);
-            const costePorPersona = salarioDiario * (prev.duracion_dias || 1);
-            return total + costePorPersona;
-          }
-          return total;
-        }, 0);
-      }
+      // Recalcula el gasto de personal con el nuevo array
+      const gastoPersonalCalculado = calcularGastoPersonal(newPersonalAsignado, prev.duracion_dias);
 
       return {
         ...prev,
         personal_asignado: newPersonalAsignado,
-        gasto_personal: gastoPersonalCalculado
+        gasto_personal: gastoPersonalCalculado // Actualiza el gasto automáticamente
       };
     });
-  }, [personal]);
+  }, [calcularGastoPersonal]);
 
+  /**
+   * Valida y envía el formulario
+   *
+   * Validaciones:
+   * - Nombre es obligatorio
+   * - Empleados personalizados deben tener nombre
+   * - IDs deben ser válidos (filtra nulls/undefined)
+   *
+   * @param {Event} e - Evento del formulario
+   */
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
 
-    // Validación básica
+    // ✅ VALIDACIÓN 1: Nombre es requerido
     if (!formData.nombre || formData.nombre.trim() === '') {
       console.error('Error: Nombre del proyecto es requerido');
       alert('Por favor ingresa un nombre para el proyecto');
       return;
     }
 
-    // Validar que los empleados tengan datos válidos si tienen valores
-    const empleadosValidos = formData.empleados.filter(emp => {
-      // Permitir empleados vacíos al inicio, pero si tienen datos deben ser válidos
-      return emp.nombre && emp.nombre.trim() !== '';
-    });
+    // ✅ VALIDACIÓN 2: Empleados personalizados deben tener nombre
+    const empleadosValidos = formData.empleados.filter(emp =>
+      emp.nombre && emp.nombre.trim() !== ''
+    );
 
-    // Preparar datos para envío
+    // Prepara los datos para enviar al backend
     const dataToSubmit = {
       ...formData,
+      // Limpia el nombre (trim)
       nombre: formData.nombre.trim(),
+      // Limpia la descripción
       descripcion: formData.descripcion?.trim() || '',
-      empleados: empleadosValidos, // Solo incluir empleados con datos válidos
-      // Asegurar que los arrays de IDs sean válidos
+      // Solo incluye empleados personalizados que tengan nombre
+      empleados: empleadosValidos,
+      // Filtra personal asignado: solo IDs válidos (no null/undefined)
       personal_asignado: Array.isArray(formData.personal_asignado)
         ? formData.personal_asignado.filter(id => id || id === 0)
         : [],
+      // Filtra maquinaria asignada: solo IDs válidos
       maquinaria_asignada: Array.isArray(formData.maquinaria_asignada)
         ? formData.maquinaria_asignada.filter(id => id || id === 0)
         : []
     };
 
-    console.log('Enviando datos del proyecto:', dataToSubmit);
+    // Log para debugging
+    console.log('✅ Enviando datos del proyecto:', {
+      nombre: dataToSubmit.nombre,
+      dias: dataToSubmit.duracion_dias,
+      personalAsignado: dataToSubmit.personal_asignado,
+      gastoPersonal: dataToSubmit.gasto_personal,
+      total: dataToSubmit
+    });
+
+    // Llama al callback onSubmit (que está en Proyectos.js)
     onSubmit(dataToSubmit);
   }, [formData, onSubmit]);
 
+  // ==================== COMPONENTES AUXILIARES ====================
+  /**
+   * Componente para encabezado de sección colapsable
+   */
   const SectionHeader = ({ title, section, icon }) => (
     <div
       onClick={() => toggleSection(section)}
@@ -282,12 +407,17 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
           {title}
         </h3>
       </div>
-      {expandedSections[section] ? <ChevronUp size={20} color="#FFD700" /> : <ChevronDown size={20} color="#666" />}
+      {expandedSections[section] ?
+        <ChevronUp size={20} color="#FFD700" /> :
+        <ChevronDown size={20} color="#666" />
+      }
     </div>
   );
+
+  // ==================== RENDER ====================
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: '900px', margin: '0 auto' }}>
-      {/* SECCIÓN 1: DATOS BÁSICOS */}
+      {/* ============== SECCIÓN 1: DATOS BÁSICOS ============== */}
       <SectionHeader title="Datos Básicos" section="basico" icon="📋" />
       {expandedSections.basico && (
         <div style={{
@@ -299,41 +429,55 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
           gridTemplateColumns: '1fr 1fr',
           gap: '16px'
         }}>
+          {/* Campo: Nombre del Proyecto */}
           <InputGroup
             label="Nombre del Proyecto"
             value={formData.nombre}
             onChange={(v) => handleInputChange('nombre', v)}
             required
           />
+
+          {/* Campo: Estado */}
           <InputGroup
             label="Estado"
             value={formData.estado}
             onChange={(v) => handleInputChange('estado', v)}
           />
+
+          {/* Campo: Fecha Inicio - Usa el calendario interactivo */}
           <InputGroup
             label="Fecha Inicio"
             value={formData.fecha_inicio}
             onChange={(v) => handleInputChange('fecha_inicio', v)}
             type="date"
           />
+
+          {/* Campo: Fecha Fin - Se calcula automáticamente duracion_dias */}
           <InputGroup
             label="Fecha Fin"
             value={formData.fecha_fin}
             onChange={(v) => handleInputChange('fecha_fin', v)}
             type="date"
           />
+
+          {/* Campo: Km Totales */}
           <InputGroup
             label="Km Totales"
             value={formData.kilometros_totales}
             onChange={(v) => handleInputChange('kilometros_totales', parseFloat(v))}
             type="number"
           />
+
+          {/* Campo: Duración (días) - Se calcula automáticamente de las fechas */}
           <InputGroup
             label="Duración (días)"
             value={formData.duracion_dias}
             onChange={(v) => handleInputChange('duracion_dias', parseInt(v))}
             type="number"
+            disabled={true} {/* Solo lectura, se calcula automáticamente */}
           />
+
+          {/* Campo: Descripción - Ocupa dos columnas */}
           <div style={{ gridColumn: '1 / -1' }}>
             <InputGroup
               label="Descripción"
@@ -344,7 +488,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
         </div>
       )}
 
-      {/* SECCIÓN 2: TIPO DE PRESUPUESTO */}
+      {/* ============== SECCIÓN 2: TIPO DE PRESUPUESTO ============== */}
       <SectionHeader title="Tipo de Presupuesto" section="presupuesto" icon="💰" />
       {expandedSections.presupuesto && (
         <div style={{
@@ -356,6 +500,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
           gridTemplateColumns: '1fr 1fr',
           gap: '16px'
         }}>
+          {/* Opciones: Presupuesto Fijo vs Por Tarifa */}
           <div style={{ gridColumn: '1 / -1', marginBottom: '16px' }}>
             <label style={{ color: '#e7ebe5', marginRight: '20px', cursor: 'pointer' }}>
               <input
@@ -379,6 +524,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             </label>
           </div>
 
+          {/* Muestra presupuesto fijo o tarifa según la selección */}
           {formData.tipo_presupuesto === 'fijo' ? (
             <InputGroup
               label="Presupuesto Adjudicado (Bs)"
@@ -397,7 +543,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
         </div>
       )}
 
-      {/* SECCIÓN 3: GASTOS OPERATIVOS */}
+      {/* ============== SECCIÓN 3: GASTOS OPERATIVOS ============== */}
       <SectionHeader title="Gastos Operativos (TODO EDITABLE)" section="gastos" icon="📊" />
       {expandedSections.gastos && (
         <div style={{
@@ -406,7 +552,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
           borderRadius: '8px',
           marginBottom: '24px'
         }}>
-          {/* Diesel */}
+          {/* --- Subsección: DIESEL --- */}
           <div style={{ marginBottom: '24px', padding: '12px', background: '#111411', borderRadius: '8px', borderLeft: '4px solid #fbbf24' }}>
             <h4 style={{ color: '#fbbf24', margin: '0 0 12px 0' }}>🛢️ Diesel</h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -426,19 +572,30 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             </div>
           </div>
 
-          {/* Personal */}
+          {/* --- Subsección: PERSONAL --- */}
           <div style={{ marginBottom: '24px', padding: '12px', background: '#111411', borderRadius: '8px', borderLeft: '4px solid #60a5fa' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
               <div>
                 <h4 style={{ color: '#60a5fa', margin: '0 0 4px 0' }}>💼 Costos de Personal Personalizados</h4>
-                <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>Usa esto para roles genéricos o costos adicionales no cubiertos por personal del sistema</p>
+                <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>
+                  Usa esto para roles genéricos o costos adicionales no cubiertos por personal del sistema
+                </p>
               </div>
               <div style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 'bold', whiteSpace: 'nowrap', marginLeft: '12px' }}>
-                Subtotal: <span style={{ color: '#FFD700' }}>{(formData.empleados.reduce((sum, emp) => sum + (emp.cantidad * emp.salario * emp.dias), 0)).toLocaleString('es-BO', { maximumFractionDigits: 0 })} Bs</span>
+                Subtotal: <span style={{ color: '#FFD700' }}>
+                  {(formData.empleados.reduce((sum, emp) =>
+                    sum + (emp.cantidad * emp.salario * emp.dias), 0
+                  )).toLocaleString('es-BO', { maximumFractionDigits: 0 })} Bs
+                </span>
               </div>
             </div>
 
-            {/* Nota sobre gasto_personal total */}
+            {/* Mostrar costo total de personal del sistema si hay asignado */}
             {(formData.gasto_personal || 0) > 0 && (
               <div style={{
                 background: '#0d0f0d',
@@ -449,10 +606,13 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                 fontSize: '11px',
                 color: '#FFD700'
               }}>
-                💡 Costo Total de Personal (del sistema): <strong>{(formData.gasto_personal || 0).toLocaleString('es-BO', { maximumFractionDigits: 0 })} Bs</strong>
+                💡 Costo Total de Personal (del sistema): <strong>
+                  {(formData.gasto_personal || 0).toLocaleString('es-BO', { maximumFractionDigits: 0 })} Bs
+                </strong>
               </div>
             )}
 
+            {/* Tabla de empleados personalizados */}
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #1f241f' }}>
@@ -466,6 +626,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
               <tbody>
                 {formData.empleados.map((emp, idx) => (
                   <tr key={idx} style={{ borderBottom: '1px solid #1f241f' }}>
+                    {/* Columna: Nombre/Rol */}
                     <td style={{ padding: '8px' }}>
                       <input
                         type="text"
@@ -482,6 +643,8 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                         }}
                       />
                     </td>
+
+                    {/* Columna: Cantidad */}
                     <td style={{ padding: '8px', textAlign: 'center' }}>
                       <input
                         type="number"
@@ -499,6 +662,8 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                         }}
                       />
                     </td>
+
+                    {/* Columna: Salario por día */}
                     <td style={{ padding: '8px', textAlign: 'center' }}>
                       <input
                         type="number"
@@ -516,6 +681,8 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                         }}
                       />
                     </td>
+
+                    {/* Columna: Días */}
                     <td style={{ padding: '8px', textAlign: 'center' }}>
                       <input
                         type="number"
@@ -533,13 +700,35 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                         }}
                       />
                     </td>
+
+                    {/* Columna: Subtotal (solo lectura, se calcula) */}
                     <td style={{ padding: '8px', textAlign: 'right', color: '#60a5fa', fontWeight: 'bold' }}>
                       {(emp.cantidad * emp.salario * emp.dias).toLocaleString('es-BO')}
+                    </td>
+
+                    {/* Columna: Botón eliminar */}
+                    <td style={{ padding: '8px', textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleEliminarEmpleado(idx)}
+                        style={{
+                          background: '#f87171',
+                          border: 'none',
+                          color: '#fff',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            {/* Botón para agregar nueva fila de empleado */}
             <button
               onClick={handleAgregarEmpleado}
               type="button"
@@ -572,7 +761,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             </button>
           </div>
 
-          {/* Comida */}
+          {/* --- Subsección: COMIDA --- */}
           <div style={{ marginBottom: '24px', padding: '12px', background: '#111411', borderRadius: '8px', borderLeft: '4px solid #4ade80' }}>
             <h4 style={{ color: '#4ade80', margin: '0 0 12px 0' }}>🍽️ Comida</h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -588,7 +777,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             </div>
           </div>
 
-          {/* Mantenimiento */}
+          {/* --- Subsección: MANTENIMIENTO MAQUINARIA --- */}
           <div style={{ marginBottom: '24px', padding: '12px', background: '#111411', borderRadius: '8px', borderLeft: '4px solid #a78bfa' }}>
             <h4 style={{ color: '#a78bfa', margin: '0 0 12px 0' }}>🏗️ Mantenimiento Maquinaria</h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -607,7 +796,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             </div>
           </div>
 
-          {/* Otros */}
+          {/* --- Subsección: OTROS GASTOS --- */}
           <div style={{ padding: '12px', background: '#111411', borderRadius: '8px', borderLeft: '4px solid #f97316' }}>
             <h4 style={{ color: '#f97316', margin: '0 0 12px 0' }}>📋 Otros Gastos</h4>
             <InputGroup
@@ -620,7 +809,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
         </div>
       )}
 
-      {/* SECCIÓN 4: MAQUINARIA ASIGNADA */}
+      {/* ============== SECCIÓN 4: MAQUINARIA ASIGNADA ============== */}
       <SectionHeader title="Maquinaria Asignada" section="maquinaria" icon="🏗️" />
       {expandedSections.maquinaria && (
         <div style={{
@@ -634,7 +823,9 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
         }}>
           {maquinaria && maquinaria.length > 0 ? (
             maquinaria.map((maq) => {
+              // Valida que la máquina tenga ID
               if (!maq || !maq.id) return null;
+
               return (
                 <label key={maq.id} style={{
                   display: 'flex',
@@ -642,18 +833,25 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                   padding: '12px',
                   background: '#111411',
                   borderRadius: '8px',
-                  border: (formData.maquinaria_asignada || []).some(id => String(id) === String(maq.id)) ? '2px solid #FFD700' : '1px solid #1f241f',
+                  // Resalta si está seleccionada
+                  border: (formData.maquinaria_asignada || []).some(id =>
+                    String(id) === String(maq.id)
+                  ) ? '2px solid #FFD700' : '1px solid #1f241f',
                   cursor: 'pointer',
                   color: '#e0e0e0',
                   transition: 'all 0.2s ease',
                   userSelect: 'none'
                 }}>
+                  {/* Checkbox */}
                   <input
                     type="checkbox"
-                    checked={(formData.maquinaria_asignada || []).some(id => String(id) === String(maq.id))}
+                    checked={(formData.maquinaria_asignada || []).some(id =>
+                      String(id) === String(maq.id)
+                    )}
                     onChange={() => handleToggleMaquinaria(maq.id)}
                     style={{ marginRight: '8px', cursor: 'pointer', accentColor: '#FFD700' }}
                   />
+                  {/* Nombre de la máquina */}
                   <span style={{ flex: 1 }}>
                     {maq.nombre}
                   </span>
@@ -668,7 +866,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
         </div>
       )}
 
-      {/* SECCIÓN 5: PERSONAL ASIGNADO */}
+      {/* ============== SECCIÓN 5: PERSONAL ASIGNADO DEL SISTEMA ============== */}
       <SectionHeader title="Personal Asignado del Sistema" section="personal_" icon="👥" />
       {expandedSections.personal_ && (
         <div style={{
@@ -677,6 +875,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
           borderRadius: '8px',
           marginBottom: '24px'
         }}>
+          {/* Explicación de cómo funciona */}
           <div style={{
             background: '#111411',
             padding: '12px',
@@ -690,6 +889,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             <strong>Salario mensual ÷ 30 × Días del proyecto</strong>
           </div>
 
+          {/* Grid de personal disponible */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
@@ -697,9 +897,15 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
           }}>
             {personal && personal.length > 0 ? (
               personal.map((pers) => {
+                // Valida que la persona tenga ID
                 if (!pers || !pers.id) return null;
-                const isSelected = (formData.personal_asignado || []).some(id => String(id) === String(pers.id));
+
+                const isSelected = (formData.personal_asignado || []).some(id =>
+                  String(id) === String(pers.id)
+                );
+                // Calcula salario diario (mensual / 30)
                 const salarioDiario = pers.salario ? (pers.salario / 30).toFixed(0) : 0;
+
                 return (
                   <label key={pers.id} style={{
                     display: 'flex',
@@ -707,20 +913,26 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                     padding: '12px',
                     background: '#111411',
                     borderRadius: '8px',
+                    // Resalta si está seleccionada
                     border: isSelected ? '2px solid #FFD700' : '1px solid #1f241f',
                     cursor: 'pointer',
                     color: '#e0e0e0',
                     transition: 'all 0.2s ease',
                     userSelect: 'none'
                   }}>
+                    {/* Checkbox */}
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleTogglePersonal(pers.id)}
                       style={{ marginRight: '8px', cursor: 'pointer', accentColor: '#FFD700' }}
                     />
+
+                    {/* Información de la persona */}
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{pers.nombre}</div>
+                      <div style={{ fontWeight: 'bold', fontSize: '13px' }}>
+                        {pers.nombre}
+                      </div>
                       <div style={{ fontSize: '11px', color: '#999' }}>
                         {pers.cargo} • {pers.salario.toLocaleString('es-BO')} Bs/mes ({salarioDiario} Bs/día)
                       </div>
@@ -737,8 +949,9 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
         </div>
       )}
 
-      {/* BOTONES */}
+      {/* ============== BOTONES DE ACCIÓN ============== */}
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '32px', marginBottom: '32px' }}>
+        {/* Botón Guardar */}
         <button
           type="submit"
           style={{
@@ -749,11 +962,16 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             borderRadius: '8px',
             fontWeight: 'bold',
             cursor: 'pointer',
-            fontSize: '14px'
+            fontSize: '14px',
+            transition: 'all 0.2s'
           }}
+          onMouseOver={(e) => e.target.style.background = '#ffc700'}
+          onMouseOut={(e) => e.target.style.background = '#FFD700'}
         >
           💾 Guardar Proyecto
         </button>
+
+        {/* Botón Cancelar */}
         <button
           type="button"
           onClick={onCancel}
@@ -765,8 +983,11 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             borderRadius: '8px',
             fontWeight: 'bold',
             cursor: 'pointer',
-            fontSize: '14px'
+            fontSize: '14px',
+            transition: 'all 0.2s'
           }}
+          onMouseOver={(e) => e.target.style.borderColor = '#60a5fa'}
+          onMouseOut={(e) => e.target.style.borderColor = '#1f241f'}
         >
           ❌ Cancelar
         </button>
@@ -775,6 +996,8 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
   );
 }, (prevProps, nextProps) => {
   // Comparación personalizada para evitar re-renders innecesarios
+  // Retorna TRUE si los props son iguales (no renderizar)
+  // Retorna FALSE si son diferentes (renderizar)
   return (
     prevProps.proyecto === nextProps.proyecto &&
     prevProps.maquinaria === nextProps.maquinaria &&
@@ -784,6 +1007,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
   );
 });
 
+// Nombre de debug para React DevTools
 ProyectoForm.displayName = 'ProyectoForm';
 
 export default ProyectoForm;
