@@ -934,7 +934,7 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
                         {pers.nombre}
                       </div>
                       <div style={{ fontSize: '11px', color: '#999' }}>
-                        {pers.cargo} • {pers.salario.toLocaleString('es-BO')} Bs/mes ({salarioDiario} Bs/día)
+                        {pers.cargo} • {(pers.salario || 0).toLocaleString('es-BO')} Bs/mes ({salarioDiario} Bs/día)
                       </div>
                     </div>
                   </label>
