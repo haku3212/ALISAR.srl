@@ -468,13 +468,13 @@ const ProyectoForm = memo(({ proyecto, maquinaria = [], personal = [], onSubmit 
             type="number"
           />
 
-          {/* Campo: Duración (días) - Se calcula automáticamente de las fechas */}
+          {/* Campo: Duración (días) - Se calcula automáticamente de las fechas - Solo lectura */}
           <InputGroup
             label="Duración (días)"
             value={formData.duracion_dias}
             onChange={(v) => handleInputChange('duracion_dias', parseInt(v))}
             type="number"
-            disabled={true} {/* Solo lectura, se calcula automáticamente */}
+            disabled={true}
           />
 
           {/* Campo: Descripción - Ocupa dos columnas */}
