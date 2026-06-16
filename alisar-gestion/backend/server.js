@@ -176,6 +176,18 @@ const { createLogAudit }    = require('./utils/audit');
       "INSERT INTO madera (especie, piezas, volumen, campamento) VALUES ('Almendrillo', 45, '12.5 m3', 'Sena')",
       "INSERT INTO madera (especie, piezas, volumen, campamento) VALUES ('Tajibo', 30, '8.2 m3', 'Bella Unión')"
     ],
+    rodeos: [
+      `INSERT INTO rodeos (fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final, especie_principal, contrato_asociado, estado_operacion, poat_numero, poat_vencimiento, observaciones)
+       VALUES ('2026-03-15', 48.5, 'Juan Pablo Suárez', 'Comunidad San Miguel Norte', 'Aserradero El Pino - Riberalta', 'mara', 'CTR-2026-001', 'Completado', 'POAT-2026-001', '2026-12-31', 'Primera operación del año. Sin incidentes.')`,
+      `INSERT INTO rodeos (fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final, especie_principal, otras_especies, contrato_asociado, estado_operacion, poat_numero, poat_vencimiento)
+       VALUES ('2026-05-10', 62.0, 'Carlos Mendoza', 'Campamento Bella Unión - Sector B', 'Depósito Central Riberalta', 'cedro', 'Almendrillo, Mara', 'CTR-2026-002', 'Entregado', 'POAT-2026-001', '2026-12-31')`
+    ],
+    documentos: [
+      `INSERT INTO documentos (tipo_documento, numero_documento, entidad_emisora, responsable, fecha_emision, fecha_vencimiento, periodo_validez, descripcion, estado)
+       VALUES ('POAT', 'POAT-2026-001', 'ABT - Autoridad de Fiscalización y Control Social de Bosques', 'Ing. Luis Fernando Arce', '2026-01-10', '2026-12-31', '1', 'Plan Operativo Anual Forestal para extracción en zona norte Riberalta', 'Vigente')`,
+      `INSERT INTO documentos (tipo_documento, numero_documento, entidad_emisora, responsable, fecha_emision, fecha_vencimiento, periodo_validez, descripcion, estado)
+       VALUES ('contrato', 'CTR-2026-001', 'Municipalidad de Riberalta', 'Dr. Roberto Vaca', '2026-02-01', '2026-06-30', '0.5', 'Contrato de provisión de madera para obras municipales', 'Vigente')`
+    ],
     config: [
       "INSERT INTO config (clave, valor, tipo) VALUES ('empresa_nombre', 'ALISAR SRL', 'string')",
       "INSERT INTO config (clave, valor, tipo) VALUES ('empresa_ubicacion', 'Riberalta, Beni, Bolivia', 'string')",
