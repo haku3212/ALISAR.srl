@@ -85,7 +85,15 @@ export const dataService = {
 
   // Configuración
   getConfig: () => api.get('/config'),
-  updateConfig: (clave, valor) => api.put(`/config/${clave}`, { valor })
+  updateConfig: (clave, valor) => api.put(`/config/${clave}`, { valor }),
+
+  // Backup y Restauración
+  exportBackup: () => api.get('/backup'),
+  restoreBackup: (datos) => api.post('/restore', { datos }),
+
+  // Cambiar contraseña
+  changePassword: (currentPassword, newPassword) =>
+    api.put('/auth/change-password', { currentPassword, newPassword })
 };
 
 export default api;

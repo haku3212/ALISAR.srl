@@ -417,6 +417,89 @@ app.put('/api/config/:clave', verifyToken, async (req, res) => {
     }
 });
 
+// ─── BACKUP ───────────────────────────────────────────────────────────────────
+
+app.get('/api/backup', verifyToken, async (req, res) => {
+    try {
+        const tables = ['personal', 'maquinaria', 'obras', 'madera', 'rodeos', 'documentos', 'config'];
+        const datos = {};
+        for (const table of tables) {
+            try {
+                datos[table] = await db.all(`SELECT * FROM ${table}`);
+            } catch (_) {
+                datos[table] = [];
+            }
+        }
+        const fecha = new Date().toISOString().split('T')[0];
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename=alisar_backup_${fecha}.json`);
+        res.json({ version: '1.0', fecha: new Date().toISOString(), datos });
+    } catch (err) {
+        console.error('Error al generar backup:', err);
+        res.status(500).json({ error: 'Error al generar backup' });
+    }
+});
+
+app.post('/api/restore', verifyToken, async (req, res) => {
+    const { datos } = req.body;
+    if (!datos || typeof datos !== 'object') {
+        return res.status(400).json({ error: 'Archivo de respaldo inválido' });
+    }
+    const restorableTables = ['personal', 'maquinaria', 'obras', 'madera', 'rodeos', 'documentos'];
+    try {
+        await db.run('BEGIN TRANSACTION');
+        for (const table of restorableTables) {
+            if (!datos[table] || !Array.isArray(datos[table])) continue;
+            await db.run(`DELETE FROM ${table}`);
+            for (const row of datos[table]) {
+                const cols = Object.keys(row).filter(k => k !== 'id');
+                if (cols.length === 0) continue;
+                const placeholders = cols.map(() => '?').join(', ');
+                const values = cols.map(c => row[c]);
+                await db.run(
+                    `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`,
+                    values
+                );
+            }
+        }
+        await db.run('COMMIT');
+        res.json({ message: 'Datos restaurados correctamente' });
+    } catch (err) {
+        await db.run('ROLLBACK');
+        console.error('Error al restaurar backup:', err);
+        res.status(500).json({ error: 'Error al restaurar datos' });
+    }
+});
+
+// ─── CAMBIAR CONTRASEÑA ────────────────────────────────────────────────────────
+
+const bcrypt = require('bcryptjs');
+
+app.put('/api/auth/change-password', verifyToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Contraseña actual y nueva son requeridas' });
+    }
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+    }
+    try {
+        const user = await db.get('SELECT * FROM users WHERE id = ?', [req.user.id]);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) return res.status(400).json({ error: 'La contraseña actual es incorrecta' });
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        await db.run('UPDATE users SET password = ? WHERE id = ?', [hashed, req.user.id]);
+        await logAudit(user.usuario, 'CAMBIO_PASSWORD', 'users', user.id, null, null);
+        res.json({ message: 'Contraseña actualizada correctamente' });
+    } catch (err) {
+        console.error('Error al cambiar contraseña:', err);
+        res.status(500).json({ error: 'Error al cambiar contraseña' });
+    }
+});
+
 // 3. Lanzamiento del Servidor
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 API activa en http://localhost:${PORT}`));
