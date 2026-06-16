@@ -114,7 +114,6 @@ const GoogleMapsLocation = ({
    */
   const updateMapLocation = (lat, lng) => {
     // Esta función se actualizará cuando Google Maps esté integrado
-    console.log(`Ubicación actualizada: ${lat}, ${lng}`);
   };
 
   /**

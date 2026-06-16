@@ -18,7 +18,9 @@ const createDocumentosRoutes = (db, logAudit) => {
     const {
       tipo_documento, numero_documento, entidad_emisora,
       responsable, fecha_emision, fecha_vencimiento,
-      periodo_validez, asociado_rodeo, descripcion
+      periodo_validez, asociado_rodeo, asociado_proyecto,
+      asociado_maquinaria, asociado_campamento,
+      referencia_archivo, url_documento, descripcion, observaciones
     } = req.body;
 
     if (!tipo_documento || !numero_documento || !entidad_emisora || !fecha_emision || !fecha_vencimiento) {
@@ -43,11 +45,13 @@ const createDocumentosRoutes = (db, logAudit) => {
         `INSERT INTO documentos
           (tipo_documento, numero_documento, entidad_emisora, responsable,
            fecha_emision, fecha_vencimiento, periodo_validez, asociado_rodeo,
-           descripcion, estado)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           asociado_proyecto, asociado_maquinaria, asociado_campamento,
+           referencia_archivo, url_documento, descripcion, observaciones, estado)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [tipo_documento, numero_documento, entidad_emisora, responsable,
           fecha_emision, fecha_vencimiento, periodo_validez, asociado_rodeo,
-          descripcion, estado]
+          asociado_proyecto, asociado_maquinaria, asociado_campamento,
+          referencia_archivo, url_documento, descripcion, observaciones, estado]
       );
       await logAudit(req.user?.id, 'CREATE', 'documentos', result.lastID, null, req.body);
       res.status(201).json({ status: 'Documento registrado con éxito', id: result.lastID });
@@ -61,7 +65,9 @@ const createDocumentosRoutes = (db, logAudit) => {
     const {
       tipo_documento, numero_documento, entidad_emisora,
       responsable, fecha_emision, fecha_vencimiento,
-      periodo_validez, asociado_rodeo, descripcion
+      periodo_validez, asociado_rodeo, asociado_proyecto,
+      asociado_maquinaria, asociado_campamento,
+      referencia_archivo, url_documento, descripcion, observaciones
     } = req.body;
 
     if (!tipo_documento || !numero_documento || !entidad_emisora || !fecha_emision || !fecha_vencimiento) {
@@ -83,11 +89,16 @@ const createDocumentosRoutes = (db, logAudit) => {
         `UPDATE documentos SET
           tipo_documento = ?, numero_documento = ?, entidad_emisora = ?,
           responsable = ?, fecha_emision = ?, fecha_vencimiento = ?,
-          periodo_validez = ?, asociado_rodeo = ?, descripcion = ?, estado = ?
+          periodo_validez = ?, asociado_rodeo = ?,
+          asociado_proyecto = ?, asociado_maquinaria = ?, asociado_campamento = ?,
+          referencia_archivo = ?, url_documento = ?,
+          descripcion = ?, observaciones = ?, estado = ?
          WHERE id = ?`,
         [tipo_documento, numero_documento, entidad_emisora, responsable,
           fecha_emision, fecha_vencimiento, periodo_validez, asociado_rodeo,
-          descripcion, estado, req.params.id]
+          asociado_proyecto, asociado_maquinaria, asociado_campamento,
+          referencia_archivo, url_documento, descripcion, observaciones, estado,
+          req.params.id]
       );
       await logAudit(req.user?.id, 'UPDATE', 'documentos', req.params.id, anterior, req.body);
       res.json({ status: 'Documento actualizado con éxito' });

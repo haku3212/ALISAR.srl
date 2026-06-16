@@ -17,8 +17,11 @@ const createRodeosRoutes = (db, logAudit) => {
   router.post('/', verifyToken, async (req, res) => {
     const {
       fecha_rodeo, volumen_total, responsable_rodeo,
-      procedencia, destino_final, especie_principal,
-      estado_operacion, lat, lng, descripcion
+      procedencia, destino_final, especie_principal, otras_especies,
+      contrato_asociado, ubicacion_origen, ubicacion_origen_coords,
+      ubicacion_destino, ubicacion_destino_coords, fecha_transporte,
+      estado_operacion, lat, lng, descripcion,
+      poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones
     } = req.body;
 
     if (!fecha_rodeo || !responsable_rodeo || !procedencia || !destino_final) {
@@ -26,13 +29,21 @@ const createRodeosRoutes = (db, logAudit) => {
     }
 
     try {
+      const coordsOrigen = ubicacion_origen_coords ? JSON.stringify(ubicacion_origen_coords) : null;
+      const coordsDestino = ubicacion_destino_coords ? JSON.stringify(ubicacion_destino_coords) : null;
       const result = await db.run(
         `INSERT INTO rodeos
           (fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
-           especie_principal, estado_operacion, lat, lng, descripcion)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           especie_principal, otras_especies, contrato_asociado,
+           ubicacion_origen, ubicacion_origen_coords, ubicacion_destino, ubicacion_destino_coords,
+           fecha_transporte, estado_operacion, lat, lng, descripcion,
+           poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
-          especie_principal, estado_operacion || 'Activo', lat, lng, descripcion]
+          especie_principal, otras_especies, contrato_asociado,
+          ubicacion_origen, coordsOrigen, ubicacion_destino, coordsDestino,
+          fecha_transporte, estado_operacion || 'Activo', lat, lng, descripcion,
+          poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones]
       );
       await logAudit(req.user?.id, 'CREATE', 'rodeos', result.lastID, null, req.body);
       res.status(201).json({ status: 'Rodeo registrado con éxito', id: result.lastID });
@@ -45,8 +56,11 @@ const createRodeosRoutes = (db, logAudit) => {
   router.put('/:id', verifyToken, async (req, res) => {
     const {
       fecha_rodeo, volumen_total, responsable_rodeo,
-      procedencia, destino_final, especie_principal,
-      estado_operacion, lat, lng, descripcion
+      procedencia, destino_final, especie_principal, otras_especies,
+      contrato_asociado, ubicacion_origen, ubicacion_origen_coords,
+      ubicacion_destino, ubicacion_destino_coords, fecha_transporte,
+      estado_operacion, lat, lng, descripcion,
+      poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones
     } = req.body;
 
     if (!fecha_rodeo || !responsable_rodeo || !procedencia || !destino_final) {
@@ -54,15 +68,26 @@ const createRodeosRoutes = (db, logAudit) => {
     }
 
     try {
+      const coordsOrigen = ubicacion_origen_coords ? JSON.stringify(ubicacion_origen_coords) : null;
+      const coordsDestino = ubicacion_destino_coords ? JSON.stringify(ubicacion_destino_coords) : null;
       const anterior = await db.get('SELECT * FROM rodeos WHERE id = ?', [req.params.id]);
       await db.run(
         `UPDATE rodeos SET
           fecha_rodeo = ?, volumen_total = ?, responsable_rodeo = ?,
           procedencia = ?, destino_final = ?, especie_principal = ?,
-          estado_operacion = ?, lat = ?, lng = ?, descripcion = ?
+          otras_especies = ?, contrato_asociado = ?,
+          ubicacion_origen = ?, ubicacion_origen_coords = ?,
+          ubicacion_destino = ?, ubicacion_destino_coords = ?,
+          fecha_transporte = ?, estado_operacion = ?, lat = ?, lng = ?, descripcion = ?,
+          poat_numero = ?, poat_vencimiento = ?, otros_permisos = ?,
+          fecha_limite_permisos = ?, observaciones = ?
          WHERE id = ?`,
         [fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
-          especie_principal, estado_operacion, lat, lng, descripcion, req.params.id]
+          especie_principal, otras_especies, contrato_asociado,
+          ubicacion_origen, coordsOrigen, ubicacion_destino, coordsDestino,
+          fecha_transporte, estado_operacion, lat, lng, descripcion,
+          poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones,
+          req.params.id]
       );
       await logAudit(req.user?.id, 'UPDATE', 'rodeos', req.params.id, anterior, req.body);
       res.json({ status: 'Rodeo actualizado con éxito' });

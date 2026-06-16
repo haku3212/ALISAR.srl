@@ -4,6 +4,11 @@ const cors = require('cors');
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET no está definido en las variables de entorno.');
+  process.exit(1);
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -72,10 +77,22 @@ const { createLogAudit }    = require('./utils/audit');
       procedencia TEXT NOT NULL,
       destino_final TEXT NOT NULL,
       especie_principal TEXT,
+      otras_especies TEXT,
+      contrato_asociado TEXT,
+      ubicacion_origen TEXT,
+      ubicacion_origen_coords TEXT,
+      ubicacion_destino TEXT,
+      ubicacion_destino_coords TEXT,
+      fecha_transporte TEXT,
       estado_operacion TEXT DEFAULT 'Activo',
       lat REAL,
       lng REAL,
       descripcion TEXT,
+      poat_numero TEXT,
+      poat_vencimiento TEXT,
+      otros_permisos TEXT,
+      fecha_limite_permisos TEXT,
+      observaciones TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS documentos (
@@ -88,7 +105,13 @@ const { createLogAudit }    = require('./utils/audit');
       fecha_vencimiento TEXT NOT NULL,
       periodo_validez TEXT,
       asociado_rodeo INTEGER,
+      asociado_proyecto TEXT,
+      asociado_maquinaria TEXT,
+      asociado_campamento TEXT,
+      referencia_archivo TEXT,
+      url_documento TEXT,
       descripcion TEXT,
+      observaciones TEXT,
       estado TEXT DEFAULT 'Vigente',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -110,6 +133,29 @@ const { createLogAudit }    = require('./utils/audit');
       actualizado DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Migración: agrega columnas nuevas a tablas existentes (ignora si ya existen)
+  const addCol = async (table, col, def) => {
+    try { await db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`); } catch (_) {}
+  };
+  await addCol('rodeos', 'otras_especies', 'TEXT');
+  await addCol('rodeos', 'contrato_asociado', 'TEXT');
+  await addCol('rodeos', 'ubicacion_origen', 'TEXT');
+  await addCol('rodeos', 'ubicacion_origen_coords', 'TEXT');
+  await addCol('rodeos', 'ubicacion_destino', 'TEXT');
+  await addCol('rodeos', 'ubicacion_destino_coords', 'TEXT');
+  await addCol('rodeos', 'fecha_transporte', 'TEXT');
+  await addCol('rodeos', 'poat_numero', 'TEXT');
+  await addCol('rodeos', 'poat_vencimiento', 'TEXT');
+  await addCol('rodeos', 'otros_permisos', 'TEXT');
+  await addCol('rodeos', 'fecha_limite_permisos', 'TEXT');
+  await addCol('rodeos', 'observaciones', 'TEXT');
+  await addCol('documentos', 'asociado_proyecto', 'TEXT');
+  await addCol('documentos', 'asociado_maquinaria', 'TEXT');
+  await addCol('documentos', 'asociado_campamento', 'TEXT');
+  await addCol('documentos', 'referencia_archivo', 'TEXT');
+  await addCol('documentos', 'url_documento', 'TEXT');
+  await addCol('documentos', 'observaciones', 'TEXT');
 
   // Datos semilla — solo si las tablas están vacías
   const seeds = {

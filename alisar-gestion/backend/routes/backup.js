@@ -8,10 +8,14 @@ const ALLOWED_COLUMNS = {
   obras:      ['nombre', 'avance', 'presupuesto'],
   madera:     ['especie', 'piezas', 'volumen', 'campamento'],
   rodeos:     ['fecha_rodeo', 'volumen_total', 'responsable_rodeo', 'procedencia',
-               'destino_final', 'especie_principal', 'estado_operacion', 'lat', 'lng', 'descripcion'],
+               'destino_final', 'especie_principal', 'otras_especies', 'contrato_asociado',
+               'ubicacion_origen', 'ubicacion_origen_coords', 'ubicacion_destino', 'ubicacion_destino_coords',
+               'fecha_transporte', 'estado_operacion', 'lat', 'lng', 'descripcion',
+               'poat_numero', 'poat_vencimiento', 'otros_permisos', 'fecha_limite_permisos', 'observaciones'],
   documentos: ['tipo_documento', 'numero_documento', 'entidad_emisora', 'responsable',
                'fecha_emision', 'fecha_vencimiento', 'periodo_validez', 'asociado_rodeo',
-               'descripcion', 'estado']
+               'asociado_proyecto', 'asociado_maquinaria', 'asociado_campamento',
+               'referencia_archivo', 'url_documento', 'descripcion', 'observaciones', 'estado']
 };
 
 const createBackupRoutes = (db) => {

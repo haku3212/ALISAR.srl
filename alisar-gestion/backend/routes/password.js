@@ -10,8 +10,8 @@ const createPasswordRoutes = (db, logAudit) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Contraseña actual y nueva son requeridas' });
     }
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
     }
     try {
       const user = await db.get('SELECT * FROM users WHERE id = ?', [req.user.id]);
