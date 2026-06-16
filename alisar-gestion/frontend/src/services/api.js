@@ -68,6 +68,18 @@ export const dataService = {
   updateMadera: (id, data) => api.put(`/madera/${id}`, data),
   deleteMadera: (id) => api.delete(`/madera/${id}`),
 
+  // Rodeos
+  getRodeos: () => api.get('/rodeos'),
+  createRodeo: (data) => api.post('/rodeos', data),
+  updateRodeo: (id, data) => api.put(`/rodeos/${id}`, data),
+  deleteRodeo: (id) => api.delete(`/rodeos/${id}`),
+
+  // Documentos
+  getDocumentos: () => api.get('/documentos'),
+  createDocumento: (data) => api.post('/documentos', data),
+  updateDocumento: (id, data) => api.put(`/documentos/${id}`, data),
+  deleteDocumento: (id) => api.delete(`/documentos/${id}`),
+
   // Auditoría
   getAuditLogs: () => api.get('/audit'),
 

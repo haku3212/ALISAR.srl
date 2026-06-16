@@ -9,6 +9,7 @@
 import React, { useState, useMemo } from 'react';
 import { FileText, Plus, Edit2, Trash2, Download, AlertCircle } from 'lucide-react';
 import { dataService } from '../services/api';
+import { validateDate, validateDateAfter } from '../utils/validators';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
@@ -153,8 +154,16 @@ const Documentos = () => {
     if (!formData.tipo_documento?.trim()) errors.tipo_documento = 'Tipo de documento requerido';
     if (!formData.numero_documento?.trim()) errors.numero_documento = 'Número requerido';
     if (!formData.entidad_emisora?.trim()) errors.entidad_emisora = 'Entidad emisora requerida';
-    if (!formData.fecha_emision?.trim()) errors.fecha_emision = 'Fecha de emisión requerida';
-    if (!formData.fecha_vencimiento?.trim()) errors.fecha_vencimiento = 'Fecha de vencimiento requerida';
+    if (!formData.fecha_emision?.trim()) {
+      errors.fecha_emision = 'Fecha de emisión requerida';
+    } else if (!validateDate(formData.fecha_emision)) {
+      errors.fecha_emision = 'Fecha de emisión no válida';
+    }
+    if (!formData.fecha_vencimiento?.trim()) {
+      errors.fecha_vencimiento = 'Fecha de vencimiento requerida';
+    } else if (formData.fecha_emision && !validateDateAfter(formData.fecha_vencimiento, formData.fecha_emision)) {
+      errors.fecha_vencimiento = 'La fecha de vencimiento debe ser posterior a la emisión';
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };

@@ -8,6 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { Users, UserPlus, Phone, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
+import { validateCedula, validateEmail, validatePhone } from '../utils/validators';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
@@ -110,6 +111,15 @@ const Personal = () => {
     const errors = {};
     if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
     if (!formData.cargo.trim()) errors.cargo = 'Cargo requerido';
+    if (formData.cedula && !validateCedula(formData.cedula)) {
+      errors.cedula = 'Cédula debe tener 10 dígitos';
+    }
+    if (formData.email && !validateEmail(formData.email)) {
+      errors.email = 'Email no tiene un formato válido';
+    }
+    if (formData.celular && !validatePhone(formData.celular)) {
+      errors.celular = 'Teléfono debe tener 7–12 dígitos';
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };

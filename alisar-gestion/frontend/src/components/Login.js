@@ -51,7 +51,7 @@ const Login = () => {
     title: {
       fontSize: '28px',
       fontWeight: 'bold',
-      color: '#4ade80',
+      color: '#FFD700',
       margin: 0,
       marginBottom: '8px'
     },
@@ -79,7 +79,7 @@ const Login = () => {
     button: {
       width: '100%',
       padding: '12px',
-      background: '#4ade80',
+      background: '#FFD700',
       color: '#000',
       border: 'none',
       borderRadius: '8px',

@@ -330,7 +330,7 @@ const Rodeos = () => {
                     {r.estado_operacion}
                   </span>
                 </td>
-                <td style={{ padding: '16px', borderBottom: '1f241f', display: 'flex', gap: '12px' }}>
+                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f', display: 'flex', gap: '12px' }}>
                   <button onClick={() => handleEdit(r)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
                     <Edit2 size={18} />
                   </button>

@@ -8,6 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { Drill, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
+import { validatePositive, validateDate } from '../utils/validators';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
@@ -119,6 +120,12 @@ const Maquinaria = () => {
     const errors = {};
     if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
     if (!formData.tipo.trim()) errors.tipo = 'Tipo requerido';
+    if (formData.horas_operacion && !validatePositive(formData.horas_operacion)) {
+      errors.horas_operacion = 'Las horas deben ser un número positivo';
+    }
+    if (formData.ultimo_mantenimiento && !validateDate(formData.ultimo_mantenimiento)) {
+      errors.ultimo_mantenimiento = 'Fecha de mantenimiento no válida o futura';
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
