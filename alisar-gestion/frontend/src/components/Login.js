@@ -130,8 +130,8 @@ const Login = () => {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', color: '#666', fontSize: '12px', marginTop: '24px' }}>
-          Demo: usuario: <strong>admin</strong> | contraseña: <strong>riberalta</strong>
+        <p style={{ textAlign: 'center', color: '#444', fontSize: '12px', marginTop: '24px' }}>
+          ALISAR S.R.L. &copy; {new Date().getFullYear()} — Sistema de Gestión Forestal
         </p>
       </div>
     </div>

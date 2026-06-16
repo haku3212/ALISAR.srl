@@ -6,7 +6,10 @@ const createAuditRoutes = (db) => {
 
   router.get('/', verifyToken, async (req, res) => {
     try {
-      const { modulo, limit = 100 } = req.query;
+      const { modulo } = req.query;
+      const parsedLimit = parseInt(req.query.limit);
+      const limit = (!isNaN(parsedLimit) && parsedLimit > 0) ? Math.min(parsedLimit, 1000) : 100;
+
       let query = 'SELECT * FROM audit_logs';
       const params = [];
       if (modulo) {
@@ -14,7 +17,7 @@ const createAuditRoutes = (db) => {
         params.push(modulo);
       }
       query += ' ORDER BY timestamp DESC LIMIT ?';
-      params.push(parseInt(limit));
+      params.push(limit);
       const logs = await db.all(query, params);
       res.json(logs);
     } catch (err) {

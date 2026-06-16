@@ -32,8 +32,8 @@ const createDocumentosRoutes = (db, logAudit) => {
     }
 
     try {
-      const hoy = new Date();
-      const vencimiento = new Date(fecha_vencimiento);
+      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+      const vencimiento = new Date(fecha_vencimiento + 'T00:00:00');
       const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
       let estado = 'Vigente';
       if (diasRestantes < 0) estado = 'Vencido';
@@ -71,8 +71,8 @@ const createDocumentosRoutes = (db, logAudit) => {
     }
 
     try {
-      const hoy = new Date();
-      const vencimiento = new Date(fecha_vencimiento);
+      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+      const vencimiento = new Date(fecha_vencimiento + 'T00:00:00');
       const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
       let estado = 'Vigente';
       if (diasRestantes < 0) estado = 'Vencido';

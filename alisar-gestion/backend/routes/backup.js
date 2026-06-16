@@ -1,6 +1,19 @@
 const express = require('express');
 const { verifyToken } = require('../middleware/auth');
 
+// Columnas permitidas por tabla — protección contra inyección en nombres de columna
+const ALLOWED_COLUMNS = {
+  personal:   ['nombre', 'cargo', 'celular', 'estado'],
+  maquinaria: ['nombre', 'tipo', 'estado', 'ultimaRevision'],
+  obras:      ['nombre', 'avance', 'presupuesto'],
+  madera:     ['especie', 'piezas', 'volumen', 'campamento'],
+  rodeos:     ['fecha_rodeo', 'volumen_total', 'responsable_rodeo', 'procedencia',
+               'destino_final', 'especie_principal', 'estado_operacion', 'lat', 'lng', 'descripcion'],
+  documentos: ['tipo_documento', 'numero_documento', 'entidad_emisora', 'responsable',
+               'fecha_emision', 'fecha_vencimiento', 'periodo_validez', 'asociado_rodeo',
+               'descripcion', 'estado']
+};
+
 const createBackupRoutes = (db) => {
   const router = express.Router();
 
@@ -36,8 +49,10 @@ const createBackupRoutes = (db) => {
       for (const table of restorableTables) {
         if (!datos[table] || !Array.isArray(datos[table])) continue;
         await db.run(`DELETE FROM ${table}`);
+        const allowed = ALLOWED_COLUMNS[table] || [];
         for (const row of datos[table]) {
-          const cols = Object.keys(row).filter(k => k !== 'id');
+          // Solo insertar columnas de la lista blanca — previene SQL injection por nombre de columna
+          const cols = Object.keys(row).filter(k => allowed.includes(k));
           if (cols.length === 0) continue;
           const placeholders = cols.map(() => '?').join(', ');
           await db.run(
