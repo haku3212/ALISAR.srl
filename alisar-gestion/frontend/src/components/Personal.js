@@ -15,6 +15,7 @@ import Modal from './common/Modal';
 import FormPersonalDetallado from './forms/FormPersonalDetallado';
 import SearchBar from './common/SearchBar';
 import { generatePersonalReport, generateExcelReport } from '../utils/reportGenerator';
+import { validateCedula, validatePhone, validateEmail } from '../utils/validators';
 
 /**
  * Componente Principal de Gestión de Personal
@@ -110,6 +111,12 @@ const Personal = () => {
     const errors = {};
     if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
     if (!formData.cargo.trim()) errors.cargo = 'Cargo requerido';
+    if (formData.cedula && !validateCedula(formData.cedula)) errors.cedula = 'Cédula debe tener 10 dígitos';
+    if (formData.email && !validateEmail(formData.email)) errors.email = 'Email no es válido';
+    if (formData.celular && !validatePhone(formData.celular)) errors.celular = 'Celular no es válido (7-12 dígitos)';
+    if (formData.contacto_emergencia_tel && !validatePhone(formData.contacto_emergencia_tel)) {
+      errors.contacto_emergencia_tel = 'Teléfono de emergencia no es válido';
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
