@@ -1,0 +1,69 @@
+const express = require('express');
+const { verifyToken } = require('../middleware/auth');
+
+const createMaderaRoutes = (db, logAudit) => {
+  const router = express.Router();
+
+  router.get('/', verifyToken, async (req, res) => {
+    try {
+      const rows = await db.all('SELECT * FROM madera');
+      res.json(rows);
+    } catch (err) {
+      console.error('Error:', err);
+      res.status(500).json({ error: 'Error al obtener inventario de madera' });
+    }
+  });
+
+  router.post('/', verifyToken, async (req, res) => {
+    const { especie, piezas, volumen, campamento } = req.body;
+    if (!especie || !volumen) {
+      return res.status(400).json({ msg: 'Campos requeridos: especie, volumen' });
+    }
+    try {
+      const result = await db.run(
+        'INSERT INTO madera (especie, piezas, volumen, campamento) VALUES (?, ?, ?, ?)',
+        [especie, piezas, volumen, campamento]
+      );
+      await logAudit(req.user?.id, 'CREATE', 'madera', result.lastID, null, req.body);
+      res.status(201).json({ status: 'Madera registrada con éxito', id: result.lastID });
+    } catch (err) {
+      console.error('Error:', err);
+      res.status(500).json({ error: 'Error al registrar madera' });
+    }
+  });
+
+  router.put('/:id', verifyToken, async (req, res) => {
+    const { especie, piezas, volumen, campamento } = req.body;
+    if (!especie || !volumen) {
+      return res.status(400).json({ msg: 'Campos requeridos: especie, volumen' });
+    }
+    try {
+      const anterior = await db.get('SELECT * FROM madera WHERE id = ?', [req.params.id]);
+      await db.run(
+        'UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ? WHERE id = ?',
+        [especie, piezas, volumen, campamento, req.params.id]
+      );
+      await logAudit(req.user?.id, 'UPDATE', 'madera', req.params.id, anterior, req.body);
+      res.json({ status: 'Madera actualizada con éxito' });
+    } catch (err) {
+      console.error('Error:', err);
+      res.status(500).json({ error: 'Error al actualizar madera' });
+    }
+  });
+
+  router.delete('/:id', verifyToken, async (req, res) => {
+    try {
+      const anterior = await db.get('SELECT * FROM madera WHERE id = ?', [req.params.id]);
+      await db.run('DELETE FROM madera WHERE id = ?', [req.params.id]);
+      await logAudit(req.user?.id, 'DELETE', 'madera', req.params.id, anterior, null);
+      res.json({ status: 'Madera eliminada con éxito' });
+    } catch (err) {
+      console.error('Error:', err);
+      res.status(500).json({ error: 'Error al eliminar madera' });
+    }
+  });
+
+  return router;
+};
+
+module.exports = createMaderaRoutes;

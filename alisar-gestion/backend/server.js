@@ -8,498 +8,163 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const createAuthRoutes = require('./routes/auth');
-const { verifyToken } = require('./middleware/auth');
+// ─── IMPORTAR RUTAS ───────────────────────────────────────────────────────────
+const createAuthRoutes      = require('./routes/auth');
+const createPersonalRoutes  = require('./routes/personal');
+const createMaquinariaRoutes = require('./routes/maquinaria');
+const createObrasRoutes     = require('./routes/obras');
+const createMaderaRoutes    = require('./routes/madera');
+const createRodeosRoutes    = require('./routes/rodeos');
+const createDocumentosRoutes = require('./routes/documentos');
+const createAuditRoutes     = require('./routes/audit');
+const createConfigRoutes    = require('./routes/config');
+const createBackupRoutes    = require('./routes/backup');
+const createPasswordRoutes  = require('./routes/password');
+const { createLogAudit }    = require('./utils/audit');
 
-let db;
-
-// 1. Inicialización de la Base de Datos Relacional Local
+// ─── INICIALIZACIÓN ───────────────────────────────────────────────────────────
 (async () => {
-    db = await open({
-        filename: './database.db',
-        driver: sqlite3.Database
-    });
+  const db = await open({ filename: './database.db', driver: sqlite3.Database });
 
-    // Asegurar que existan todas las tablas core
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            usuario TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            rol TEXT DEFAULT 'residente',
-            estado TEXT DEFAULT 'activo',
-            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS maquinaria (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            tipo TEXT,
-            estado TEXT,
-            ultimaRevision TEXT
-        );
-        CREATE TABLE IF NOT EXISTS obras (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            avance INTEGER DEFAULT 0,
-            presupuesto TEXT
-        );
-        CREATE TABLE IF NOT EXISTS personal (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            cargo TEXT,
-            celular TEXT,
-            estado TEXT DEFAULT 'Activo'
-        );
-        CREATE TABLE IF NOT EXISTS madera (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            especie TEXT NOT NULL,
-            piezas INTEGER,
-            volumen TEXT,
-            campamento TEXT
-        );
-        CREATE TABLE IF NOT EXISTS audit_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario TEXT,
-            accion TEXT NOT NULL,
-            tabla TEXT NOT NULL,
-            registro_id INTEGER,
-            valores_anteriores TEXT,
-            valores_nuevos TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS config (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            clave TEXT UNIQUE NOT NULL,
-            valor TEXT,
-            tipo TEXT DEFAULT 'string',
-            actualizado DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-    `);
+  // Crear todas las tablas si no existen
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      usuario TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      rol TEXT DEFAULT 'residente',
+      estado TEXT DEFAULT 'activo',
+      fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS personal (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      cargo TEXT,
+      celular TEXT,
+      estado TEXT DEFAULT 'Activo'
+    );
+    CREATE TABLE IF NOT EXISTS maquinaria (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      tipo TEXT,
+      estado TEXT,
+      ultimaRevision TEXT
+    );
+    CREATE TABLE IF NOT EXISTS obras (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      avance INTEGER DEFAULT 0,
+      presupuesto TEXT
+    );
+    CREATE TABLE IF NOT EXISTS madera (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      especie TEXT NOT NULL,
+      piezas INTEGER,
+      volumen TEXT,
+      campamento TEXT
+    );
+    CREATE TABLE IF NOT EXISTS rodeos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fecha_rodeo TEXT NOT NULL,
+      volumen_total REAL,
+      responsable_rodeo TEXT NOT NULL,
+      procedencia TEXT NOT NULL,
+      destino_final TEXT NOT NULL,
+      especie_principal TEXT,
+      estado_operacion TEXT DEFAULT 'Activo',
+      lat REAL,
+      lng REAL,
+      descripcion TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS documentos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tipo_documento TEXT NOT NULL,
+      numero_documento TEXT NOT NULL,
+      entidad_emisora TEXT NOT NULL,
+      responsable TEXT,
+      fecha_emision TEXT NOT NULL,
+      fecha_vencimiento TEXT NOT NULL,
+      periodo_validez TEXT,
+      asociado_rodeo INTEGER,
+      descripcion TEXT,
+      estado TEXT DEFAULT 'Vigente',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario TEXT,
+      accion TEXT NOT NULL,
+      tabla TEXT NOT NULL,
+      registro_id INTEGER,
+      valores_anteriores TEXT,
+      valores_nuevos TEXT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS config (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      clave TEXT UNIQUE NOT NULL,
+      valor TEXT,
+      tipo TEXT DEFAULT 'string',
+      actualizado DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 
-    // Inserción de datos semilla para Personal si la tabla está vacía
-    const checkPersonal = await db.get('SELECT COUNT(*) as total FROM personal');
-    if (checkPersonal.total === 0) {
-        await db.run("INSERT INTO personal (nombre, cargo, celular) VALUES ('Carlos Mendoza', 'Operador de Motoniveladora', '78231456')");
-        await db.run("INSERT INTO personal (nombre, cargo, celular) VALUES ('Luis Fernando Arce', 'Ingeniero de Residencia', '67129843')");
-        console.log("🌱 Datos de personal inicializados.");
+  // Datos semilla — solo si las tablas están vacías
+  const seeds = {
+    personal: [
+      "INSERT INTO personal (nombre, cargo, celular) VALUES ('Carlos Mendoza', 'Operador de Motoniveladora', '78231456')",
+      "INSERT INTO personal (nombre, cargo, celular) VALUES ('Luis Fernando Arce', 'Ingeniero de Residencia', '67129843')"
+    ],
+    obras: [
+      "INSERT INTO obras (nombre, avance, presupuesto) VALUES ('Mantenimiento Tramo Vial Riberalta', 45, '150,000 Bs')",
+      "INSERT INTO obras (nombre, avance, presupuesto) VALUES ('Apertura de Sendas Campamento 1', 12, '85,000 Bs')"
+    ],
+    maquinaria: [
+      "INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Motoniveladora CAT 140H', 'Motoniveladora', 'Operativo', '2025-10-15')",
+      "INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Excavadora Komatsu PC200', 'Excavadora', 'Mantenimiento', '2025-09-20')",
+      "INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Volquete Scania 6x4', 'Volquete', 'Operativo', '2025-11-01')"
+    ],
+    madera: [
+      "INSERT INTO madera (especie, piezas, volumen, campamento) VALUES ('Almendrillo', 45, '12.5 m3', 'Sena')",
+      "INSERT INTO madera (especie, piezas, volumen, campamento) VALUES ('Tajibo', 30, '8.2 m3', 'Bella Unión')"
+    ],
+    config: [
+      "INSERT INTO config (clave, valor, tipo) VALUES ('empresa_nombre', 'ALISAR SRL', 'string')",
+      "INSERT INTO config (clave, valor, tipo) VALUES ('empresa_ubicacion', 'Riberalta, Beni, Bolivia', 'string')",
+      "INSERT INTO config (clave, valor, tipo) VALUES ('empresa_moneda', 'Bs', 'string')",
+      "INSERT INTO config (clave, valor, tipo) VALUES ('empresa_idioma', 'es', 'string')",
+      "INSERT INTO config (clave, valor, tipo) VALUES ('tema_modo', 'oscuro', 'string')"
+    ]
+  };
+
+  for (const [tabla, inserts] of Object.entries(seeds)) {
+    const { total } = await db.get(`SELECT COUNT(*) as total FROM ${tabla}`);
+    if (total === 0) {
+      for (const sql of inserts) await db.run(sql);
+      console.log(`🌱 Datos de ${tabla} inicializados.`);
     }
+  }
 
-    // Inserción de datos semilla para Obras
-    const checkObras = await db.get('SELECT COUNT(*) as total FROM obras');
-    if (checkObras.total === 0) {
-        await db.run("INSERT INTO obras (nombre, avance, presupuesto) VALUES ('Mantenimiento Tramo Vial Riberalta', 45, '150,000 Bs')");
-        await db.run("INSERT INTO obras (nombre, avance, presupuesto) VALUES ('Apertura de Sendas Campamento 1', 12, '85,000 Bs')");
-        console.log("🌱 Datos de obras inicializados.");
-    }
+  console.log('✅ Base de Datos SQLite sincronizada correctamente.');
 
-    // Inserción de datos semilla para Maquinaria
-    const checkMaquinaria = await db.get('SELECT COUNT(*) as total FROM maquinaria');
-    if (checkMaquinaria.total === 0) {
-        await db.run("INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Motoniveladora CAT 140H', 'Motoniveladora', 'Operativo', '2025-10-15')");
-        await db.run("INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Excavadora Komatsu PC200', 'Excavadora', 'Mantenimiento', '2025-09-20')");
-        await db.run("INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES ('Volquete Scania 6x4', 'Volquete', 'Operativo', '2025-11-01')");
-        console.log("🌱 Datos de maquinaria inicializados.");
-    }
+  // ─── MONTAR RUTAS ─────────────────────────────────────────────────────────
+  const logAudit = createLogAudit(db);
 
-    // Inserción de datos semilla para Madera
-    const checkMadera = await db.get('SELECT COUNT(*) as total FROM madera');
-    if (checkMadera.total === 0) {
-        await db.run("INSERT INTO madera (especie, piezas, volumen, campamento) VALUES ('Almendrillo', 45, '12.5 m3', 'Sena')");
-        await db.run("INSERT INTO madera (especie, piezas, volumen, campamento) VALUES ('Tajibo', 30, '8.2 m3', 'Bella Unión')");
-        console.log("🌱 Datos de madera inicializados.");
-    }
+  app.use('/api/auth',       createAuthRoutes(db));
+  app.use('/api/auth',       createPasswordRoutes(db, logAudit));
+  app.use('/api/personal',   createPersonalRoutes(db, logAudit));
+  app.use('/api/maquinaria', createMaquinariaRoutes(db, logAudit));
+  app.use('/api/obras',      createObrasRoutes(db, logAudit));
+  app.use('/api/madera',     createMaderaRoutes(db, logAudit));
+  app.use('/api/rodeos',     createRodeosRoutes(db, logAudit));
+  app.use('/api/documentos', createDocumentosRoutes(db, logAudit));
+  app.use('/api/audit',      createAuditRoutes(db));
+  app.use('/api/config',     createConfigRoutes(db));
+  app.use('/api/backup',     createBackupRoutes(db));
 
-    // Inserción de configuración por defecto
-    const checkConfig = await db.get('SELECT COUNT(*) as total FROM config');
-    if (checkConfig.total === 0) {
-        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_nombre', 'ALISAR SRL', 'string')");
-        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_ubicacion', 'Riberalta, Beni, Bolivia', 'string')");
-        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_moneda', 'Bs', 'string')");
-        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_idioma', 'es', 'string')");
-        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('tema_modo', 'oscuro', 'string')");
-        console.log("🌱 Configuración inicializada.");
-    }
-
-    console.log("✅ Base de Datos SQLite sincronizada correctamente.");
-
-    // Configurar rutas autenticadas después de inicializar la BD
-    app.use('/api/auth', createAuthRoutes(db));
+  // ─── INICIAR SERVIDOR ─────────────────────────────────────────────────────
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => console.log(`🚀 API activa en http://localhost:${PORT}`));
 })();
-
-// 2. FUNCIONES AUXILIARES
-
-// Registrar cambios en audit log
-const logAudit = async (usuario, accion, tabla, registro_id, valores_anteriores, valores_nuevos) => {
-    try {
-        await db.run(
-            'INSERT INTO audit_logs (usuario, accion, tabla, registro_id, valores_anteriores, valores_nuevos) VALUES (?, ?, ?, ?, ?, ?)',
-            [usuario || 'sistema', accion, tabla, registro_id, JSON.stringify(valores_anteriores), JSON.stringify(valores_nuevos)]
-        );
-    } catch (err) {
-        console.error('Error registrando audit log:', err);
-    }
-};
-
-// 3. ENDPOINTS DE LA API REST
-
-// --- Módulo: Maquinaria ---
-app.get('/api/maquinaria', verifyToken, async (req, res) => {
-    try {
-        const rows = await db.all('SELECT * FROM maquinaria');
-        res.json(rows);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// --- Módulo: Obras ---
-app.get('/api/obras', verifyToken, async (req, res) => {
-    try {
-        const rows = await db.all('SELECT * FROM obras');
-        res.json(rows);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.post('/api/obras', verifyToken, async (req, res) => {
-    const { nombre, avance, presupuesto } = req.body;
-
-    if (!nombre || avance === undefined || !presupuesto) {
-        return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
-    }
-
-    if (isNaN(avance) || avance < 0 || avance > 100) {
-        return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
-    }
-
-    try {
-        await db.run('INSERT INTO obras (nombre, avance, presupuesto) VALUES (?, ?, ?)', [nombre, avance, presupuesto]);
-        res.json({ status: "Obra registrada con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// --- Módulo: Personal ---
-app.get('/api/personal', verifyToken, async (req, res) => {
-    try {
-        const rows = await db.all('SELECT * FROM personal');
-        res.json(rows);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.post('/api/personal', verifyToken, async (req, res) => {
-    const { nombre, cargo, celular } = req.body;
-
-    if (!nombre || !cargo) {
-        return res.status(400).json({ msg: 'Campos requeridos: nombre, cargo' });
-    }
-
-    try {
-        await db.run('INSERT INTO personal (nombre, cargo, celular) VALUES (?, ?, ?)', [nombre, cargo, celular]);
-        res.json({ status: "Personal registrado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.delete('/api/obras/:id', verifyToken, async (req, res) => {
-    try {
-        await db.run('DELETE FROM obras WHERE id = ?', [req.params.id]);
-        res.json({ status: "Obra eliminada con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.delete('/api/personal/:id', verifyToken, async (req, res) => {
-    try {
-        await db.run('DELETE FROM personal WHERE id = ?', [req.params.id]);
-        res.json({ status: "Personal eliminado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.delete('/api/maquinaria/:id', verifyToken, async (req, res) => {
-    try {
-        await db.run('DELETE FROM maquinaria WHERE id = ?', [req.params.id]);
-        res.json({ status: "Maquinaria eliminada con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// PUT endpoints para actualizar registros
-app.put('/api/personal/:id', verifyToken, async (req, res) => {
-    const { nombre, cargo, celular } = req.body;
-
-    if (!nombre || !cargo) {
-        return res.status(400).json({ msg: 'Campos requeridos: nombre, cargo' });
-    }
-
-    try {
-        await db.run('UPDATE personal SET nombre = ?, cargo = ?, celular = ? WHERE id = ?',
-            [nombre, cargo, celular, req.params.id]);
-        res.json({ status: "Personal actualizado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.put('/api/obras/:id', verifyToken, async (req, res) => {
-    const { nombre, avance, presupuesto } = req.body;
-
-    if (!nombre || avance === undefined || !presupuesto) {
-        return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
-    }
-
-    if (isNaN(avance) || avance < 0 || avance > 100) {
-        return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
-    }
-
-    try {
-        await db.run('UPDATE obras SET nombre = ?, avance = ?, presupuesto = ? WHERE id = ?',
-            [nombre, avance, presupuesto, req.params.id]);
-        res.json({ status: "Obra actualizada con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.put('/api/maquinaria/:id', verifyToken, async (req, res) => {
-    const { nombre, tipo, estado, ultimaRevision } = req.body;
-
-    if (!nombre || !tipo) {
-        return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
-    }
-
-    try {
-        await db.run('UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ? WHERE id = ?',
-            [nombre, tipo, estado, ultimaRevision, req.params.id]);
-        res.json({ status: "Maquinaria actualizada con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// POST y endpoints para Maquinaria
-app.post('/api/maquinaria', verifyToken, async (req, res) => {
-    const { nombre, tipo, estado, ultimaRevision } = req.body;
-
-    if (!nombre || !tipo) {
-        return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
-    }
-
-    try {
-        await db.run('INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES (?, ?, ?, ?)',
-            [nombre, tipo, estado, ultimaRevision]);
-        res.json({ status: "Maquinaria registrada con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// --- Módulo: Madera ---
-app.get('/api/madera', verifyToken, async (req, res) => {
-    try {
-        const rows = await db.all('SELECT * FROM madera');
-        res.json(rows);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.post('/api/madera', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
-
-    if (!especie || !piezas || !volumen || !campamento) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
-    }
-
-    try {
-        await db.run('INSERT INTO madera (especie, piezas, volumen, campamento) VALUES (?, ?, ?, ?)',
-            [especie, piezas, volumen, campamento]);
-        res.json({ status: "Rodeo registrado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.put('/api/madera/:id', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
-
-    if (!especie || !piezas || !volumen || !campamento) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
-    }
-
-    try {
-        await db.run('UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ? WHERE id = ?',
-            [especie, piezas, volumen, campamento, req.params.id]);
-        res.json({ status: "Rodeo actualizado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.delete('/api/madera/:id', verifyToken, async (req, res) => {
-    try {
-        await db.run('DELETE FROM madera WHERE id = ?', [req.params.id]);
-        res.json({ status: "Rodeo eliminado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// --- Módulo: Auditoría ---
-app.get('/api/audit', verifyToken, async (req, res) => {
-    try {
-        const logs = await db.all('SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 100');
-        res.json(logs);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// --- Módulo: Configuración ---
-app.get('/api/config', verifyToken, async (req, res) => {
-    try {
-        const configs = await db.all('SELECT * FROM config');
-        const result = {};
-        configs.forEach(config => {
-            result[config.clave] = config.valor;
-        });
-        res.json(result);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.put('/api/config/:clave', verifyToken, async (req, res) => {
-    const { valor } = req.body;
-    const { clave } = req.params;
-
-    if (!valor) {
-        return res.status(400).json({ msg: 'Campo requerido: valor' });
-    }
-
-    try {
-        await db.run(
-            'INSERT INTO config (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizado = CURRENT_TIMESTAMP',
-            [clave, valor]
-        );
-        res.json({ status: "Configuración actualizada con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// ─── BACKUP ───────────────────────────────────────────────────────────────────
-
-app.get('/api/backup', verifyToken, async (req, res) => {
-    try {
-        const tables = ['personal', 'maquinaria', 'obras', 'madera', 'rodeos', 'documentos', 'config'];
-        const datos = {};
-        for (const table of tables) {
-            try {
-                datos[table] = await db.all(`SELECT * FROM ${table}`);
-            } catch (_) {
-                datos[table] = [];
-            }
-        }
-        const fecha = new Date().toISOString().split('T')[0];
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', `attachment; filename=alisar_backup_${fecha}.json`);
-        res.json({ version: '1.0', fecha: new Date().toISOString(), datos });
-    } catch (err) {
-        console.error('Error al generar backup:', err);
-        res.status(500).json({ error: 'Error al generar backup' });
-    }
-});
-
-app.post('/api/restore', verifyToken, async (req, res) => {
-    const { datos } = req.body;
-    if (!datos || typeof datos !== 'object') {
-        return res.status(400).json({ error: 'Archivo de respaldo inválido' });
-    }
-    const restorableTables = ['personal', 'maquinaria', 'obras', 'madera', 'rodeos', 'documentos'];
-    try {
-        await db.run('BEGIN TRANSACTION');
-        for (const table of restorableTables) {
-            if (!datos[table] || !Array.isArray(datos[table])) continue;
-            await db.run(`DELETE FROM ${table}`);
-            for (const row of datos[table]) {
-                const cols = Object.keys(row).filter(k => k !== 'id');
-                if (cols.length === 0) continue;
-                const placeholders = cols.map(() => '?').join(', ');
-                const values = cols.map(c => row[c]);
-                await db.run(
-                    `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`,
-                    values
-                );
-            }
-        }
-        await db.run('COMMIT');
-        res.json({ message: 'Datos restaurados correctamente' });
-    } catch (err) {
-        await db.run('ROLLBACK');
-        console.error('Error al restaurar backup:', err);
-        res.status(500).json({ error: 'Error al restaurar datos' });
-    }
-});
-
-// ─── CAMBIAR CONTRASEÑA ────────────────────────────────────────────────────────
-
-const bcrypt = require('bcryptjs');
-
-app.put('/api/auth/change-password', verifyToken, async (req, res) => {
-    const { currentPassword, newPassword } = req.body;
-    if (!currentPassword || !newPassword) {
-        return res.status(400).json({ error: 'Contraseña actual y nueva son requeridas' });
-    }
-    if (newPassword.length < 6) {
-        return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
-    }
-    try {
-        const user = await db.get('SELECT * FROM users WHERE id = ?', [req.user.id]);
-        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
-        if (!isMatch) return res.status(400).json({ error: 'La contraseña actual es incorrecta' });
-
-        const hashed = await bcrypt.hash(newPassword, 10);
-        await db.run('UPDATE users SET password = ? WHERE id = ?', [hashed, req.user.id]);
-        await logAudit(user.usuario, 'CAMBIO_PASSWORD', 'users', user.id, null, null);
-        res.json({ message: 'Contraseña actualizada correctamente' });
-    } catch (err) {
-        console.error('Error al cambiar contraseña:', err);
-        res.status(500).json({ error: 'Error al cambiar contraseña' });
-    }
-});
-
-// 3. Lanzamiento del Servidor
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`🚀 API activa en http://localhost:${PORT}`));

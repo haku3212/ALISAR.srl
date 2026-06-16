@@ -89,7 +89,7 @@ export const dataService = {
 
   // Backup y Restauración
   exportBackup: () => api.get('/backup'),
-  restoreBackup: (datos) => api.post('/restore', { datos }),
+  restoreBackup: (datos) => api.post('/backup/restore', { datos }),
 
   // Cambiar contraseña
   changePassword: (currentPassword, newPassword) =>
