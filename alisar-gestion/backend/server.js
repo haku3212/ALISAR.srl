@@ -159,6 +159,9 @@ const { createLogAudit }    = require('./utils/audit');
 
   // Datos semilla — solo si las tablas están vacías
   const seeds = {
+    users: [
+      "INSERT INTO users (nombre, usuario, password, rol) VALUES ('Administrador', 'admin', '$2b$10$4UeX9IoY1N9q.WixV0p4oecYhtd7pYdjmTTQ0RcFvJR/QJ2PD8t3S', 'admin')"
+    ],
     personal: [
       "INSERT INTO personal (nombre, cargo, celular) VALUES ('Carlos Mendoza', 'Operador de Motoniveladora', '78231456')",
       "INSERT INTO personal (nombre, cargo, celular) VALUES ('Luis Fernando Arce', 'Ingeniero de Residencia', '67129843')"
