@@ -3,4 +3,4 @@ node_modules/
 backend/database.db
 backend/database.db-journal
 frontend/build/
-.cache/
+.cache/alisar-gestion/Checklist_ProyectoSW.pdf
