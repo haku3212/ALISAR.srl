@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X, AlertCircle, CheckCircle, Clock, History, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X, AlertCircle, CheckCircle, Clock, History, Settings as SettingsIcon, ClipboardList } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { dataService } from '../services/api';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -521,6 +521,10 @@ const Dashboard = ({ content }) => {
           </div>
           <div style={styles.navItem('/documentos')} onClick={() => navigate('/documentos')}>
             <FileText size={18} /> Documentos
+          </div>
+
+          <div style={styles.navItem('/checklist')} onClick={() => navigate('/checklist')}>
+            <ClipboardList size={18} /> Checklist SW
           </div>
 
           {/* Separador */}

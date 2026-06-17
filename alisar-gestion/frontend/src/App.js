@@ -25,6 +25,7 @@ import Rodeos from './components/Rodeos';
 import Documentos from './components/Documentos';
 import ChangeHistory from './components/ChangeHistory';
 import Settings from './components/Settings';
+import ProjectChecklist from './components/ProjectChecklist';
 
 /**
  * Componente ProtectedRoute
@@ -70,6 +71,7 @@ function AppRoutes() {
       <Route path="/madera" element={<ProtectedRoute><Dashboard content={<Madera />} /></ProtectedRoute>} />
       <Route path="/rodeos" element={<ProtectedRoute><Dashboard content={<Rodeos />} /></ProtectedRoute>} />
       <Route path="/documentos" element={<ProtectedRoute><Dashboard content={<Documentos />} /></ProtectedRoute>} />
+      <Route path="/checklist" element={<ProtectedRoute><Dashboard content={<ProjectChecklist />} /></ProtectedRoute>} />
       <Route path="/historial" element={<ProtectedRoute><Dashboard content={<ChangeHistory />} /></ProtectedRoute>} />
       <Route path="/configuracion" element={<ProtectedRoute><Dashboard content={<Settings />} /></ProtectedRoute>} />
 
