@@ -1,3 +1,4 @@
+// PENDIENTE: campos del backend desactualizados — expandir backend antes de usar
 /**
  * FormMaquinariaDetallado.js
  * Componente de formulario ampliado para gestión de maquinaria

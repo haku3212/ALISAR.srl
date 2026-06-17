@@ -38,6 +38,13 @@ const ChangeHistory = () => {
     }
   };
 
+  const formatDate = (ts) => {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES');
+  };
+
   const safeJson = (val) => {
     if (!val) return {};
     if (typeof val === 'object') return val;
@@ -128,7 +135,7 @@ const ChangeHistory = () => {
           </div>
         ) : (
           filtered.map((log, idx) => (
-            <div key={log.id} style={{
+            <div key={log.id ?? idx} style={{
               display: 'flex',
               gap: '20px',
               marginBottom: '20px',
@@ -189,7 +196,7 @@ const ChangeHistory = () => {
                     </h4>
                   </div>
                   <span style={{ color: '#666', fontSize: '12px', whiteSpace: 'nowrap' }}>
-                    {new Date(log.timestamp).toLocaleDateString('es-ES')} {new Date(log.timestamp).toLocaleTimeString('es-ES')}
+                    {formatDate(log.timestamp)}
                   </span>
                 </div>
 

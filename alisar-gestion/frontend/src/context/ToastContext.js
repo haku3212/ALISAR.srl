@@ -1,9 +1,14 @@
-import React, { createContext, useState, useCallback } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useRef } from 'react';
 
 export const ToastContext = createContext();
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
+  const timerRefs = useRef({});
+
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
 
   const addToast = useCallback((message, type = 'success', duration = 3000) => {
     const id = Date.now();
@@ -12,17 +17,15 @@ export const ToastProvider = ({ children }) => {
     setToasts(prev => [...prev, toast]);
 
     if (duration) {
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         removeToast(id);
-      }, duration);
+        delete timerRefs.current[id];
+      }, duration || 3000);
+      timerRefs.current[id] = timerId;
     }
 
     return id;
-  }, []);
-
-  const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
+  }, [removeToast]);
 
   const showSuccess = useCallback((message) => {
     return addToast(message, 'success');
@@ -39,6 +42,10 @@ export const ToastProvider = ({ children }) => {
   const showInfo = useCallback((message) => {
     return addToast(message, 'info');
   }, [addToast]);
+
+  useEffect(() => {
+    return () => { Object.values(timerRefs.current).forEach(clearTimeout); };
+  }, []);
 
   const value = {
     toasts,

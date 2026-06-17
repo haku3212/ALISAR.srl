@@ -4,7 +4,9 @@ import { authService } from '../services/api';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user')) || null; } catch { return null; }
+  });
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -14,10 +16,11 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authService.login(usuario, password);
-      const { token, user } = response.data;
+      const { token, user: userData } = response.data;
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
       setToken(token);
-      setUser(user);
+      setUser(userData);
       return true;
     } catch (err) {
       const errorMsg = err.response?.data?.msg || 'Error al iniciar sesión';
@@ -30,6 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     authService.logout();
+    localStorage.removeItem('user');
     setUser(null);
     setToken(null);
     setError(null);
@@ -40,7 +44,12 @@ export const AuthProvider = ({ children }) => {
     token,
     loading,
     error,
-    isAuthenticated: !!token,
+    isAuthenticated: !!token && (() => {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp * 1000 > Date.now();
+      } catch { return false; }
+    })(),
     login,
     logout
   };

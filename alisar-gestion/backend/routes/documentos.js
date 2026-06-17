@@ -29,13 +29,18 @@ const createDocumentosRoutes = (db, logAudit) => {
       });
     }
 
-    if (new Date(fecha_vencimiento) <= new Date(fecha_emision)) {
+    const dEmision = new Date(fecha_emision);
+    const dVencimiento = new Date(fecha_vencimiento);
+    if (isNaN(dEmision.getTime()) || isNaN(dVencimiento.getTime())) {
+      return res.status(400).json({ msg: 'Formato de fecha inválido' });
+    }
+    if (dVencimiento <= dEmision) {
       return res.status(400).json({ msg: 'La fecha de vencimiento debe ser posterior a la fecha de emisión' });
     }
 
     try {
       const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-      const vencimiento = new Date(fecha_vencimiento + 'T00:00:00');
+      const vencimiento = new Date(dVencimiento.toISOString().split('T')[0] + 'T00:00:00');
       const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
       let estado = 'Vigente';
       if (diasRestantes < 0) estado = 'Vencido';
@@ -53,7 +58,7 @@ const createDocumentosRoutes = (db, logAudit) => {
           asociado_proyecto, asociado_maquinaria, asociado_campamento,
           referencia_archivo, url_documento, descripcion, observaciones, estado]
       );
-      await logAudit(req.user?.id, 'CREATE', 'documentos', result.lastID, null, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'documentos', result.lastID, null, req.body);
       res.status(201).json({ status: 'Documento registrado con éxito', id: result.lastID });
     } catch (err) {
       console.error('Error:', err);
@@ -76,13 +81,18 @@ const createDocumentosRoutes = (db, logAudit) => {
       });
     }
 
-    if (new Date(fecha_vencimiento) <= new Date(fecha_emision)) {
+    const dEmision = new Date(fecha_emision);
+    const dVencimiento = new Date(fecha_vencimiento);
+    if (isNaN(dEmision.getTime()) || isNaN(dVencimiento.getTime())) {
+      return res.status(400).json({ msg: 'Formato de fecha inválido' });
+    }
+    if (dVencimiento <= dEmision) {
       return res.status(400).json({ msg: 'La fecha de vencimiento debe ser posterior a la fecha de emisión' });
     }
 
     try {
       const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-      const vencimiento = new Date(fecha_vencimiento + 'T00:00:00');
+      const vencimiento = new Date(dVencimiento.toISOString().split('T')[0] + 'T00:00:00');
       const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
       let estado = 'Vigente';
       if (diasRestantes < 0) estado = 'Vencido';
@@ -105,7 +115,7 @@ const createDocumentosRoutes = (db, logAudit) => {
           referencia_archivo, url_documento, descripcion, observaciones, estado,
           req.params.id]
       );
-      await logAudit(req.user?.id, 'UPDATE', 'documentos', req.params.id, anterior, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'documentos', req.params.id, anterior, req.body);
       res.json({ status: 'Documento actualizado con éxito' });
     } catch (err) {
       console.error('Error:', err);
@@ -116,8 +126,9 @@ const createDocumentosRoutes = (db, logAudit) => {
   router.delete('/:id', verifyToken, async (req, res) => {
     try {
       const anterior = await db.get('SELECT * FROM documentos WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run('DELETE FROM documentos WHERE id = ?', [req.params.id]);
-      await logAudit(req.user?.id, 'DELETE', 'documentos', req.params.id, anterior, null);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'documentos', req.params.id, anterior, null);
       res.json({ status: 'Documento eliminado con éxito' });
     } catch (err) {
       console.error('Error:', err);

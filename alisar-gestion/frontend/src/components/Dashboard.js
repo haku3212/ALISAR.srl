@@ -24,23 +24,27 @@ const Dashboard = ({ content }) => {
   const [lastObras, setLastObras] = useState([]);
   const [maintenanceNeeded, setMaintenanceNeeded] = useState([]);
   const [personalByRole, setPersonalByRole] = useState([]);
+  const [pieData, setPieData] = useState([]);
+  const [docsPorVencer, setDocsPorVencer] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const [obraRes, maquinariaRes, personalRes, maderaRes] = await Promise.all([
+        const [obraRes, maquinariaRes, personalRes, maderaRes, docsRes] = await Promise.all([
           dataService.getObras(),
           dataService.getMaquinaria(),
           dataService.getPersonal(),
-          dataService.getMadera()
+          dataService.getMadera(),
+          dataService.getDocumentos()
         ]);
 
         const obras = obraRes.data || [];
         const maquinaria = maquinariaRes.data || [];
         const personal = personalRes.data || [];
         const madera = maderaRes.data || [];
+        const docs = docsRes.data || [];
 
         // Actualizar estadísticas
         setStats({
@@ -64,6 +68,28 @@ const Dashboard = ({ content }) => {
           })
           .slice(0, 3);
         setMaintenanceNeeded(maintenance);
+
+        // Calcular pieData real desde maquinaria
+        const estadoMap = {};
+        maquinaria.forEach(m => {
+          const estado = m.estado || 'Desconocido';
+          estadoMap[estado] = (estadoMap[estado] || 0) + 1;
+        });
+        const colorMap = { 'Operativo': '#FFD700', 'Mantenimiento': '#f97316', 'Inactivo': '#f87171', 'En Reparación': '#60a5fa' };
+        const pieDataReal = Object.entries(estadoMap).map(([name, value]) => ({
+          name, value, fill: colorMap[name] || '#888'
+        }));
+        setPieData(pieDataReal);
+
+        // Documentos próximos a vencer (próximos 30 días)
+        const hoy = new Date();
+        const en30 = new Date(hoy.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const docsPorVencerFiltrados = docs.filter(d => {
+          if (!d.fecha_vencimiento) return false;
+          const v = new Date(d.fecha_vencimiento);
+          return v >= hoy && v <= en30;
+        }).slice(0, 3);
+        setDocsPorVencer(docsPorVencerFiltrados);
 
         // Personal por cargo (para BarChart)
         const roleMap = {};
@@ -105,7 +131,7 @@ const Dashboard = ({ content }) => {
     pdf.setFillColor(255, 215, 0);
     pdf.rect(0, 0, pageWidth, 30, 'F');
 
-    pdf.setTextColor(255, 255, 255);
+    pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(28);
     pdf.text('REPORTE GENERAL - ALISAR', pageWidth / 2, 15, { align: 'center' });
 
@@ -147,7 +173,7 @@ const Dashboard = ({ content }) => {
           pdf.addPage();
           yPos = 20;
         }
-        pdf.text(`${obra.nombre} - Avance: ${obra.avance}% - Presupuesto: ${obra.presupuesto}`, 25, yPos);
+        pdf.text(`${obra.nombre} - Avance: ${obra.avance ?? 0}% - Presupuesto: ${obra.presupuesto || 'N/D'}`, 25, yPos);
         yPos += 6;
       });
       yPos += 10;
@@ -167,7 +193,7 @@ const Dashboard = ({ content }) => {
           pdf.addPage();
           yPos = 20;
         }
-        pdf.text(`• ${maq.nombre} (${maq.tipo})`, 25, yPos);
+        pdf.text(`• ${maq.nombre} (${maq.tipo || 'Sin tipo'})`, 25, yPos);
         yPos += 6;
       });
     }
@@ -180,20 +206,12 @@ const Dashboard = ({ content }) => {
     pdf.save(`Reporte_Dashboard_${new Date().getTime()}.pdf`);
   };
 
-  // Datos para gráficos del dashboard
-  const chartData = [
-    { name: 'Ene', presupuesto: 40000, ejecutado: 24000 },
-    { name: 'Feb', presupuesto: 30000, ejecutado: 13000 },
-    { name: 'Mar', presupuesto: 20000, ejecutado: 9800 },
-    { name: 'Abr', presupuesto: 27000, ejecutado: 15500 },
-    { name: 'May', presupuesto: 45000, ejecutado: 32200 }
-  ];
-
-  const pieData = [
-    { name: 'Operativo', value: 65, fill: '#FFD700' },
-    { name: 'Mantenimiento', value: 25, fill: '#f97316' },
-    { name: 'Inactivo', value: 10, fill: '#f87171' }
-  ];
+  // Datos para gráficos del dashboard — calculados desde obras reales
+  const chartData = lastObras.map(obra => ({
+    name: obra.nombre?.substring(0, 12) || 'Sin nombre',
+    avance: obra.avance ?? 0,
+    presupuesto: parseFloat(obra.presupuesto) || 0
+  }));
 
   const isActive = (path) => location.pathname === path;
 
@@ -331,9 +349,9 @@ const Dashboard = ({ content }) => {
 
       {/* Gráficos principales */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        {/* Evolución de Presupuesto */}
+        {/* Avance vs Presupuesto por Obra */}
         <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
-          <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Evolución Presupuesto (Bs)</h3>
+          <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Avance vs Presupuesto por Obra (Bs)</h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1f241f" />
@@ -349,7 +367,7 @@ const Dashboard = ({ content }) => {
               />
               <Legend />
               <Area type="monotone" dataKey="presupuesto" stroke="#60a5fa" fill="#1a221a" fillOpacity={0.3} />
-              <Area type="monotone" dataKey="ejecutado" stroke="#FFD700" fill="#1a221a" fillOpacity={0.3} />
+              <Area type="monotone" dataKey="avance" stroke="#FFD700" fill="#1a221a" fillOpacity={0.3} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -460,36 +478,42 @@ const Dashboard = ({ content }) => {
             <Clock size={20} color="#f97316" /> Próximos Eventos
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{
-              background: '#1a1d1a',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #1f241f',
-              borderLeft: '4px solid #f97316'
-            }}>
-              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Mantenimiento Maquinaria</p>
-              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Próximos 30 días</p>
-            </div>
-            <div style={{
-              background: '#1a1d1a',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #1f241f',
-              borderLeft: '4px solid #a78bfa'
-            }}>
-              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Revisión de Personal</p>
-              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Evaluaciones programadas</p>
-            </div>
-            <div style={{
-              background: '#1a1d1a',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #1f241f',
-              borderLeft: '4px solid #60a5fa'
-            }}>
-              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Control de Madera</p>
-              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Inventario a finales de mes</p>
-            </div>
+            {docsPorVencer.length === 0 && maintenanceNeeded.length === 0 ? (
+              <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>No hay eventos próximos</p>
+            ) : (
+              <>
+                {docsPorVencer.map(doc => (
+                  <div key={doc.id} style={{
+                    background: '#1a1d1a',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '1px solid #1f241f',
+                    borderLeft: '4px solid #60a5fa'
+                  }}>
+                    <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>
+                      Documento por vencer: {doc.nombre || doc.titulo || 'Sin nombre'}
+                    </p>
+                    <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>
+                      Vence: {new Date(doc.fecha_vencimiento).toLocaleDateString('es-ES')}
+                    </p>
+                  </div>
+                ))}
+                {maintenanceNeeded.map(maq => (
+                  <div key={maq.id} style={{
+                    background: '#1a1d1a',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '1px solid #1f241f',
+                    borderLeft: '4px solid #f97316'
+                  }}>
+                    <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>
+                      Revisión de maquinaria: {maq.nombre}
+                    </p>
+                    <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Requiere mantenimiento</p>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
       </div>

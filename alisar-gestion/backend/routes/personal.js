@@ -25,7 +25,7 @@ const createPersonalRoutes = (db, logAudit) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [nombre, cargo, celular, estado || 'Activo', email, departamento, fecha_ingreso, tipo_contrato]
       );
-      await logAudit(req.user?.id, 'CREATE', 'personal', result.lastID, null, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'personal', result.lastID, null, req.body);
       res.status(201).json({ status: 'Personal registrado con éxito', id: result.lastID });
     } catch (err) {
       console.error('Error:', err);
@@ -46,7 +46,7 @@ const createPersonalRoutes = (db, logAudit) => {
          departamento = ?, fecha_ingreso = ?, tipo_contrato = ? WHERE id = ?`,
         [nombre, cargo, celular, estado || 'Activo', email, departamento, fecha_ingreso, tipo_contrato, req.params.id]
       );
-      await logAudit(req.user?.id, 'UPDATE', 'personal', req.params.id, anterior, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'personal', req.params.id, anterior, req.body);
       res.json({ status: 'Personal actualizado con éxito' });
     } catch (err) {
       console.error('Error:', err);
@@ -57,8 +57,9 @@ const createPersonalRoutes = (db, logAudit) => {
   router.delete('/:id', verifyToken, async (req, res) => {
     try {
       const anterior = await db.get('SELECT * FROM personal WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run('DELETE FROM personal WHERE id = ?', [req.params.id]);
-      await logAudit(req.user?.id, 'DELETE', 'personal', req.params.id, anterior, null);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'personal', req.params.id, anterior, null);
       res.json({ status: 'Personal eliminado con éxito' });
     } catch (err) {
       console.error('Error:', err);

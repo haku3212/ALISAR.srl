@@ -86,7 +86,7 @@ const Personal = () => {
     }
   };
 
-  const handleEdit = (p) => { setFormData({ ...EMPTY, ...p }); setEditingId(p.id); setShowModal(true); };
+  const handleEdit = (p) => { setFormData({ ...EMPTY, ...p }); setFormErrors({}); setEditingId(p.id); setShowModal(true); };
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose = () => { setShowModal(false); setEditingId(null); };
 

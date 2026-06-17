@@ -22,6 +22,7 @@ const createBackupRoutes = (db) => {
   const router = express.Router();
 
   router.get('/', verifyToken, async (req, res) => {
+    if (req.user?.rol !== 'admin') return res.status(403).json({ msg: 'Acceso denegado' });
     try {
       const tables = ['personal', 'maquinaria', 'obras', 'madera', 'rodeos', 'documentos', 'config'];
       const datos = {};
@@ -43,10 +44,13 @@ const createBackupRoutes = (db) => {
   });
 
   router.post('/restore', verifyToken, async (req, res) => {
+    if (req.user?.rol !== 'admin') return res.status(403).json({ msg: 'Acceso denegado' });
     const { datos } = req.body;
     if (!datos || typeof datos !== 'object') {
       return res.status(400).json({ error: 'Archivo de respaldo inválido' });
     }
+    const hasData = Object.values(datos).some(arr => Array.isArray(arr) && arr.length > 0);
+    if (!hasData) return res.status(400).json({ error: 'El archivo de respaldo está vacío' });
     const restorableTables = ['personal', 'maquinaria', 'obras', 'madera', 'rodeos', 'documentos'];
     try {
       await db.run('BEGIN TRANSACTION');
@@ -68,7 +72,7 @@ const createBackupRoutes = (db) => {
       await db.run('COMMIT');
       res.json({ message: 'Datos restaurados correctamente' });
     } catch (err) {
-      await db.run('ROLLBACK');
+      await db.run('ROLLBACK').catch(() => {});
       console.error('Error al restaurar backup:', err);
       res.status(500).json({ error: 'Error al restaurar datos' });
     }

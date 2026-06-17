@@ -1,3 +1,4 @@
+// PENDIENTE: campos del backend desactualizados — expandir backend antes de usar
 /**
  * FormPersonalDetallado.js - VERSIÓN MEJORADA
  * Componente de formulario ampliado para gestión de personal

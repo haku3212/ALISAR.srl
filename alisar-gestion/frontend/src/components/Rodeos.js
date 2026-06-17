@@ -23,7 +23,14 @@ const EMPTY = {
   especie_principal: '', otras_especies: '', procedencia: '', destino_final: '',
   estado_operacion: 'En Proceso', fecha_transporte: '',
   poat_numero: '', poat_vencimiento: '', otros_permisos: '', fecha_limite_permisos: '',
-  observaciones: ''
+  observaciones: '',
+  ubicacion_origen: '',
+  ubicacion_destino: '',
+  ubicacion_origen_coords: null,
+  ubicacion_destino_coords: null,
+  descripcion: '',
+  lat: '',
+  lng: ''
 };
 
 const estadoBadge = {
@@ -83,7 +90,7 @@ const Rodeos = () => {
     if (!validate()) return;
     try {
       setSubmitting(true);
-      const payload = { ...formData, ubicacion_origen_coords: null, ubicacion_destino_coords: null };
+      const payload = { ...formData };
       editingId ? await update(editingId, payload) : await create(payload);
       setFormData(EMPTY);
       setShowModal(false);
@@ -92,7 +99,7 @@ const Rodeos = () => {
     }
   };
 
-  const handleEdit = (r) => { setFormData({ ...EMPTY, ...r }); setEditingId(r.id); setShowModal(true); };
+  const handleEdit = (r) => { setFormData({ ...EMPTY, ...r }); setFormErrors({}); setEditingId(r.id); setShowModal(true); };
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose = () => { setShowModal(false); setEditingId(null); };
 

@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 
 const Modal = ({ isOpen, onClose, title, children }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div style={{
+    <div onClick={onClose} style={{
       position: 'fixed',
       top: 0,
       left: 0,
@@ -17,7 +24,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
       justifyContent: 'center',
       zIndex: 1000
     }}>
-      <div style={{
+      <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} style={{
         background: '#1a1d1a',
         borderRadius: '12px',
         padding: '32px',

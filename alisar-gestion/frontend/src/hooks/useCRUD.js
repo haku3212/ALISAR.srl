@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../context/ToastContext';
 
 export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete) => {
@@ -6,9 +6,10 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const { showSuccess, showError } = useToast();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await serviceGet();
@@ -21,11 +22,11 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
     } finally {
       setLoading(false);
     }
-  };
+  }, [serviceGet, showError]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const create = async (newItem) => {
     try {
@@ -54,19 +55,24 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
     }
   };
 
-  const delete_item = async (id) => {
-    if (!window.confirm('¿Deseas eliminar este registro?')) return false;
+  const requestDelete = useCallback((id) => {
+    setPendingDeleteId(id);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDeleteId) return;
     try {
-      await serviceDelete(id);
-      await fetchData();
+      await serviceDelete(pendingDeleteId);
       showSuccess('Eliminado correctamente');
-      return true;
+      await fetchData();
     } catch (err) {
-      const msg = err.response?.data?.msg || 'Error al eliminar';
-      showError(msg);
-      return false;
+      showError(err.response?.data?.msg || err.response?.data?.error || 'Error al eliminar');
+    } finally {
+      setPendingDeleteId(null);
     }
-  };
+  }, [pendingDeleteId, serviceDelete, showSuccess, showError, fetchData]);
+
+  const cancelDelete = useCallback(() => setPendingDeleteId(null), []);
 
   return {
     data,
@@ -77,7 +83,10 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
     setEditingId,
     create,
     update,
-    delete: delete_item,
+    requestDelete,
+    confirmDelete,
+    cancelDelete,
+    pendingDeleteId,
     refresh: fetchData
   };
 };

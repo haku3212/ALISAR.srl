@@ -66,7 +66,8 @@ const Obras = () => {
     if (!validate()) return;
     try {
       setSubmitting(true);
-      editingId ? await update(editingId, formData) : await create(formData);
+      const payload = { ...formData, avance: Number(formData.avance) };
+      editingId ? await update(editingId, payload) : await create(payload);
       setFormData(EMPTY);
       setShowModal(false);
     } finally {
@@ -74,7 +75,7 @@ const Obras = () => {
     }
   };
 
-  const handleEdit = (obra) => { setFormData({ ...EMPTY, ...obra }); setEditingId(obra.id); setShowModal(true); };
+  const handleEdit = (obra) => { setFormData({ ...EMPTY, ...obra }); setFormErrors({}); setEditingId(obra.id); setShowModal(true); };
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose = () => { setShowModal(false); setEditingId(null); };
 

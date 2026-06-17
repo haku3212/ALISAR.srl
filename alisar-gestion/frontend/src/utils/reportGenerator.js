@@ -40,7 +40,7 @@ export const generatePDFFromHTML = async (element, filename) => {
     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
-    while (heightLeft >= 0) {
+    while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
@@ -109,14 +109,15 @@ export const generateObrasReport = (obras) => {
       yPos = 20;
     }
 
+    const avance = obra.avance ?? 0;
     pdf.text(String(obra.nombre ?? ''), colX[0], yPos);
     pdf.text(String(obra.presupuesto ?? ''), colX[1], yPos);
-    pdf.text(`${obra.avance}%`, colX[2], yPos);
+    pdf.text(`${avance}%`, colX[2], yPos);
 
     // Color de estado según avance
-    if (obra.avance >= 75) {
+    if (avance >= 75) {
       pdf.setTextColor(74, 222, 128); // Verde
-    } else if (obra.avance >= 50) {
+    } else if (avance >= 50) {
       pdf.setTextColor(96, 165, 250); // Azul
     } else {
       pdf.setTextColor(249, 115, 22); // Naranja
@@ -451,7 +452,7 @@ export const generateMaderaReport = (madera) => {
   // Footer
   pdf.setFontSize(8);
   pdf.setTextColor(150, 150, 150);
-  pdf.text(`Total de rodeos: ${madera.length}`, 20, pageHeight - 10);
+  pdf.text(`Total de registros: ${madera.length}`, 20, pageHeight - 10);
   pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth - 60, pageHeight - 10);
 
   pdf.save(`Reporte_Madera_${new Date().getTime()}.pdf`);
@@ -468,7 +469,7 @@ export const generateExcelReport = async (data, columns, filename) => {
     const rows = data.map(item => {
       const row = {};
       columns.forEach(col => {
-        row[col.label] = item[col.key] || '';
+        row[col.label] = item[col.key] ?? '';
       });
       return row;
     });

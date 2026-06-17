@@ -237,7 +237,7 @@ const Settings = () => {
         <input
           type={showPasswords[field] ? 'text' : 'password'}
           value={value}
-          onChange={(e) => setPasswordForm({ ...passwordForm, [field]: e.target.value })}
+          onChange={(e) => setPasswordForm(prev => ({ ...prev, [field]: e.target.value }))}
           disabled={changingPassword}
           style={{ ...inputStyle, paddingRight: '40px' }}
           placeholder="••••••••"

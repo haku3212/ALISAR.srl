@@ -109,7 +109,7 @@ const Documentos = () => {
     }
   };
 
-  const handleEdit = (d) => { setFormData({ ...EMPTY, ...d }); setEditingId(d.id); setShowModal(true); };
+  const handleEdit = (d) => { setFormData({ ...EMPTY, ...d }); setFormErrors({}); setEditingId(d.id); setShowModal(true); };
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose = () => { setShowModal(false); setEditingId(null); };
 
@@ -226,12 +226,12 @@ const Documentos = () => {
             </div>
             <div>
               <label style={lbl}>Estado</label>
-              <select style={{ ...inp, cursor: 'pointer' }} value={formData.estado} onChange={set('estado')} disabled={submitting}>
-                <option value="Vigente">Vigente</option>
-                <option value="Vencido">Vencido</option>
-                <option value="Suspendido">Suspendido</option>
-                <option value="En Trámite">En Trámite</option>
-              </select>
+              <div style={{ ...inp, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'default', color: VENC_COLOR[getEstadoVenc(formData.fecha_vencimiento)] }}>
+                {VENC_LABEL[getEstadoVenc(formData.fecha_vencimiento)]}
+              </div>
+              <p style={{ color: '#666', fontSize: '11px', margin: '4px 0 0 0' }}>
+                El estado se calcula automáticamente según la fecha de vencimiento
+              </p>
             </div>
             <div>
               <label style={lbl}>Fecha de Emisión <span style={{ color: '#FFD700' }}>*</span></label>

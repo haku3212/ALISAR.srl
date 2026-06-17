@@ -13,15 +13,15 @@ exports.createLoginController = (db) => {
       const user = await db.get('SELECT * FROM users WHERE usuario = ?', [usuario]);
 
       if (!user) {
-        return res.status(400).json({ msg: 'Usuario no encontrado' });
+        return res.status(401).json({ msg: 'Credenciales incorrectas' });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ msg: 'Contraseña incorrecta' });
+        return res.status(401).json({ msg: 'Credenciales incorrectas' });
       }
 
-      const payload = { user: { id: user.id, rol: user.rol } };
+      const payload = { user: { id: user.id, rol: user.rol, nombre: user.nombre, usuario: user.usuario } };
       jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' }, (err, token) => {
         if (err) {
           console.error('Error al firmar JWT:', err);

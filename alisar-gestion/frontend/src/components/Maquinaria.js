@@ -84,7 +84,7 @@ const Maquinaria = () => {
     }
   };
 
-  const handleEdit = (m) => { setFormData({ ...EMPTY, ...m }); setEditingId(m.id); setShowModal(true); };
+  const handleEdit = (m) => { setFormData({ ...EMPTY, ...m }); setFormErrors({}); setEditingId(m.id); setShowModal(true); };
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose = () => { setShowModal(false); setEditingId(null); };
 

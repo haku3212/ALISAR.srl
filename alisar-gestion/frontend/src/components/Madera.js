@@ -49,6 +49,7 @@ const Madera = () => {
       m.especie?.toLowerCase().includes(search.toLowerCase()) ||
       m.campamento?.toLowerCase().includes(search.toLowerCase()) ||
       m.procedencia?.toLowerCase().includes(search.toLowerCase()) ||
+      m.destino?.toLowerCase().includes(search.toLowerCase()) ||
       m.volumen?.toString().toLowerCase().includes(search.toLowerCase())
     );
     if (filters.especie) r = r.filter(m => m.especie === filters.especie);
@@ -77,7 +78,7 @@ const Madera = () => {
     }
   };
 
-  const handleEdit = (m) => { setFormData({ ...EMPTY, ...m }); setEditingId(m.id); setShowModal(true); };
+  const handleEdit = (m) => { setFormData({ ...EMPTY, ...m }); setFormErrors({}); setEditingId(m.id); setShowModal(true); };
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose = () => { setShowModal(false); setEditingId(null); };
 

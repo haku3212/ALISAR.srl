@@ -23,9 +23,9 @@ const createMaquinariaRoutes = (db, logAudit) => {
       const result = await db.run(
         `INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado]
+        [nombre, tipo, estado || 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado]
       );
-      await logAudit(req.user?.id, 'CREATE', 'maquinaria', result.lastID, null, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'maquinaria', result.lastID, null, req.body);
       res.status(201).json({ status: 'Maquinaria registrada con éxito', id: result.lastID });
     } catch (err) {
       console.error('Error:', err);
@@ -44,9 +44,9 @@ const createMaquinariaRoutes = (db, logAudit) => {
       await db.run(
         `UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ?,
          modelo = ?, anio = ?, numero_serie = ?, horas_operacion = ?, operador_asignado = ? WHERE id = ?`,
-        [nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado, req.params.id]
+        [nombre, tipo, estado || 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado, req.params.id]
       );
-      await logAudit(req.user?.id, 'UPDATE', 'maquinaria', req.params.id, anterior, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'maquinaria', req.params.id, anterior, req.body);
       res.json({ status: 'Maquinaria actualizada con éxito' });
     } catch (err) {
       console.error('Error:', err);
@@ -57,8 +57,9 @@ const createMaquinariaRoutes = (db, logAudit) => {
   router.delete('/:id', verifyToken, async (req, res) => {
     try {
       const anterior = await db.get('SELECT * FROM maquinaria WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run('DELETE FROM maquinaria WHERE id = ?', [req.params.id]);
-      await logAudit(req.user?.id, 'DELETE', 'maquinaria', req.params.id, anterior, null);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'maquinaria', req.params.id, anterior, null);
       res.json({ status: 'Maquinaria eliminada con éxito' });
     } catch (err) {
       console.error('Error:', err);

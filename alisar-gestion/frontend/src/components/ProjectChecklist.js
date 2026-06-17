@@ -335,7 +335,7 @@ const ProjectChecklist = () => {
               {/* Lista de tareas */}
               <div style={{ padding: '8px 0' }}>
                 {phase.tareas.map(tarea => {
-                  const done = !!checked[tarea.id];
+                  const isTaskDone = !!checked[tarea.id];
                   return (
                     <div
                       key={tarea.id}
@@ -347,27 +347,27 @@ const ProjectChecklist = () => {
                         padding: '10px 20px',
                         cursor: 'pointer',
                         transition: 'background 0.15s',
-                        background: done && tarea.milestone ? phase.color + '10' : 'transparent',
+                        background: isTaskDone && tarea.milestone ? phase.color + '10' : 'transparent',
                       }}
                       onMouseEnter={e => e.currentTarget.style.background = '#1a1d1a'}
-                      onMouseLeave={e => e.currentTarget.style.background = done && tarea.milestone ? phase.color + '10' : 'transparent'}
+                      onMouseLeave={e => e.currentTarget.style.background = isTaskDone && tarea.milestone ? phase.color + '10' : 'transparent'}
                     >
                       {tarea.milestone ? (
                         <Flag
                           size={17}
-                          color={done ? phase.color : '#444'}
-                          fill={done ? phase.color : 'none'}
+                          color={isTaskDone ? phase.color : '#444'}
+                          fill={isTaskDone ? phase.color : 'none'}
                           style={{ flexShrink: 0 }}
                         />
-                      ) : done ? (
+                      ) : isTaskDone ? (
                         <CheckSquare size={17} color={phase.color} style={{ flexShrink: 0 }} />
                       ) : (
                         <Square size={17} color="#444" style={{ flexShrink: 0 }} />
                       )}
                       <span style={{
                         fontSize: '13px',
-                        color: done ? (tarea.milestone ? phase.color : '#aaa') : '#ccc',
-                        textDecoration: done && !tarea.milestone ? 'line-through' : 'none',
+                        color: isTaskDone ? (tarea.milestone ? phase.color : '#aaa') : '#ccc',
+                        textDecoration: isTaskDone && !tarea.milestone ? 'line-through' : 'none',
                         fontWeight: tarea.milestone ? '600' : '400',
                         fontStyle: tarea.milestone ? 'italic' : 'normal',
                       }}>

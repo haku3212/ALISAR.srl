@@ -10,8 +10,8 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000', credentials: true }));
+app.use(express.json({ limit: '5mb' }));
 
 // ─── IMPORTAR RUTAS ───────────────────────────────────────────────────────────
 const createAuthRoutes      = require('./routes/auth');
@@ -195,10 +195,19 @@ const { createLogAudit }    = require('./utils/audit');
   await addCol('madera', 'destino', 'TEXT');
   await addCol('madera', 'tipo_corte', 'TEXT');
 
+  await db.run(`CREATE INDEX IF NOT EXISTS idx_audit_tabla ON audit_logs(tabla, registro_id)`);
+  await db.run(`CREATE INDEX IF NOT EXISTS idx_docs_estado ON documentos(estado, fecha_vencimiento)`);
+  await db.run(`CREATE INDEX IF NOT EXISTS idx_maq_estado ON maquinaria(estado)`);
+  await db.run(`CREATE INDEX IF NOT EXISTS idx_personal_estado ON personal(estado)`);
+
   // Datos semilla — solo si las tablas están vacías
+  const bcrypt = require('bcryptjs');
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const adminHash = await bcrypt.hash(adminPassword, 12);
+
   const seeds = {
     users: [
-      "INSERT INTO users (nombre, usuario, password, rol) VALUES ('Administrador', 'admin', '$2b$10$4UeX9IoY1N9q.WixV0p4oecYhtd7pYdjmTTQ0RcFvJR/QJ2PD8t3S', 'admin')"
+      `INSERT INTO users (nombre, usuario, password, rol) VALUES ('Administrador', 'admin', '${adminHash}', 'admin')`
     ],
     personal: [
       "INSERT INTO personal (nombre, cargo, celular) VALUES ('Carlos Mendoza', 'Operador de Motoniveladora', '78231456')",
