@@ -21,7 +21,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
         background: '#1a1d1a',
         borderRadius: '12px',
         padding: '32px',
-        maxWidth: '500px',
+        maxWidth: '680px',
         width: '90%',
         maxHeight: '90vh',
         overflowY: 'auto',

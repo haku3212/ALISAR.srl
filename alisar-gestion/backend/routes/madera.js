@@ -15,14 +15,15 @@ const createMaderaRoutes = (db, logAudit) => {
   });
 
   router.post('/', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
+    const { especie, piezas, volumen, campamento, procedencia, destino, tipo_corte } = req.body;
     if (!especie || !volumen) {
       return res.status(400).json({ msg: 'Campos requeridos: especie, volumen' });
     }
     try {
       const result = await db.run(
-        'INSERT INTO madera (especie, piezas, volumen, campamento) VALUES (?, ?, ?, ?)',
-        [especie, piezas, volumen, campamento]
+        `INSERT INTO madera (especie, piezas, volumen, campamento, procedencia, destino, tipo_corte)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [especie, piezas, volumen, campamento, procedencia, destino, tipo_corte]
       );
       await logAudit(req.user?.id, 'CREATE', 'madera', result.lastID, null, req.body);
       res.status(201).json({ status: 'Madera registrada con éxito', id: result.lastID });
@@ -33,15 +34,16 @@ const createMaderaRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
+    const { especie, piezas, volumen, campamento, procedencia, destino, tipo_corte } = req.body;
     if (!especie || !volumen) {
       return res.status(400).json({ msg: 'Campos requeridos: especie, volumen' });
     }
     try {
       const anterior = await db.get('SELECT * FROM madera WHERE id = ?', [req.params.id]);
       await db.run(
-        'UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ? WHERE id = ?',
-        [especie, piezas, volumen, campamento, req.params.id]
+        `UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ?,
+         procedencia = ?, destino = ?, tipo_corte = ? WHERE id = ?`,
+        [especie, piezas, volumen, campamento, procedencia, destino, tipo_corte, req.params.id]
       );
       await logAudit(req.user?.id, 'UPDATE', 'madera', req.params.id, anterior, req.body);
       res.json({ status: 'Madera actualizada con éxito' });

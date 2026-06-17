@@ -15,14 +15,15 @@ const createPersonalRoutes = (db, logAudit) => {
   });
 
   router.post('/', verifyToken, async (req, res) => {
-    const { nombre, cargo, celular } = req.body;
+    const { nombre, cargo, celular, estado, email, departamento, fecha_ingreso, tipo_contrato } = req.body;
     if (!nombre || !cargo) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, cargo' });
     }
     try {
       const result = await db.run(
-        'INSERT INTO personal (nombre, cargo, celular) VALUES (?, ?, ?)',
-        [nombre, cargo, celular]
+        `INSERT INTO personal (nombre, cargo, celular, estado, email, departamento, fecha_ingreso, tipo_contrato)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [nombre, cargo, celular, estado || 'Activo', email, departamento, fecha_ingreso, tipo_contrato]
       );
       await logAudit(req.user?.id, 'CREATE', 'personal', result.lastID, null, req.body);
       res.status(201).json({ status: 'Personal registrado con éxito', id: result.lastID });
@@ -33,15 +34,16 @@ const createPersonalRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
-    const { nombre, cargo, celular } = req.body;
+    const { nombre, cargo, celular, estado, email, departamento, fecha_ingreso, tipo_contrato } = req.body;
     if (!nombre || !cargo) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, cargo' });
     }
     try {
       const anterior = await db.get('SELECT * FROM personal WHERE id = ?', [req.params.id]);
       await db.run(
-        'UPDATE personal SET nombre = ?, cargo = ?, celular = ? WHERE id = ?',
-        [nombre, cargo, celular, req.params.id]
+        `UPDATE personal SET nombre = ?, cargo = ?, celular = ?, estado = ?, email = ?,
+         departamento = ?, fecha_ingreso = ?, tipo_contrato = ? WHERE id = ?`,
+        [nombre, cargo, celular, estado || 'Activo', email, departamento, fecha_ingreso, tipo_contrato, req.params.id]
       );
       await logAudit(req.user?.id, 'UPDATE', 'personal', req.params.id, anterior, req.body);
       res.json({ status: 'Personal actualizado con éxito' });

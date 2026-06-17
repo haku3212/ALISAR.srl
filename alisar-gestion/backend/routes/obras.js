@@ -15,7 +15,7 @@ const createObrasRoutes = (db, logAudit) => {
   });
 
   router.post('/', verifyToken, async (req, res) => {
-    const { nombre, avance, presupuesto } = req.body;
+    const { nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones } = req.body;
     if (!nombre || avance === undefined || !presupuesto) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
     }
@@ -24,8 +24,9 @@ const createObrasRoutes = (db, logAudit) => {
     }
     try {
       const result = await db.run(
-        'INSERT INTO obras (nombre, avance, presupuesto) VALUES (?, ?, ?)',
-        [nombre, avance, presupuesto]
+        `INSERT INTO obras (nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones]
       );
       await logAudit(req.user?.id, 'CREATE', 'obras', result.lastID, null, req.body);
       res.status(201).json({ status: 'Obra registrada con éxito', id: result.lastID });
@@ -36,7 +37,7 @@ const createObrasRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
-    const { nombre, avance, presupuesto } = req.body;
+    const { nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones } = req.body;
     if (!nombre || avance === undefined || !presupuesto) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
     }
@@ -46,8 +47,9 @@ const createObrasRoutes = (db, logAudit) => {
     try {
       const anterior = await db.get('SELECT * FROM obras WHERE id = ?', [req.params.id]);
       await db.run(
-        'UPDATE obras SET nombre = ?, avance = ?, presupuesto = ? WHERE id = ?',
-        [nombre, avance, presupuesto, req.params.id]
+        `UPDATE obras SET nombre = ?, avance = ?, presupuesto = ?, tipo = ?, cliente = ?, descripcion = ?,
+         responsable_tecnico = ?, inicio_planeado = ?, fin_planeado = ?, observaciones = ? WHERE id = ?`,
+        [nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones, req.params.id]
       );
       await logAudit(req.user?.id, 'UPDATE', 'obras', req.params.id, anterior, req.body);
       res.json({ status: 'Obra actualizada con éxito' });

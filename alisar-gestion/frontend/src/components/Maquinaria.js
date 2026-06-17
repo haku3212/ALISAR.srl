@@ -1,193 +1,92 @@
-/**
- * Componente Maquinaria
- * Gestiona la interfaz de usuario para administrar maquinaria y equipos
- * Incluye funcionalidades CRUD con búsqueda, filtrado por tipo y estado,
- * y exportación a PDF/Excel con formulario detallado
- */
-
 import React, { useState, useMemo } from 'react';
 import { Drill, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
-import { validatePositive, validateDate } from '../utils/validators';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
-import FormMaquinariaDetallado from './forms/FormMaquinariaDetallado';
 import SearchBar from './common/SearchBar';
 import { generateMaquinariaReport, generateExcelReport } from '../utils/reportGenerator';
 
-/**
- * Componente Principal de Gestión de Maquinaria
- */
-const Maquinaria = () => {
-  // Hook CRUD para gestionar maquinaria
-  const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
-    dataService.getMaquinaria,
-    dataService.createMaquinaria,
-    dataService.updateMaquinaria,
-    dataService.deleteMaquinaria
-  );
+const inp = {
+  width: '100%', padding: '10px 12px', borderRadius: '8px',
+  border: '1px solid #252a25', background: '#131613', color: '#e0e0e0',
+  fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit'
+};
+const lbl = {
+  display: 'block', fontSize: '11px', fontWeight: '600', color: '#888',
+  textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px'
+};
+const errTxt = { color: '#f87171', fontSize: '11px', margin: '4px 0 0 0' };
+const EMPTY = {
+  nombre: '', tipo: '', modelo: '', anio: '', numero_serie: '',
+  estado: 'Operativo', ultimaRevision: '', horas_operacion: '', operador_asignado: ''
+};
 
-  // Estados para controlar el modal, búsqueda y formulario
+const estadoBadge = {
+  'Operativo': { bg: '#1a2a1a', color: '#FFD700' },
+  'Mantenimiento': { bg: '#2a1f1a', color: '#f97316' },
+  'Inactivo': { bg: '#2a1a1a', color: '#f87171' },
+  'Baja': { bg: '#252525', color: '#888' }
+};
+
+const Maquinaria = () => {
+  const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
+    dataService.getMaquinaria, dataService.createMaquinaria, dataService.updateMaquinaria, dataService.deleteMaquinaria
+  );
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({});
-
-  // Estado del formulario con todos los campos expandidos
-  const [formData, setFormData] = useState({
-    // Sección: Información Básica
-    nombre: '',
-    tipo: '',
-    modelo: '',
-    anio: '',
-    numero_serie: '',
-    placa: '',
-
-    // Sección: Especificaciones Técnicas
-    potencia: '',
-    capacidad_carga: '',
-    consumo_combustible: '',
-    tipo_combustible: '',
-    ancho_trabajo: '',
-    profundidad_maxima: '',
-
-    // Sección: Operación y Mantenimiento
-    estado: 'Operativo',
-    horas_operacion: '',
-    mantenimiento_proximo: '',
-    ultima_revision: '',
-    operador_asignado: '',
-    costo_mantenimiento_anual: '',
-
-    // Sección: Documentación
-    numero_garantia: '',
-    fecha_vencimiento_garantia: '',
-    documento_adquisicion: '',
-    notas: ''
-  });
-
+  const [formData, setFormData] = useState(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
-  // Obtener tipos y estados únicos para filtros
-  const uniqueTypes = useMemo(() => {
-    return [...new Set(data.map(m => m.tipo).filter(Boolean))];
-  }, [data]);
+  const set = (field) => (e) => setFormData(prev => ({ ...prev, [field]: e.target.value }));
 
-  const uniqueStates = useMemo(() => {
-    return [...new Set(data.map(m => m.estado).filter(Boolean))];
-  }, [data]);
+  const uniqueTypes = useMemo(() => [...new Set(data.map(m => m.tipo).filter(Boolean))], [data]);
+  const uniqueStates = useMemo(() => [...new Set(data.map(m => m.estado).filter(Boolean))], [data]);
 
-  // Configuración de filtros avanzados
   const filterConfigs = useMemo(() => [
-    {
-      id: 'tipo',
-      label: 'Tipo',
-      type: 'select',
-      options: uniqueTypes.map(tipo => ({ label: tipo, value: tipo }))
-    },
-    {
-      id: 'estado',
-      label: 'Estado',
-      type: 'select',
-      options: uniqueStates.map(estado => ({ label: estado, value: estado }))
-    }
+    { id: 'tipo', label: 'Tipo', type: 'select', options: uniqueTypes.map(t => ({ label: t, value: t })) },
+    { id: 'estado', label: 'Estado', type: 'select', options: uniqueStates.map(s => ({ label: s, value: s })) }
   ], [uniqueTypes, uniqueStates]);
 
   const filtered = useMemo(() => {
-    let result = data.filter(m =>
-      m.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      m.tipo.toLowerCase().includes(search.toLowerCase()) ||
-      m.estado.toLowerCase().includes(search.toLowerCase())
+    let r = data.filter(m =>
+      m.nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      m.tipo?.toLowerCase().includes(search.toLowerCase()) ||
+      m.modelo?.toLowerCase().includes(search.toLowerCase()) ||
+      m.operador_asignado?.toLowerCase().includes(search.toLowerCase())
     );
-
-    // Aplicar filtros
-    if (filters.tipo) {
-      result = result.filter(m => m.tipo === filters.tipo);
-    }
-    if (filters.estado) {
-      result = result.filter(m => m.estado === filters.estado);
-    }
-
-    return result;
+    if (filters.tipo) r = r.filter(m => m.tipo === filters.tipo);
+    if (filters.estado) r = r.filter(m => m.estado === filters.estado);
+    return r;
   }, [data, search, filters]);
 
-  /**
-   * Valida los campos requeridos del formulario
-   */
   const validate = () => {
-    const errors = {};
-    if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
-    if (!formData.tipo.trim()) errors.tipo = 'Tipo requerido';
-    if (formData.horas_operacion && !validatePositive(formData.horas_operacion)) {
-      errors.horas_operacion = 'Las horas deben ser un número positivo';
-    }
-    if (formData.ultimo_mantenimiento && !validateDate(formData.ultimo_mantenimiento)) {
-      errors.ultimo_mantenimiento = 'Fecha de mantenimiento no válida o futura';
-    }
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    const e = {};
+    if (!formData.nombre?.trim()) e.nombre = 'Campo requerido';
+    if (!formData.tipo?.trim()) e.tipo = 'Campo requerido';
+    setFormErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  /**
-   * Resetea el formulario a su estado inicial
-   */
-  const resetFormData = () => {
-    setFormData({
-      nombre: '', tipo: '', modelo: '', anio: '', numero_serie: '', placa: '',
-      potencia: '', capacidad_carga: '', consumo_combustible: '', tipo_combustible: '',
-      ancho_trabajo: '', profundidad_maxima: '',
-      estado: 'Operativo', horas_operacion: '', mantenimiento_proximo: '', ultima_revision: '',
-      operador_asignado: '', costo_mantenimiento_anual: '',
-      numero_garantia: '', fecha_vencimiento_garantia: '', documento_adquisicion: '', notas: ''
-    });
-  };
-
-  /**
-   * Maneja el envío del formulario
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-
     try {
       setSubmitting(true);
-      if (editingId) {
-        await update(editingId, formData);
-      } else {
-        await create(formData);
-      }
-      resetFormData();
+      editingId ? await update(editingId, formData) : await create(formData);
+      setFormData(EMPTY);
       setShowModal(false);
     } finally {
       setSubmitting(false);
     }
   };
 
-  /**
-   * Prepara el formulario para editar una máquina existente
-   */
-  const handleEdit = (maquina) => {
-    setFormData(maquina);
-    setEditingId(maquina.id);
-    setShowModal(true);
-  };
-
-  /**
-   * Abre el modal para crear una nueva máquina
-   */
-  const handleNew = () => {
-    resetFormData();
-    setEditingId(null);
-    setFormErrors({});
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingId(null);
-  };
+  const handleEdit = (m) => { setFormData({ ...EMPTY, ...m }); setEditingId(m.id); setShowModal(true); };
+  const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
+  const handleClose = () => { setShowModal(false); setEditingId(null); };
 
   if (loading) return <LoadingSpinner />;
 
@@ -195,155 +94,124 @@ const Maquinaria = () => {
     <div style={{ padding: '32px', color: '#e0e0e0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ margin: 0, color: '#fff' }}>Gestión de Maquinaria</h1>
-          <p style={{ color: '#666', fontSize: '14px', margin: '8px 0 0 0' }}>Control de activos de la planta</p>
+          <h1 style={{ color: '#fff', margin: 0, fontSize: '22px', fontWeight: '700' }}>Gestión de Maquinaria</h1>
+          <p style={{ color: '#666', fontSize: '13px', margin: '6px 0 0 0' }}>Control de equipos y activos</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generateMaquinariaReport(data)} title="Generar reporte en PDF" style={{
-            background: '#f87171',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 16px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}>
-            <FileText size={16} /> PDF
+          <button onClick={() => generateMaquinariaReport(data)} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+            <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
-            { label: 'Nombre', key: 'nombre' },
-            { label: 'Tipo', key: 'tipo' },
-            { label: 'Estado', key: 'estado' },
+            { label: 'Nombre', key: 'nombre' }, { label: 'Tipo', key: 'tipo' },
+            { label: 'Modelo', key: 'modelo' }, { label: 'Estado', key: 'estado' },
             { label: 'Última Revisión', key: 'ultimaRevision' }
-          ], 'Maquinaria')} title="Exportar a Excel" style={{
-            background: '#60a5fa',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 16px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}>
-            <Download size={16} /> Excel
+          ], 'Maquinaria')} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+            <Download size={15} /> Excel
           </button>
-          <button onClick={handleNew} style={{
-            background: '#FFD700',
-            color: '#000',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer'
-          }}>
-            <Plus size={18} /> Nuevo Equipo
+          <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
+            <Plus size={16} /> Nuevo Equipo
           </button>
         </div>
       </div>
 
       {error && <ErrorMessage message={error} onDismiss={() => {}} />}
-
-      <SearchBar
-        placeholder="Buscar por nombre, tipo o estado..."
-        onSearch={setSearch}
-        onFilterChange={setFilters}
-        filters={filterConfigs}
-      />
+      <SearchBar placeholder="Buscar por nombre, tipo, modelo u operador..." onSearch={setSearch} onFilterChange={setFilters} filters={filterConfigs} />
 
       {filtered.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '48px 32px',
-          background: '#111411',
-          borderRadius: '12px',
-          border: '1px solid #1f241f',
-          color: '#666'
-        }}>
-          <p>{search ? 'No hay resultados' : 'No hay maquinaria registrada'}</p>
+        <div style={{ textAlign: 'center', padding: '48px', background: '#111411', borderRadius: '12px', border: '1px solid #1f241f', color: '#555' }}>
+          {search ? 'Sin resultados para la búsqueda' : 'No hay maquinaria registrada'}
         </div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#111411', borderRadius: '12px', overflow: 'hidden' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '16px', borderBottom: '1px solid #1f241f', color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Equipo</th>
-              <th style={{ textAlign: 'left', padding: '16px', borderBottom: '1px solid #1f241f', color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Tipo</th>
-              <th style={{ textAlign: 'left', padding: '16px', borderBottom: '1px solid #1f241f', color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Estado</th>
-              <th style={{ textAlign: 'left', padding: '16px', borderBottom: '1px solid #1f241f', color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((m) => (
-              <tr key={m.id}>
-                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Drill size={16} color="#FFD700" /> {m.nombre}
-                  </div>
-                </td>
-                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f' }}>{m.tipo}</td>
-                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f' }}>
-                  <span style={{
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    background: m.estado === 'Operativo' ? '#1a221a' : '#221a1a',
-                    color: m.estado === 'Operativo' ? '#FFD700' : '#f87171',
-                    fontWeight: '600'
-                  }}>
-                    {m.estado}
-                  </span>
-                </td>
-                <td style={{ padding: '16px', borderBottom: '1px solid #1f241f', display: 'flex', gap: '12px' }}>
-                  <button onClick={() => handleEdit(m)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
-                    <Edit2 size={18} />
-                  </button>
-                  <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
-                    <Trash2 size={18} />
-                  </button>
-                </td>
+        <div style={{ background: '#111411', borderRadius: '12px', border: '1px solid #1f241f', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#0d0f0d' }}>
+                {['Equipo', 'Tipo', 'Modelo / Año', 'Operador', 'Estado', 'Ult. Revisión', ''].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#555', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #1f241f' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map(m => {
+                const badge = estadoBadge[m.estado] || { bg: '#252525', color: '#888' };
+                return (
+                  <tr key={m.id} style={{ borderBottom: '1px solid #1a1d1a' }}>
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Drill size={15} color="#FFD700" />
+                        <span style={{ color: '#e0e0e0', fontWeight: '500' }}>{m.nombre}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '14px 16px', color: '#aaa', fontSize: '13px' }}>{m.tipo}</td>
+                    <td style={{ padding: '14px 16px', color: '#aaa', fontSize: '13px' }}>{[m.modelo, m.anio].filter(Boolean).join(' · ') || '—'}</td>
+                    <td style={{ padding: '14px 16px', color: '#aaa', fontSize: '13px' }}>{m.operador_asignado || '—'}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ background: badge.bg, color: badge.color, padding: '4px 10px', borderRadius: '5px', fontSize: '12px', fontWeight: '600' }}>{m.estado || '—'}</span>
+                    </td>
+                    <td style={{ padding: '14px 16px', color: '#aaa', fontSize: '13px' }}>{m.ultimaRevision || '—'}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleEdit(m)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer', padding: '2px' }}><Edit2 size={16} /></button>
+                        <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', padding: '2px' }}><Trash2 size={16} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Maquinaria' : 'Nuevo Equipo'}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Usar el formulario detallado con todas las secciones expandibles */}
-          <FormMaquinariaDetallado
-            formData={formData}
-            onChange={(updatedData) => setFormData(updatedData)}
-            errors={formErrors}
-            submitting={submitting}
-          />
-
-          {/* Botón de envío */}
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              background: '#FFD700',
-              color: '#000',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              opacity: submitting ? 0.6 : 1,
-              marginTop: '16px',
-              fontSize: '14px'
-            }}
-          >
-            {submitting ? 'Guardando...' : editingId ? 'Actualizar Maquinaria' : 'Crear Maquinaria'}
+      <Modal isOpen={showModal} onClose={handleClose} title={editingId ? 'Editar Maquinaria' : 'Nuevo Equipo'}>
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
+            <div>
+              <label style={lbl}>Nombre <span style={{ color: '#FFD700' }}>*</span></label>
+              <input style={{ ...inp, border: `1px solid ${formErrors.nombre ? '#f87171' : '#252a25'}` }} value={formData.nombre} onChange={set('nombre')} placeholder="Ej: Motoniveladora CAT 140H" disabled={submitting} />
+              {formErrors.nombre && <p style={errTxt}>{formErrors.nombre}</p>}
+            </div>
+            <div>
+              <label style={lbl}>Tipo <span style={{ color: '#FFD700' }}>*</span></label>
+              <input style={{ ...inp, border: `1px solid ${formErrors.tipo ? '#f87171' : '#252a25'}` }} value={formData.tipo} onChange={set('tipo')} placeholder="Ej: Motoniveladora" disabled={submitting} />
+              {formErrors.tipo && <p style={errTxt}>{formErrors.tipo}</p>}
+            </div>
+            <div>
+              <label style={lbl}>Modelo</label>
+              <input style={inp} value={formData.modelo} onChange={set('modelo')} placeholder="Ej: CAT 140H" disabled={submitting} />
+            </div>
+            <div>
+              <label style={lbl}>Año</label>
+              <input style={inp} type="number" min="1980" max="2030" value={formData.anio} onChange={set('anio')} placeholder="Ej: 2018" disabled={submitting} />
+            </div>
+            <div>
+              <label style={lbl}>Número de Serie</label>
+              <input style={inp} value={formData.numero_serie} onChange={set('numero_serie')} placeholder="Ej: CAT140H-2018-001" disabled={submitting} />
+            </div>
+            <div>
+              <label style={lbl}>Estado</label>
+              <select style={{ ...inp, cursor: 'pointer' }} value={formData.estado} onChange={set('estado')} disabled={submitting}>
+                <option value="Operativo">Operativo</option>
+                <option value="Mantenimiento">Mantenimiento</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Última Revisión</label>
+              <input style={inp} type="date" value={formData.ultimaRevision} onChange={set('ultimaRevision')} disabled={submitting} />
+            </div>
+            <div>
+              <label style={lbl}>Horas de Operación</label>
+              <input style={inp} type="number" min="0" value={formData.horas_operacion} onChange={set('horas_operacion')} placeholder="Ej: 2500" disabled={submitting} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={lbl}>Operador Asignado</label>
+              <input style={inp} value={formData.operador_asignado} onChange={set('operador_asignado')} placeholder="Ej: Carlos Mendoza" disabled={submitting} />
+            </div>
+          </div>
+          <button type="submit" disabled={submitting} style={{ width: '100%', background: '#FFD700', color: '#000', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1, fontSize: '14px' }}>
+            {submitting ? 'Guardando...' : editingId ? 'Actualizar Maquinaria' : 'Registrar Equipo'}
           </button>
         </form>
       </Modal>

@@ -47,27 +47,46 @@ const { createLogAudit }    = require('./utils/audit');
       nombre TEXT NOT NULL,
       cargo TEXT,
       celular TEXT,
-      estado TEXT DEFAULT 'Activo'
+      estado TEXT DEFAULT 'Activo',
+      email TEXT,
+      departamento TEXT,
+      fecha_ingreso TEXT,
+      tipo_contrato TEXT
     );
     CREATE TABLE IF NOT EXISTS maquinaria (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nombre TEXT NOT NULL,
       tipo TEXT,
       estado TEXT,
-      ultimaRevision TEXT
+      ultimaRevision TEXT,
+      modelo TEXT,
+      anio TEXT,
+      numero_serie TEXT,
+      horas_operacion TEXT,
+      operador_asignado TEXT
     );
     CREATE TABLE IF NOT EXISTS obras (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nombre TEXT NOT NULL,
       avance INTEGER DEFAULT 0,
-      presupuesto TEXT
+      presupuesto TEXT,
+      tipo TEXT,
+      cliente TEXT,
+      descripcion TEXT,
+      responsable_tecnico TEXT,
+      inicio_planeado TEXT,
+      fin_planeado TEXT,
+      observaciones TEXT
     );
     CREATE TABLE IF NOT EXISTS madera (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       especie TEXT NOT NULL,
       piezas INTEGER,
       volumen TEXT,
-      campamento TEXT
+      campamento TEXT,
+      procedencia TEXT,
+      destino TEXT,
+      tipo_corte TEXT
     );
     CREATE TABLE IF NOT EXISTS rodeos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -156,6 +175,25 @@ const { createLogAudit }    = require('./utils/audit');
   await addCol('documentos', 'referencia_archivo', 'TEXT');
   await addCol('documentos', 'url_documento', 'TEXT');
   await addCol('documentos', 'observaciones', 'TEXT');
+  await addCol('obras', 'tipo', 'TEXT');
+  await addCol('obras', 'cliente', 'TEXT');
+  await addCol('obras', 'descripcion', 'TEXT');
+  await addCol('obras', 'responsable_tecnico', 'TEXT');
+  await addCol('obras', 'inicio_planeado', 'TEXT');
+  await addCol('obras', 'fin_planeado', 'TEXT');
+  await addCol('obras', 'observaciones', 'TEXT');
+  await addCol('personal', 'email', 'TEXT');
+  await addCol('personal', 'departamento', 'TEXT');
+  await addCol('personal', 'fecha_ingreso', 'TEXT');
+  await addCol('personal', 'tipo_contrato', 'TEXT');
+  await addCol('maquinaria', 'modelo', 'TEXT');
+  await addCol('maquinaria', 'anio', 'TEXT');
+  await addCol('maquinaria', 'numero_serie', 'TEXT');
+  await addCol('maquinaria', 'horas_operacion', 'TEXT');
+  await addCol('maquinaria', 'operador_asignado', 'TEXT');
+  await addCol('madera', 'procedencia', 'TEXT');
+  await addCol('madera', 'destino', 'TEXT');
+  await addCol('madera', 'tipo_corte', 'TEXT');
 
   // Datos semilla — solo si las tablas están vacías
   const seeds = {

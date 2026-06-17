@@ -15,14 +15,15 @@ const createMaquinariaRoutes = (db, logAudit) => {
   });
 
   router.post('/', verifyToken, async (req, res) => {
-    const { nombre, tipo, estado, ultimaRevision } = req.body;
+    const { nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado } = req.body;
     if (!nombre || !tipo) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
     }
     try {
       const result = await db.run(
-        'INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES (?, ?, ?, ?)',
-        [nombre, tipo, estado, ultimaRevision]
+        `INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado]
       );
       await logAudit(req.user?.id, 'CREATE', 'maquinaria', result.lastID, null, req.body);
       res.status(201).json({ status: 'Maquinaria registrada con éxito', id: result.lastID });
@@ -33,15 +34,16 @@ const createMaquinariaRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
-    const { nombre, tipo, estado, ultimaRevision } = req.body;
+    const { nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado } = req.body;
     if (!nombre || !tipo) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
     }
     try {
       const anterior = await db.get('SELECT * FROM maquinaria WHERE id = ?', [req.params.id]);
       await db.run(
-        'UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ? WHERE id = ?',
-        [nombre, tipo, estado, ultimaRevision, req.params.id]
+        `UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ?,
+         modelo = ?, anio = ?, numero_serie = ?, horas_operacion = ?, operador_asignado = ? WHERE id = ?`,
+        [nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado, req.params.id]
       );
       await logAudit(req.user?.id, 'UPDATE', 'maquinaria', req.params.id, anterior, req.body);
       res.json({ status: 'Maquinaria actualizada con éxito' });
