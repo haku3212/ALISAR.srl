@@ -76,6 +76,10 @@ const createDocumentosRoutes = (db, logAudit) => {
       });
     }
 
+    if (new Date(fecha_vencimiento) <= new Date(fecha_emision)) {
+      return res.status(400).json({ msg: 'La fecha de vencimiento debe ser posterior a la fecha de emisión' });
+    }
+
     try {
       const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
       const vencimiento = new Date(fecha_vencimiento + 'T00:00:00');
@@ -85,6 +89,7 @@ const createDocumentosRoutes = (db, logAudit) => {
       else if (diasRestantes <= 30) estado = 'Por vencer';
 
       const anterior = await db.get('SELECT * FROM documentos WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE documentos SET
           tipo_documento = ?, numero_documento = ?, entidad_emisora = ?,

@@ -203,7 +203,7 @@ const Settings = () => {
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setPasswordErrors({});
     } catch (err) {
-      const msg = err.response?.data?.error || 'Error al cambiar contraseña';
+      const msg = err.response?.data?.msg || err.response?.data?.error || 'Error al cambiar contraseña';
       showError(msg);
     } finally {
       setChangingPassword(false);

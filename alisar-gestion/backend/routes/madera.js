@@ -40,6 +40,7 @@ const createMaderaRoutes = (db, logAudit) => {
     }
     try {
       const anterior = await db.get('SELECT * FROM madera WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ?,
          procedencia = ?, destino = ?, tipo_corte = ? WHERE id = ?`,

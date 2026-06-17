@@ -71,6 +71,7 @@ const createRodeosRoutes = (db, logAudit) => {
       const coordsOrigen = ubicacion_origen_coords ? JSON.stringify(ubicacion_origen_coords) : null;
       const coordsDestino = ubicacion_destino_coords ? JSON.stringify(ubicacion_destino_coords) : null;
       const anterior = await db.get('SELECT * FROM rodeos WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE rodeos SET
           fecha_rodeo = ?, volumen_total = ?, responsable_rodeo = ?,
@@ -85,7 +86,7 @@ const createRodeosRoutes = (db, logAudit) => {
         [fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
           especie_principal, otras_especies, contrato_asociado,
           ubicacion_origen, coordsOrigen, ubicacion_destino, coordsDestino,
-          fecha_transporte, estado_operacion, lat, lng, descripcion,
+          fecha_transporte, estado_operacion || 'Activo', lat, lng, descripcion,
           poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones,
           req.params.id]
       );

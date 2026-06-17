@@ -40,6 +40,7 @@ const createMaquinariaRoutes = (db, logAudit) => {
     }
     try {
       const anterior = await db.get('SELECT * FROM maquinaria WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ?,
          modelo = ?, anio = ?, numero_serie = ?, horas_operacion = ?, operador_asignado = ? WHERE id = ?`,

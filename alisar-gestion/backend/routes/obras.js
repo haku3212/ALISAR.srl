@@ -46,6 +46,7 @@ const createObrasRoutes = (db, logAudit) => {
     }
     try {
       const anterior = await db.get('SELECT * FROM obras WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE obras SET nombre = ?, avance = ?, presupuesto = ?, tipo = ?, cliente = ?, descripcion = ?,
          responsable_tecnico = ?, inicio_planeado = ?, fin_planeado = ?, observaciones = ? WHERE id = ?`,

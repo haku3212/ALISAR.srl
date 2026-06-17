@@ -40,6 +40,7 @@ const createPersonalRoutes = (db, logAudit) => {
     }
     try {
       const anterior = await db.get('SELECT * FROM personal WHERE id = ?', [req.params.id]);
+      if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE personal SET nombre = ?, cargo = ?, celular = ?, estado = ?, email = ?,
          departamento = ?, fecha_ingreso = ?, tipo_contrato = ? WHERE id = ?`,

@@ -3,10 +3,10 @@ const { verifyToken } = require('../middleware/auth');
 
 // Columnas permitidas por tabla — protección contra inyección en nombres de columna
 const ALLOWED_COLUMNS = {
-  personal:   ['nombre', 'cargo', 'celular', 'estado'],
-  maquinaria: ['nombre', 'tipo', 'estado', 'ultimaRevision'],
-  obras:      ['nombre', 'avance', 'presupuesto'],
-  madera:     ['especie', 'piezas', 'volumen', 'campamento'],
+  personal:   ['nombre', 'cargo', 'celular', 'estado', 'email', 'departamento', 'fecha_ingreso', 'tipo_contrato'],
+  maquinaria: ['nombre', 'tipo', 'estado', 'ultimaRevision', 'modelo', 'anio', 'numero_serie', 'horas_operacion', 'operador_asignado'],
+  obras:      ['nombre', 'avance', 'presupuesto', 'tipo', 'cliente', 'descripcion', 'responsable_tecnico', 'inicio_planeado', 'fin_planeado', 'observaciones'],
+  madera:     ['especie', 'piezas', 'volumen', 'campamento', 'procedencia', 'destino', 'tipo_corte'],
   rodeos:     ['fecha_rodeo', 'volumen_total', 'responsable_rodeo', 'procedencia',
                'destino_final', 'especie_principal', 'otras_especies', 'contrato_asociado',
                'ubicacion_origen', 'ubicacion_origen_coords', 'ubicacion_destino', 'ubicacion_destino_coords',

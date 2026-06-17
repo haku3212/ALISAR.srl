@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { useToast } from '../context/ToastContext';
 
 // Colores ALISAR
 export const COLORS = {
@@ -110,8 +109,8 @@ export const generateObrasReport = (obras) => {
       yPos = 20;
     }
 
-    pdf.text(obra.nombre, colX[0], yPos);
-    pdf.text(obra.presupuesto, colX[1], yPos);
+    pdf.text(String(obra.nombre ?? ''), colX[0], yPos);
+    pdf.text(String(obra.presupuesto ?? ''), colX[1], yPos);
     pdf.text(`${obra.avance}%`, colX[2], yPos);
 
     // Color de estado según avance
@@ -437,7 +436,7 @@ export const generateMaderaReport = (madera) => {
 
     pdf.text(item.especie || '', colX[0], yPos);
     pdf.text((item.piezas || 0).toString(), colX[1], yPos);
-    pdf.text(item.volumen || '', colX[2], yPos);
+    pdf.text(String(item.volumen ?? ''), colX[2], yPos);
     pdf.text(item.campamento || '', colX[3], yPos);
 
     totalPiezas += item.piezas || 0;

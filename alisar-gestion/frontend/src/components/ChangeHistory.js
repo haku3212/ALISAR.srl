@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { History, ExternalLink, Clock } from 'lucide-react';
+import { History, Clock } from 'lucide-react';
 import { dataService } from '../services/api';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
@@ -29,16 +29,19 @@ const ChangeHistory = () => {
   };
 
   const getActionColor = (accion) => {
-    switch (accion.toLowerCase()) {
-      case 'crear':
-        return '#FFD700'; // Verde
-      case 'actualizar':
-        return '#60a5fa'; // Azul
-      case 'eliminar':
-        return '#f87171'; // Rojo
-      default:
-        return '#f97316'; // Naranja
+    if (!accion) return '#f97316';
+    switch (accion.toUpperCase()) {
+      case 'CREATE': return '#FFD700';
+      case 'UPDATE': return '#60a5fa';
+      case 'DELETE': return '#f87171';
+      default: return '#f97316';
     }
+  };
+
+  const safeJson = (val) => {
+    if (!val) return {};
+    if (typeof val === 'object') return val;
+    try { return JSON.parse(val); } catch { return {}; }
   };
 
   const getActionLabel = (accion) => {
@@ -54,10 +57,10 @@ const ChangeHistory = () => {
   };
 
   const filtered = filtroTabla
-    ? logs.filter(log => log.tabla.toLowerCase().includes(filtroTabla.toLowerCase()))
+    ? logs.filter(log => log.tabla?.toLowerCase().includes(filtroTabla.toLowerCase()))
     : logs;
 
-  const tablas = [...new Set(logs.map(log => log.tabla))];
+  const tablas = [...new Set(logs.map(log => log.tabla).filter(Boolean))];
 
   if (loading) return <LoadingSpinner />;
 
@@ -207,7 +210,7 @@ const ChangeHistory = () => {
                       overflow: 'auto',
                       margin: 0
                     }}>
-                      {JSON.stringify(JSON.parse(log.valores_anteriores || '{}'), null, 2)}
+                      {JSON.stringify(safeJson(log.valores_anteriores), null, 2)}
                     </pre>
                   </div>
                 )}
@@ -224,7 +227,7 @@ const ChangeHistory = () => {
                       overflow: 'auto',
                       margin: 0
                     }}>
-                      {JSON.stringify(JSON.parse(log.valores_nuevos || '{}'), null, 2)}
+                      {JSON.stringify(safeJson(log.valores_nuevos), null, 2)}
                     </pre>
                   </div>
                 )}
