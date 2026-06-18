@@ -75,7 +75,7 @@ const ChangeHistory = () => {
     <div style={{ padding: '32px', color: '#e0e0e0' }}>
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ color: '#fff', margin: '0 0 8px 0' }}>Historial de Cambios</h1>
-        <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Auditoría de todas las operaciones del sistema</p>
+        <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Auditoría de todas las operaciones del sistema</p>
       </div>
 
       {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
@@ -87,8 +87,8 @@ const ChangeHistory = () => {
           style={{
             padding: '8px 16px',
             borderRadius: '6px',
-            border: !filtroTabla ? '2px solid #FFD700' : '1px solid #1f241f',
-            background: !filtroTabla ? '#1a221a' : '#111411',
+            border: !filtroTabla ? '2px solid #FFD700' : '1px solid #374151',
+            background: !filtroTabla ? '#1e293b' : '#1f2937',
             color: !filtroTabla ? '#FFD700' : '#999',
             cursor: 'pointer',
             fontSize: '13px',
@@ -105,8 +105,8 @@ const ChangeHistory = () => {
             style={{
               padding: '8px 16px',
               borderRadius: '6px',
-              border: filtroTabla === tabla ? '2px solid #60a5fa' : '1px solid #1f241f',
-              background: filtroTabla === tabla ? '#1a1f22' : '#111411',
+              border: filtroTabla === tabla ? '2px solid #60a5fa' : '1px solid #374151',
+              background: filtroTabla === tabla ? '#1a1f22' : '#1f2937',
               color: filtroTabla === tabla ? '#60a5fa' : '#999',
               cursor: 'pointer',
               fontSize: '13px',
@@ -125,10 +125,10 @@ const ChangeHistory = () => {
           <div style={{
             textAlign: 'center',
             padding: '48px 32px',
-            background: '#111411',
+            background: '#1f2937',
             borderRadius: '12px',
-            border: '1px solid #1f241f',
-            color: '#666'
+            border: '1px solid #374151',
+            color: '#6b7280'
           }}>
             <History size={32} style={{ marginBottom: '16px', opacity: 0.5 }} />
             <p>No hay cambios registrados</p>
@@ -149,7 +149,7 @@ const ChangeHistory = () => {
                   top: '40px',
                   width: '2px',
                   height: '20px',
-                  background: '#1f241f'
+                  background: '#374151'
                 }} />
               )}
 
@@ -159,21 +159,21 @@ const ChangeHistory = () => {
                 height: '28px',
                 borderRadius: '50%',
                 background: getActionColor(log.accion),
-                border: '3px solid #0a0c0a',
+                border: '3px solid #111827',
                 flexShrink: 0,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginTop: '6px'
               }}>
-                <Clock size={14} color="#0a0c0a" />
+                <Clock size={14} color="#111827" />
               </div>
 
               {/* Contenido */}
               <div style={{
                 flex: 1,
-                background: '#111411',
-                border: '1px solid #1f241f',
+                background: '#1f2937',
+                border: '1px solid #374151',
                 borderRadius: '8px',
                 padding: '16px',
               }}>
@@ -195,7 +195,7 @@ const ChangeHistory = () => {
                       {log.tabla} #{log.registro_id}
                     </h4>
                   </div>
-                  <span style={{ color: '#666', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: '#6b7280', fontSize: '12px', whiteSpace: 'nowrap' }}>
                     {formatDate(log.timestamp)}
                   </span>
                 </div>
@@ -207,9 +207,9 @@ const ChangeHistory = () => {
                 {/* Cambios */}
                 {log.valores_anteriores && (
                   <div style={{ marginBottom: '8px' }}>
-                    <p style={{ color: '#666', fontSize: '11px', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Valores anteriores:</p>
+                    <p style={{ color: '#6b7280', fontSize: '11px', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Valores anteriores:</p>
                     <pre style={{
-                      background: '#0d0f0d',
+                      background: '#111827',
                       padding: '8px',
                       borderRadius: '4px',
                       color: '#f87171',
@@ -224,9 +224,9 @@ const ChangeHistory = () => {
 
                 {log.valores_nuevos && (
                   <div>
-                    <p style={{ color: '#666', fontSize: '11px', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Valores nuevos:</p>
+                    <p style={{ color: '#6b7280', fontSize: '11px', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Valores nuevos:</p>
                     <pre style={{
-                      background: '#0d0f0d',
+                      background: '#111827',
                       padding: '8px',
                       borderRadius: '4px',
                       color: '#FFD700',

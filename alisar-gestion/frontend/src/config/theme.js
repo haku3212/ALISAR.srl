@@ -17,13 +17,13 @@ export const theme = {
 
     // Colores Secundarios
     secondary: '#000000',      // Negro corporativo
-    secondaryLight: '#1a1a1a', // Negro suave
-    secondaryDark: '#0d0d0d',  // Negro oscuro
+    secondaryLight: '#1f2937', // Negro suave
+    secondaryDark: '#111827',  // Negro oscuro
 
     // Colores de Fondo
-    bg: '#0a0a0a',             // Fondo muy oscuro
+    bg: '#111827',             // Fondo muy oscuro
     bgElev: '#131313',         // Fondo elevado
-    bgCard: '#1a1a1a',         // Fondo de cards
+    bgCard: '#1f2937',         // Fondo de cards
     bgCardLight: '#252525',    // Fondo de cards más claro
 
     // Bordes y Separadores
@@ -42,11 +42,11 @@ export const theme = {
     warning: '#fbbf24',        // Amarillo adicional para warnings
     danger: '#f87171',         // Rojo (mantener)
     info: '#60a5fa',           // Azul (mantener)
-    disabled: '#666666',       // Deshabilitado
+    disabled: '#6b7280',       // Deshabilitado
 
     // Gradientes
     gradientPrimary: 'linear-gradient(135deg, #FFD700, #DAA500)',
-    gradientSecondary: 'linear-gradient(135deg, #1a1a1a, #0d0d0d)',
+    gradientSecondary: 'linear-gradient(135deg, #1f2937, #111827)',
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -123,7 +123,7 @@ export const theme = {
 
     // Estilo para input/textarea
     input: {
-      background: '#1a1a1a',
+      background: '#1f2937',
       border: '1px solid #333333',
       color: '#ffffff',
       padding: '10px 12px',
@@ -136,7 +136,7 @@ export const theme = {
 
     // Estilo para card
     card: {
-      background: '#1a1a1a',
+      background: '#1f2937',
       border: '1px solid #333333',
       borderRadius: '14px',
       padding: '20px',
@@ -145,7 +145,7 @@ export const theme = {
 
     // Estilo para sección expandible
     section: {
-      background: '#1a1a1a',
+      background: '#1f2937',
       border: '1px solid #333333',
       borderRadius: '14px',
       overflow: 'hidden',

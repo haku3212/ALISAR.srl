@@ -89,17 +89,17 @@ const Madera = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ color: '#fff', margin: 0, fontSize: '22px', fontWeight: '700' }}>Inventario de Madera</h1>
-          <p style={{ color: '#666', fontSize: '13px', margin: '6px 0 0 0' }}>Control de volúmenes y especies por campamento</p>
+          <p style={{ color: '#6b7280', fontSize: '13px', margin: '6px 0 0 0' }}>Control de volúmenes y especies por campamento</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generateMaderaReport(data)} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => generateMaderaReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
             { label: 'Especie', key: 'especie' }, { label: 'Piezas', key: 'piezas' },
             { label: 'Volumen', key: 'volumen' }, { label: 'Campamento', key: 'campamento' },
             { label: 'Procedencia', key: 'procedencia' }, { label: 'Destino', key: 'destino' }
-          ], 'Madera')} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Madera')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -112,21 +112,21 @@ const Madera = () => {
       <SearchBar placeholder="Buscar por especie, campamento, procedencia o volumen..." onSearch={setSearch} onFilterChange={setFilters} filters={filterConfigs} />
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', background: '#111411', borderRadius: '12px', border: '1px solid #1f241f', color: '#555' }}>
+        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
           {search ? 'Sin resultados para la búsqueda' : 'No hay registros de madera'}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
           {filtered.map(m => (
-            <div key={m.id} style={{ background: '#111411', border: '1px solid #1f241f', borderRadius: '12px', padding: '18px' }}>
+            <div key={m.id} style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#1a221a', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ background: '#1e293b', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Trees size={17} color="#FFD700" />
                   </div>
                   <div>
                     <h3 style={{ margin: 0, color: '#e0e0e0', fontSize: '14px', fontWeight: '600', textTransform: 'capitalize' }}>{m.especie}</h3>
-                    {m.tipo_corte && <p style={{ margin: '2px 0 0 0', color: '#666', fontSize: '11px' }}>{m.tipo_corte}</p>}
+                    {m.tipo_corte && <p style={{ margin: '2px 0 0 0', color: '#6b7280', fontSize: '11px' }}>{m.tipo_corte}</p>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px' }}>

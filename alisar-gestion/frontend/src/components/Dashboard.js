@@ -219,14 +219,14 @@ const Dashboard = ({ content }) => {
     container: {
       display: 'flex',
       height: '100vh',
-      background: '#0a0c0a',
+      background: '#111827',
       color: '#e0e0e0',
       fontFamily: 'Inter, sans-serif'
     },
     sidebar: {
       width: sidebarOpen ? '260px' : '0',
-      background: '#111411',
-      borderRight: '1px solid #1f241f',
+      background: '#1f2937',
+      borderRight: '1px solid #374151',
       display: 'flex',
       flexDirection: 'column',
       padding: sidebarOpen ? '24px 16px' : '0',
@@ -239,18 +239,18 @@ const Dashboard = ({ content }) => {
       gap: '12px',
       padding: '12px 16px',
       borderRadius: '10px',
-      color: isActive(path) ? '#FFD700' : '#8a8a8a',
+      color: isActive(path) ? '#FFD700' : '#9ca3af',
       cursor: 'pointer',
       marginBottom: '4px',
       fontSize: '14px',
-      background: isActive(path) ? '#1a221a' : 'transparent',
+      background: isActive(path) ? '#1e293b' : 'transparent',
       transition: 'all 0.2s',
       fontWeight: isActive(path) ? '600' : '400'
     }),
     main: {
       flex: 1,
       overflowY: 'auto',
-      background: '#0d0f0d',
+      background: '#111827',
       padding: sidebarOpen ? '0' : '16px'
     },
     header: {
@@ -258,8 +258,8 @@ const Dashboard = ({ content }) => {
       alignItems: 'center',
       gap: '16px',
       padding: '16px 24px',
-      borderBottom: '1px solid #1f241f',
-      background: '#111411'
+      borderBottom: '1px solid #374151',
+      background: '#1f2937'
     },
     menuBtn: {
       background: 'transparent',
@@ -277,7 +277,7 @@ const Dashboard = ({ content }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '32px' }}>
         <div>
           <h1 style={{ color: '#fff', marginBottom: '8px' }}>Panel de Control ALISAR</h1>
-          <p style={{ color: '#666', marginBottom: '0' }}>Resumen operativo - Riberalta 2026</p>
+          <p style={{ color: '#6b7280', marginBottom: '0' }}>Resumen operativo - Riberalta 2026</p>
         </div>
         <button onClick={generateDashboardReport} style={{
           background: '#f97316',
@@ -305,17 +305,17 @@ const Dashboard = ({ content }) => {
           { label: 'Piezas Madera', value: stats.madera, icon: '📦', color: '#f97316' }
         ].map((stat, i) => (
           <div key={i} style={{
-            background: '#111411',
+            background: '#1f2937',
             padding: '24px',
             borderRadius: '12px',
-            border: '1px solid #1f241f',
+            border: '1px solid #374151',
             display: 'flex',
             alignItems: 'center',
             gap: '16px'
           }}>
             <div style={{ fontSize: '32px' }}>{stat.icon}</div>
             <div>
-              <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>{stat.label}</p>
+              <p style={{ color: '#6b7280', fontSize: '12px', margin: 0 }}>{stat.label}</p>
               <h3 style={{ color: stat.color, fontSize: '24px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{stat.value}</h3>
             </div>
           </div>
@@ -324,7 +324,7 @@ const Dashboard = ({ content }) => {
 
       {/* Alertas y Warnings */}
       {maintenanceNeeded.length > 0 && (
-        <div style={{ background: '#1a1a1a', border: '1px solid #f97316', borderRadius: '12px', padding: '16px', marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'start' }}>
+        <div style={{ background: '#1f2937', border: '1px solid #f97316', borderRadius: '12px', padding: '16px', marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'start' }}>
           <AlertCircle size={24} color="#f97316" style={{ flexShrink: 0, marginTop: '4px' }} />
           <div>
             <h3 style={{ color: '#f97316', margin: '0 0 8px 0', fontSize: '16px' }}>Equipos con Mantenimiento Próximo</h3>
@@ -332,7 +332,7 @@ const Dashboard = ({ content }) => {
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {maintenanceNeeded.map(m => (
                 <span key={m.id} style={{
-                  background: '#1f241f',
+                  background: '#374151',
                   color: '#f97316',
                   padding: '6px 12px',
                   borderRadius: '6px',
@@ -350,30 +350,30 @@ const Dashboard = ({ content }) => {
       {/* Gráficos principales */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {/* Avance vs Presupuesto por Obra */}
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
+        <div style={{ background: '#1f2937', padding: '24px', borderRadius: '12px', border: '1px solid #374151' }}>
           <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Avance vs Presupuesto por Obra (Bs)</h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f241f" />
-              <XAxis dataKey="name" stroke="#666" />
-              <YAxis stroke="#666" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
               <Tooltip
                 contentStyle={{
-                  background: '#1a1d1a',
-                  border: '1px solid #1f241f',
+                  background: '#1f2937',
+                  border: '1px solid #374151',
                   borderRadius: '8px',
                   color: '#e0e0e0'
                 }}
               />
               <Legend />
-              <Area type="monotone" dataKey="presupuesto" stroke="#60a5fa" fill="#1a221a" fillOpacity={0.3} />
-              <Area type="monotone" dataKey="avance" stroke="#FFD700" fill="#1a221a" fillOpacity={0.3} />
+              <Area type="monotone" dataKey="presupuesto" stroke="#60a5fa" fill="#1e293b" fillOpacity={0.3} />
+              <Area type="monotone" dataKey="avance" stroke="#FFD700" fill="#1e293b" fillOpacity={0.3} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
         {/* Estado de Maquinaria */}
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
+        <div style={{ background: '#1f2937', padding: '24px', borderRadius: '12px', border: '1px solid #374151' }}>
           <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Estado de Maquinaria</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -393,8 +393,8 @@ const Dashboard = ({ content }) => {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  background: '#1a1d1a',
-                  border: '1px solid #1f241f',
+                  background: '#1f2937',
+                  border: '1px solid #374151',
                   borderRadius: '8px',
                   color: '#e0e0e0'
                 }}
@@ -406,17 +406,17 @@ const Dashboard = ({ content }) => {
 
       {/* Personal por Cargo */}
       {personalByRole.length > 0 && (
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f', marginBottom: '32px' }}>
+        <div style={{ background: '#1f2937', padding: '24px', borderRadius: '12px', border: '1px solid #374151', marginBottom: '32px' }}>
           <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Distribución de Personal por Cargo</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={personalByRole}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f241f" />
-              <XAxis dataKey="name" stroke="#666" angle={-45} textAnchor="end" height={80} />
-              <YAxis stroke="#666" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" stroke="#6b7280" angle={-45} textAnchor="end" height={80} />
+              <YAxis stroke="#6b7280" />
               <Tooltip
                 contentStyle={{
-                  background: '#1a1d1a',
-                  border: '1px solid #1f241f',
+                  background: '#1f2937',
+                  border: '1px solid #374151',
                   borderRadius: '8px',
                   color: '#e0e0e0'
                 }}
@@ -429,25 +429,25 @@ const Dashboard = ({ content }) => {
 
       {/* Últimas Obras */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
+        <div style={{ background: '#1f2937', padding: '24px', borderRadius: '12px', border: '1px solid #374151' }}>
           <h3 style={{ margin: '0 0 16px 0', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <HardHat size={20} color="#FFD700" /> Últimas 5 Obras
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {lastObras.length === 0 ? (
-              <p style={{ color: '#666', margin: 0 }}>No hay obras registradas</p>
+              <p style={{ color: '#6b7280', margin: 0 }}>No hay obras registradas</p>
             ) : (
               lastObras.map(obra => (
                 <div key={obra.id} style={{
-                  background: '#1a1d1a',
+                  background: '#1f2937',
                   padding: '12px',
                   borderRadius: '8px',
-                  border: '1px solid #1f241f'
+                  border: '1px solid #374151'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
                     <h4 style={{ margin: 0, color: '#e0e0e0', fontSize: '14px' }}>{obra.nombre}</h4>
                     <span style={{
-                      background: obra.avance >= 75 ? '#1a221a' : obra.avance >= 50 ? '#1a1f22' : '#221a1a',
+                      background: obra.avance >= 75 ? '#1e293b' : obra.avance >= 50 ? '#1e3a5f' : '#2d1515',
                       color: obra.avance >= 75 ? '#FFD700' : obra.avance >= 50 ? '#60a5fa' : '#f87171',
                       padding: '2px 8px',
                       borderRadius: '4px',
@@ -457,7 +457,7 @@ const Dashboard = ({ content }) => {
                       {obra.avance}%
                     </span>
                   </div>
-                  <div style={{ background: '#0d0f0d', height: '4px', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ background: '#111827', height: '4px', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{
                       background: obra.avance >= 75 ? '#FFD700' : obra.avance >= 50 ? '#60a5fa' : '#f97316',
                       width: `${obra.avance}%`,
@@ -465,7 +465,7 @@ const Dashboard = ({ content }) => {
                       transition: 'width 0.3s'
                     }} />
                   </div>
-                  <p style={{ color: '#666', fontSize: '12px', margin: '8px 0 0 0' }}>{obra.presupuesto}</p>
+                  <p style={{ color: '#6b7280', fontSize: '12px', margin: '8px 0 0 0' }}>{obra.presupuesto}</p>
                 </div>
               ))
             )}
@@ -473,43 +473,43 @@ const Dashboard = ({ content }) => {
         </div>
 
         {/* Próximos Eventos */}
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
+        <div style={{ background: '#1f2937', padding: '24px', borderRadius: '12px', border: '1px solid #374151' }}>
           <h3 style={{ margin: '0 0 16px 0', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Clock size={20} color="#f97316" /> Próximos Eventos
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {docsPorVencer.length === 0 && maintenanceNeeded.length === 0 ? (
-              <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>No hay eventos próximos</p>
+              <p style={{ color: '#6b7280', margin: 0, fontSize: '14px' }}>No hay eventos próximos</p>
             ) : (
               <>
                 {docsPorVencer.map(doc => (
                   <div key={doc.id} style={{
-                    background: '#1a1d1a',
+                    background: '#1f2937',
                     padding: '12px',
                     borderRadius: '8px',
-                    border: '1px solid #1f241f',
+                    border: '1px solid #374151',
                     borderLeft: '4px solid #60a5fa'
                   }}>
                     <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>
                       Documento por vencer: {doc.nombre || doc.titulo || 'Sin nombre'}
                     </p>
-                    <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>
+                    <p style={{ color: '#6b7280', margin: 0, fontSize: '12px' }}>
                       Vence: {new Date(doc.fecha_vencimiento).toLocaleDateString('es-ES')}
                     </p>
                   </div>
                 ))}
                 {maintenanceNeeded.map(maq => (
                   <div key={maq.id} style={{
-                    background: '#1a1d1a',
+                    background: '#1f2937',
                     padding: '12px',
                     borderRadius: '8px',
-                    border: '1px solid #1f241f',
+                    border: '1px solid #374151',
                     borderLeft: '4px solid #f97316'
                   }}>
                     <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>
                       Revisión de maquinaria: {maq.nombre}
                     </p>
-                    <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Requiere mantenimiento</p>
+                    <p style={{ color: '#6b7280', margin: 0, fontSize: '12px' }}>Requiere mantenimiento</p>
                   </div>
                 ))}
               </>
@@ -552,7 +552,7 @@ const Dashboard = ({ content }) => {
           </div>
 
           {/* Separador */}
-          <div style={{ height: '1px', background: '#1f241f', margin: '16px 0' }} />
+          <div style={{ height: '1px', background: '#374151', margin: '16px 0' }} />
 
           <div style={styles.navItem('/historial')} onClick={() => navigate('/historial')}>
             <History size={18} /> Historial

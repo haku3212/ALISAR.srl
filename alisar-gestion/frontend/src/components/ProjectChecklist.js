@@ -225,7 +225,7 @@ const ProjectChecklist = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '28px' }}>
         <div>
           <h1 style={{ color: '#fff', margin: '0 0 6px 0' }}>Checklist Proyecto SW</h1>
-          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+          <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
             Seguimiento de actividades del ciclo de vida del proyecto
           </p>
         </div>
@@ -251,8 +251,8 @@ const ProjectChecklist = () => {
 
       {/* Progreso global */}
       <div style={{
-        background: '#111411',
-        border: '1px solid #1f241f',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '12px',
         padding: '20px 24px',
         marginBottom: '32px',
@@ -261,7 +261,7 @@ const ProjectChecklist = () => {
           <span style={{ fontWeight: '600', color: '#fff', fontSize: '15px' }}>Progreso Total</span>
           <span style={{ color: '#FFD700', fontWeight: '700', fontSize: '18px' }}>{pctAll}%</span>
         </div>
-        <div style={{ background: '#1f241f', borderRadius: '6px', height: '10px', overflow: 'hidden' }}>
+        <div style={{ background: '#374151', borderRadius: '6px', height: '10px', overflow: 'hidden' }}>
           <div style={{
             width: `${pctAll}%`,
             height: '100%',
@@ -270,7 +270,7 @@ const ProjectChecklist = () => {
             transition: 'width 0.4s ease',
           }} />
         </div>
-        <div style={{ color: '#666', fontSize: '13px', marginTop: '8px' }}>
+        <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '8px' }}>
           {doneAll} de {totalAll} actividades completadas
         </div>
       </div>
@@ -283,15 +283,15 @@ const ProjectChecklist = () => {
 
           return (
             <div key={phase.id} style={{
-              background: '#111411',
-              border: `1px solid ${phaseComplete ? phase.color + '55' : '#1f241f'}`,
+              background: '#1f2937',
+              border: `1px solid ${phaseComplete ? phase.color + '55' : '#374151'}`,
               borderRadius: '12px',
               overflow: 'hidden',
             }}>
               {/* Cabecera de fase */}
               <div style={{
                 padding: '14px 20px',
-                borderBottom: '1px solid #1f241f',
+                borderBottom: '1px solid #374151',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -316,7 +316,7 @@ const ProjectChecklist = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {/* Mini barra */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '80px', background: '#1f241f', borderRadius: '4px', height: '6px', overflow: 'hidden' }}>
+                    <div style={{ width: '80px', background: '#374151', borderRadius: '4px', height: '6px', overflow: 'hidden' }}>
                       <div style={{
                         width: `${pct}%`,
                         height: '100%',
@@ -349,13 +349,13 @@ const ProjectChecklist = () => {
                         transition: 'background 0.15s',
                         background: isTaskDone && tarea.milestone ? phase.color + '10' : 'transparent',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#1a1d1a'}
+                      onMouseEnter={e => e.currentTarget.style.background = '#1f2937'}
                       onMouseLeave={e => e.currentTarget.style.background = isTaskDone && tarea.milestone ? phase.color + '10' : 'transparent'}
                     >
                       {tarea.milestone ? (
                         <Flag
                           size={17}
-                          color={isTaskDone ? phase.color : '#444'}
+                          color={isTaskDone ? phase.color : '#6b7280'}
                           fill={isTaskDone ? phase.color : 'none'}
                           style={{ flexShrink: 0 }}
                         />

@@ -112,10 +112,10 @@ const Rodeos = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ color: '#fff', margin: 0, fontSize: '22px', fontWeight: '700' }}>Gestión de Rodeos Forestales</h1>
-          <p style={{ color: '#666', fontSize: '13px', margin: '6px 0 0 0' }}>Registro de operaciones de extracción de madera</p>
+          <p style={{ color: '#6b7280', fontSize: '13px', margin: '6px 0 0 0' }}>Registro de operaciones de extracción de madera</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generateRodeoReport(data)} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => generateRodeoReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
@@ -123,7 +123,7 @@ const Rodeos = () => {
             { label: 'Especie', key: 'especie_principal' }, { label: 'Responsable', key: 'responsable_rodeo' },
             { label: 'Origen', key: 'procedencia' }, { label: 'Destino', key: 'destino_final' },
             { label: 'Estado', key: 'estado_operacion' }
-          ], 'Rodeos')} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Rodeos')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -136,16 +136,16 @@ const Rodeos = () => {
       <SearchBar placeholder="Buscar por responsable, especie, origen, destino o contrato..." onSearch={setSearch} onFilterChange={setFilters} filters={filterConfigs} />
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', background: '#111411', borderRadius: '12px', border: '1px solid #1f241f', color: '#555' }}>
+        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
           {search ? 'Sin resultados para la búsqueda' : 'No hay rodeos registrados'}
         </div>
       ) : (
-        <div style={{ background: '#111411', borderRadius: '12px', border: '1px solid #1f241f', overflow: 'hidden' }}>
+        <div style={{ background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#0d0f0d' }}>
+              <tr style={{ background: '#111827' }}>
                 {['Fecha', 'Vol. (m³)', 'Especie', 'Responsable', 'Origen → Destino', 'Estado', ''].map(h => (
-                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#555', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #1f241f' }}>{h}</th>
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#555', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #374151' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -153,7 +153,7 @@ const Rodeos = () => {
               {filtered.map(r => {
                 const badge = estadoBadge[r.estado_operacion] || { bg: '#252525', color: '#888' };
                 return (
-                  <tr key={r.id} style={{ borderBottom: '1px solid #1a1d1a' }}>
+                  <tr key={r.id} style={{ borderBottom: '1px solid #1f2937' }}>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Trees size={14} color="#FFD700" />

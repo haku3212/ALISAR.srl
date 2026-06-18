@@ -7,16 +7,16 @@ const Dashboard = () => {
   const handleLogout = () => { localStorage.removeItem('token'); navigate('/'); };
 
   const styles = {
-    container: { display: 'flex', height: '100vh', background: '#0a0c0a', color: '#e0e0e0', fontFamily: 'Inter, sans-serif', overflow: 'hidden' },
-    sidebar: { width: '260px', background: '#111411', borderRight: '1px solid #1f241f', display: 'flex', flexDirection: 'column', padding: '24px 16px' },
+    container: { display: 'flex', height: '100vh', background: '#111827', color: '#e0e0e0', fontFamily: 'Inter, sans-serif', overflow: 'hidden' },
+    sidebar: { width: '260px', background: '#1f2937', borderRight: '1px solid #374151', display: 'flex', flexDirection: 'column', padding: '24px 16px' },
     navItem: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '10px', color: '#8a8a8a', cursor: 'pointer', marginBottom: '4px', fontSize: '14px', transition: '0.2s' },
-    navActive: { background: '#1a221a', color: '#4ade80', border: '1px solid #233323' },
-    main: { flex: 1, padding: '32px', overflowY: 'auto', background: '#0d0f0d' },
+    navActive: { background: '#1e293b', color: '#4ade80', border: '1px solid #374151' },
+    main: { flex: 1, padding: '32px', overflowY: 'auto', background: '#111827' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' },
-    card: { background: '#111411', border: '1px solid #1f241f', borderRadius: '16px', padding: '24px', position: 'relative' },
+    card: { background: '#1f2937', border: '1px solid #374151', borderRadius: '16px', padding: '24px', position: 'relative' },
     statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' },
     btnPrimary: { background: '#4ade80', color: '#050a05', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' },
-    progressBg: { background: '#1f241f', height: '10px', borderRadius: '5px', marginTop: '15px' },
+    progressBg: { background: '#374151', height: '10px', borderRadius: '5px', marginTop: '15px' },
     progressFill: { background: '#4ade80', height: '100%', borderRadius: '5px', boxShadow: '0 0 10px #4ade80', width: '36%' }
   };
 

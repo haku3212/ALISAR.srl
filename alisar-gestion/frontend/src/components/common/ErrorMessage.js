@@ -3,7 +3,7 @@ import { AlertCircle } from 'lucide-react';
 
 const ErrorMessage = ({ message, onDismiss }) => (
   <div style={{
-    background: '#3a1a1a',
+    background: '#2d1515',
     border: '1px solid #f87171',
     borderRadius: '8px',
     padding: '16px',

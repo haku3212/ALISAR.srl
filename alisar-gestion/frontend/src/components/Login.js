@@ -33,16 +33,16 @@ const Login = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0a0c0a 0%, #111411 100%)'
+      background: 'linear-gradient(135deg, #111827 0%, #1f2937 100%)'
     },
     card: {
-      background: '#1a1d1a',
+      background: '#1f2937',
       padding: '40px',
       borderRadius: '16px',
       width: '100%',
       maxWidth: '380px',
       boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-      border: '1px solid #1f241f'
+      border: '1px solid #374151'
     },
     header: {
       textAlign: 'center',
@@ -56,7 +56,7 @@ const Login = () => {
       marginBottom: '8px'
     },
     subtitle: {
-      color: '#666',
+      color: '#6b7280',
       fontSize: '13px',
       margin: 0
     },
@@ -69,8 +69,8 @@ const Login = () => {
       width: '100%',
       padding: '12px 16px',
       borderRadius: '8px',
-      border: '1px solid #1f241f',
-      background: '#111411',
+      border: '1px solid #374151',
+      background: '#1f2937',
       color: '#e0e0e0',
       outline: 'none',
       fontSize: '14px',
@@ -130,7 +130,7 @@ const Login = () => {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', color: '#444', fontSize: '12px', marginTop: '24px' }}>
+        <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '12px', marginTop: '24px' }}>
           ALISAR S.R.L. &copy; {new Date().getFullYear()} — Sistema de Gestión Forestal
         </p>
       </div>

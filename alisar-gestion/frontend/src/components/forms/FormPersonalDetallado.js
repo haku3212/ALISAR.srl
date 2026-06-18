@@ -75,7 +75,7 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
    */
   const styles = {
     sectionContainer: {
-      background: '#1a1a1a',
+      background: '#1f2937',
       border: '1px solid #333333',
       borderRadius: '14px',
       overflow: 'hidden',

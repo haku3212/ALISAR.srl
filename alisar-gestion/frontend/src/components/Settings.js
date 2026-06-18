@@ -8,8 +8,8 @@ import ErrorMessage from './common/ErrorMessage';
 import FormInput from './common/FormInput';
 
 const sectionStyle = {
-  background: '#111411',
-  border: '1px solid #1f241f',
+  background: '#1f2937',
+  border: '1px solid #374151',
   borderRadius: '12px',
   padding: '24px',
 };
@@ -214,8 +214,8 @@ const Settings = () => {
     width: '100%',
     padding: '10px 12px',
     borderRadius: '8px',
-    border: '1px solid #1f241f',
-    background: '#0d0f0d',
+    border: '1px solid #374151',
+    background: '#111827',
     color: '#e0e0e0',
     outline: 'none',
     fontSize: '14px',
@@ -247,7 +247,7 @@ const Settings = () => {
           onClick={() => setShowPasswords({ ...showPasswords, [field]: !showPasswords[field] })}
           style={{
             position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: 0
+            background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 0
           }}
         >
           {showPasswords[field] ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -263,7 +263,7 @@ const Settings = () => {
     <div style={{ padding: '32px', color: '#e0e0e0' }}>
       <div style={{ marginBottom: '32px' }}>
         <h1 style={{ color: '#fff', margin: '0 0 8px 0' }}>Configuración del Sistema</h1>
-        <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Gestiona los parámetros generales de ALISAR</p>
+        <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Gestiona los parámetros generales de ALISAR</p>
       </div>
 
       {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
@@ -366,7 +366,7 @@ const Settings = () => {
           <h3 style={{ margin: '0 0 8px 0', color: '#FFD700', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Download size={20} /> Respaldo de Datos
           </h3>
-          <p style={{ color: '#666', fontSize: '13px', margin: '0 0 20px 0' }}>
+          <p style={{ color: '#6b7280', fontSize: '13px', margin: '0 0 20px 0' }}>
             Exporta todos los datos del sistema a un archivo JSON. Guarda el respaldo en un lugar seguro (USB, nube, etc.)
           </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -412,7 +412,7 @@ const Settings = () => {
             <h3 style={{ margin: '0 0 8px 0', color: '#FFD700', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Key size={20} /> Cambiar Contraseña
             </h3>
-            <p style={{ color: '#666', fontSize: '13px', margin: '0 0 20px 0' }}>
+            <p style={{ color: '#6b7280', fontSize: '13px', margin: '0 0 20px 0' }}>
               Mínimo 8 caracteres, una mayúscula, una minúscula y un número.
             </p>
             <PasswordField
@@ -453,15 +453,15 @@ const Settings = () => {
           <h3 style={{ margin: '0 0 16px 0', color: '#f97316' }}>ℹ️ Información del Sistema</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             <div>
-              <p style={{ color: '#666', fontSize: '12px', margin: '0 0 4px 0' }}>Versión</p>
+              <p style={{ color: '#6b7280', fontSize: '12px', margin: '0 0 4px 0' }}>Versión</p>
               <p style={{ color: '#e0e0e0', margin: 0, fontSize: '14px' }}>1.0.0</p>
             </div>
             <div>
-              <p style={{ color: '#666', fontSize: '12px', margin: '0 0 4px 0' }}>Fecha de Instalación</p>
+              <p style={{ color: '#6b7280', fontSize: '12px', margin: '0 0 4px 0' }}>Fecha de Instalación</p>
               <p style={{ color: '#e0e0e0', margin: 0, fontSize: '14px' }}>2026-05-20</p>
             </div>
             <div>
-              <p style={{ color: '#666', fontSize: '12px', margin: '0 0 4px 0' }}>Última Actualización</p>
+              <p style={{ color: '#6b7280', fontSize: '12px', margin: '0 0 4px 0' }}>Última Actualización</p>
               <p style={{ color: '#e0e0e0', margin: 0, fontSize: '14px' }}>{new Date().toLocaleDateString('es-ES')}</p>
             </div>
           </div>

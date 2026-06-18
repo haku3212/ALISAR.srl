@@ -25,14 +25,14 @@ const Modal = ({ isOpen, onClose, title, children }) => {
       zIndex: 1000
     }}>
       <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} style={{
-        background: '#1a1d1a',
+        background: '#1f2937',
         borderRadius: '12px',
         padding: '32px',
         maxWidth: '680px',
         width: '90%',
         maxHeight: '90vh',
         overflowY: 'auto',
-        border: '1px solid #1f241f'
+        border: '1px solid #374151'
       }}>
         <div style={{
           display: 'flex',

@@ -56,8 +56,8 @@ const SearchBar = ({
               paddingTop: '10px',
               paddingBottom: '10px',
               borderRadius: '8px',
-              border: '1px solid #1f241f',
-              background: '#111411',
+              border: '1px solid #374151',
+              background: '#1f2937',
               color: '#e0e0e0',
               outline: 'none',
               boxSizing: 'border-box',
@@ -77,8 +77,8 @@ const SearchBar = ({
               gap: '6px',
               padding: '10px 14px',
               borderRadius: '8px',
-              border: hasActiveFilters ? '1px solid #FFD700' : '1px solid #1f241f',
-              background: hasActiveFilters ? '#1a221a' : '#111411',
+              border: hasActiveFilters ? '1px solid #FFD700' : '1px solid #374151',
+              background: hasActiveFilters ? '#1e293b' : '#1f2937',
               color: hasActiveFilters ? '#FFD700' : '#999',
               cursor: 'pointer',
               fontSize: '14px',
@@ -100,9 +100,9 @@ const SearchBar = ({
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '12px',
           padding: '16px',
-          background: '#111411',
+          background: '#1f2937',
           borderRadius: '8px',
-          border: '1px solid #1f241f'
+          border: '1px solid #374151'
         }}>
           {filters.map(filter => (
             <div key={filter.id}>
@@ -124,8 +124,8 @@ const SearchBar = ({
                     width: '100%',
                     padding: '8px 10px',
                     borderRadius: '6px',
-                    border: '1px solid #1f241f',
-                    background: '#0d0f0d',
+                    border: '1px solid #374151',
+                    background: '#111827',
                     color: '#e0e0e0',
                     outline: 'none',
                     fontSize: '13px',

@@ -97,17 +97,17 @@ const Personal = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ color: '#fff', margin: 0, fontSize: '22px', fontWeight: '700' }}>Recursos Humanos</h1>
-          <p style={{ color: '#666', fontSize: '13px', margin: '6px 0 0 0' }}>Gestión de personal operativo</p>
+          <p style={{ color: '#6b7280', fontSize: '13px', margin: '6px 0 0 0' }}>Gestión de personal operativo</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generatePersonalReport(data)} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => generatePersonalReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
             { label: 'Nombre', key: 'nombre' }, { label: 'Cargo', key: 'cargo' },
             { label: 'Departamento', key: 'departamento' }, { label: 'Celular', key: 'celular' },
             { label: 'Estado', key: 'estado' }
-          ], 'Personal')} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Personal')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -121,15 +121,15 @@ const Personal = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px', background: '#111411', borderRadius: '12px', border: '1px solid #1f241f', color: '#555' }}>
+          <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
             {search ? 'Sin resultados para la búsqueda' : 'No hay personal registrado'}
           </div>
         ) : filtered.map(p => {
-          const ec = estadoColor[p.estado] || { bg: '#1a1d1a', color: '#999' };
+          const ec = estadoColor[p.estado] || { bg: '#1f2937', color: '#999' };
           return (
-            <div key={p.id} style={{ background: '#111411', border: '1px solid #1f241f', borderRadius: '12px', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={p.id} style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
-                <div style={{ background: '#1a221a', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ background: '#1e293b', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Users size={18} color="#FFD700" />
                 </div>
                 <div style={{ flex: 1 }}>

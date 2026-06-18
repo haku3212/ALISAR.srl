@@ -7,7 +7,7 @@ export const COLORS = {
   secondary: '#60a5fa',
   accent: '#f97316',
   danger: '#f87171',
-  dark: '#111411',
+  dark: '#1f2937',
   text: '#e0e0e0',
   textLight: '#999'
 };
@@ -18,7 +18,7 @@ export const COLORS = {
 export const generatePDFFromHTML = async (element, filename) => {
   try {
     const canvas = await html2canvas(element, {
-      backgroundColor: '#0a0c0a',
+      backgroundColor: '#111827',
       scale: 2,
       useCORS: true,
       logging: false

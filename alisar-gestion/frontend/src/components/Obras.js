@@ -86,16 +86,16 @@ const Obras = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ color: '#fff', margin: 0, fontSize: '22px', fontWeight: '700' }}>Control de Obras</h1>
-          <p style={{ color: '#666', fontSize: '13px', margin: '6px 0 0 0' }}>Seguimiento de ejecución y presupuestos</p>
+          <p style={{ color: '#6b7280', fontSize: '13px', margin: '6px 0 0 0' }}>Seguimiento de ejecución y presupuestos</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generateObrasReport(data)} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => generateObrasReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
             { label: 'Nombre', key: 'nombre' }, { label: 'Tipo', key: 'tipo' },
             { label: 'Presupuesto', key: 'presupuesto' }, { label: 'Avance', key: 'avance' }
-          ], 'Obras')} style={{ background: '#1a1d1a', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Obras')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -109,11 +109,11 @@ const Obras = () => {
 
       <div style={{ display: 'grid', gap: '14px' }}>
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px', background: '#111411', borderRadius: '12px', border: '1px solid #1f241f', color: '#555' }}>
+          <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
             {search ? 'Sin resultados para la búsqueda' : 'No hay obras registradas'}
           </div>
         ) : filtered.map(obra => (
-          <div key={obra.id} style={{ background: '#111411', border: '1px solid #1f241f', borderRadius: '12px', padding: '22px 24px' }}>
+          <div key={obra.id} style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '22px 24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
@@ -121,8 +121,8 @@ const Obras = () => {
                   <h3 style={{ margin: 0, color: '#fff', fontSize: '15px', fontWeight: '600' }}>{obra.nombre}</h3>
                   {obra.tipo && <span style={{ background: '#1a2a1a', color: '#FFD700', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>{obra.tipo}</span>}
                 </div>
-                {obra.cliente && <p style={{ margin: 0, color: '#666', fontSize: '12px' }}>Cliente: {obra.cliente}</p>}
-                {obra.responsable_tecnico && <p style={{ margin: '2px 0 0 0', color: '#666', fontSize: '12px' }}>Responsable: {obra.responsable_tecnico}</p>}
+                {obra.cliente && <p style={{ margin: 0, color: '#6b7280', fontSize: '12px' }}>Cliente: {obra.cliente}</p>}
+                {obra.responsable_tecnico && <p style={{ margin: '2px 0 0 0', color: '#6b7280', fontSize: '12px' }}>Responsable: {obra.responsable_tecnico}</p>}
               </div>
               <div style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
                 <button onClick={() => handleEdit(obra)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer', padding: '4px' }}><Edit2 size={17} /></button>

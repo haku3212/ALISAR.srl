@@ -10,7 +10,7 @@ const LoadingSpinner = ({ size = 40 }) => (
     <div style={{
       width: size,
       height: size,
-      border: '4px solid #1f241f',
+      border: '4px solid #374151',
       borderTop: '4px solid #4ade80',
       borderRadius: '50%',
       animation: 'spin 1s linear infinite'

@@ -181,7 +181,7 @@ const GoogleMapsLocation = ({
               padding: '10px 12px',
               borderRadius: '10px',
               border: '1px solid #333333',
-              background: '#1a1a1a',
+              background: '#1f2937',
               color: '#ffffff',
               outline: 'none',
               fontSize: '14px',
@@ -222,7 +222,7 @@ const GoogleMapsLocation = ({
                     fontSize: '13px',
                     transition: 'all 0.15s',
                   }}
-                  onMouseEnter={(e) => e.target.style.background = '#1a1a1a'}
+                  onMouseEnter={(e) => e.target.style.background = '#1f2937'}
                   onMouseLeave={(e) => e.target.style.background = 'transparent'}
                 >
                   <MapPin size={12} style={{ display: 'inline', marginRight: '6px' }} />
@@ -313,7 +313,7 @@ const GoogleMapsLocation = ({
           padding: '24px'
         }}>
           <div style={{
-            background: '#1a1a1a',
+            background: '#1f2937',
             border: '1px solid #333333',
             borderRadius: '16px',
             padding: '24px',
@@ -383,7 +383,7 @@ const GoogleMapsLocation = ({
                 <p style={{ margin: 0 }}>
                   Google Maps se cargará aquí
                 </p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#666666' }}>
+                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#6b7280' }}>
                   Requiere API key configurada
                 </p>
               </div>

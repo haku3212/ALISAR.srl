@@ -34,13 +34,13 @@ const ToastContainer = () => {
 
     switch (type) {
       case 'success':
-        return { ...baseStyle, background: '#1a221a', border: '1px solid #4ade80', color: '#4ade80' };
+        return { ...baseStyle, background: '#1e293b', border: '1px solid #4ade80', color: '#4ade80' };
       case 'error':
-        return { ...baseStyle, background: '#3a1a1a', border: '1px solid #f87171', color: '#f87171' };
+        return { ...baseStyle, background: '#2d1515', border: '1px solid #f87171', color: '#f87171' };
       case 'warning':
         return { ...baseStyle, background: '#3a2a1a', border: '1px solid #f97316', color: '#f97316' };
       case 'info':
-        return { ...baseStyle, background: '#1a2a3a', border: '1px solid #60a5fa', color: '#60a5fa' };
+        return { ...baseStyle, background: '#172554', border: '1px solid #60a5fa', color: '#60a5fa' };
       default:
         return baseStyle;
     }
