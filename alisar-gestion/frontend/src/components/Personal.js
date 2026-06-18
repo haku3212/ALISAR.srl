@@ -11,11 +11,11 @@ import { generatePersonalReport, generateExcelReport } from '../utils/reportGene
 
 const inp = {
   width: '100%', padding: '10px 12px', borderRadius: '8px',
-  border: '1px solid #252a25', background: '#131613', color: '#e0e0e0',
+  border: '1px solid #374151', background: '#111827', color: '#e0e0e0',
   fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit'
 };
 const lbl = {
-  display: 'block', fontSize: '11px', fontWeight: '600', color: '#888',
+  display: 'block', fontSize: '11px', fontWeight: '600', color: '#9ca3af',
   textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px'
 };
 const errTxt = { color: '#f87171', fontSize: '11px', margin: '4px 0 0 0' };
@@ -25,10 +25,10 @@ const EMPTY = {
 };
 
 const estadoColor = {
-  'Activo': { bg: '#1a2a1a', color: '#4ade80' },
-  'Inactivo': { bg: '#2a1a1a', color: '#f87171' },
-  'Vacaciones': { bg: '#1a1f2a', color: '#60a5fa' },
-  'Licencia': { bg: '#2a251a', color: '#fbbf24' }
+  'Activo': { bg: '#1e293b', color: '#4ade80' },
+  'Inactivo': { bg: '#2d1515', color: '#f87171' },
+  'Vacaciones': { bg: '#1e293b', color: '#60a5fa' },
+  'Licencia': { bg: '#292418', color: '#fbbf24' }
 };
 
 const Personal = () => {
@@ -100,14 +100,14 @@ const Personal = () => {
           <p style={{ color: '#6b7280', fontSize: '13px', margin: '6px 0 0 0' }}>Gestión de personal operativo</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generatePersonalReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => generatePersonalReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
             { label: 'Nombre', key: 'nombre' }, { label: 'Cargo', key: 'cargo' },
             { label: 'Departamento', key: 'departamento' }, { label: 'Celular', key: 'celular' },
             { label: 'Estado', key: 'estado' }
-          ], 'Personal')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Personal')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -121,7 +121,7 @@ const Personal = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
+          <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#6b7280' }}>
             {search ? 'Sin resultados para la búsqueda' : 'No hay personal registrado'}
           </div>
         ) : filtered.map(p => {
@@ -137,12 +137,12 @@ const Personal = () => {
                     <h3 style={{ margin: 0, color: '#e0e0e0', fontSize: '14px', fontWeight: '600' }}>{p.nombre}</h3>
                     <span style={{ background: ec.bg, color: ec.color, padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>{p.estado || 'Activo'}</span>
                   </div>
-                  <p style={{ margin: '3px 0 0 0', color: '#888', fontSize: '12px' }}>{p.cargo}{p.departamento ? ` · ${p.departamento}` : ''}</p>
+                  <p style={{ margin: '3px 0 0 0', color: '#9ca3af', fontSize: '12px' }}>{p.cargo}{p.departamento ? ` · ${p.departamento}` : ''}</p>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                {p.celular && <span style={{ fontSize: '13px', color: '#888', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={13} /> {p.celular}</span>}
-                {p.email && <span style={{ fontSize: '13px', color: '#888', display: 'flex', alignItems: 'center', gap: '4px' }}><Mail size={13} /> {p.email}</span>}
+                {p.celular && <span style={{ fontSize: '13px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={13} /> {p.celular}</span>}
+                {p.email && <span style={{ fontSize: '13px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}><Mail size={13} /> {p.email}</span>}
                 <button onClick={() => handleEdit(p)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer', padding: '4px' }}><Edit2 size={17} /></button>
                 <button onClick={() => deleteItem(p.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', padding: '4px' }}><Trash2 size={17} /></button>
               </div>
@@ -156,12 +156,12 @@ const Personal = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Nombre Completo <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.nombre ? '#f87171' : '#252a25'}` }} value={formData.nombre} onChange={set('nombre')} placeholder="Ej: Carlos Mendoza" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.nombre ? '#f87171' : '#374151'}` }} value={formData.nombre} onChange={set('nombre')} placeholder="Ej: Carlos Mendoza" disabled={submitting} />
               {formErrors.nombre && <p style={errTxt}>{formErrors.nombre}</p>}
             </div>
             <div>
               <label style={lbl}>Cargo <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.cargo ? '#f87171' : '#252a25'}` }} value={formData.cargo} onChange={set('cargo')} placeholder="Ej: Operador de Maquinaria" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.cargo ? '#f87171' : '#374151'}` }} value={formData.cargo} onChange={set('cargo')} placeholder="Ej: Operador de Maquinaria" disabled={submitting} />
               {formErrors.cargo && <p style={errTxt}>{formErrors.cargo}</p>}
             </div>
             <div>
@@ -170,12 +170,12 @@ const Personal = () => {
             </div>
             <div>
               <label style={lbl}>Celular</label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.celular ? '#f87171' : '#252a25'}` }} value={formData.celular} onChange={set('celular')} placeholder="Ej: 78231456" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.celular ? '#f87171' : '#374151'}` }} value={formData.celular} onChange={set('celular')} placeholder="Ej: 78231456" disabled={submitting} />
               {formErrors.celular && <p style={errTxt}>{formErrors.celular}</p>}
             </div>
             <div>
               <label style={lbl}>Email</label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.email ? '#f87171' : '#252a25'}` }} type="email" value={formData.email} onChange={set('email')} placeholder="Ej: carlos@alisar.com" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.email ? '#f87171' : '#374151'}` }} type="email" value={formData.email} onChange={set('email')} placeholder="Ej: carlos@alisar.com" disabled={submitting} />
               {formErrors.email && <p style={errTxt}>{formErrors.email}</p>}
             </div>
             <div>

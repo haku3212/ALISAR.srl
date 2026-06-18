@@ -10,11 +10,11 @@ import { generateMaderaReport, generateExcelReport } from '../utils/reportGenera
 
 const inp = {
   width: '100%', padding: '10px 12px', borderRadius: '8px',
-  border: '1px solid #252a25', background: '#131613', color: '#e0e0e0',
+  border: '1px solid #374151', background: '#111827', color: '#e0e0e0',
   fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit'
 };
 const lbl = {
-  display: 'block', fontSize: '11px', fontWeight: '600', color: '#888',
+  display: 'block', fontSize: '11px', fontWeight: '600', color: '#9ca3af',
   textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px'
 };
 const errTxt = { color: '#f87171', fontSize: '11px', margin: '4px 0 0 0' };
@@ -92,14 +92,14 @@ const Madera = () => {
           <p style={{ color: '#6b7280', fontSize: '13px', margin: '6px 0 0 0' }}>Control de volúmenes y especies por campamento</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generateMaderaReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => generateMaderaReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
             { label: 'Especie', key: 'especie' }, { label: 'Piezas', key: 'piezas' },
             { label: 'Volumen', key: 'volumen' }, { label: 'Campamento', key: 'campamento' },
             { label: 'Procedencia', key: 'procedencia' }, { label: 'Destino', key: 'destino' }
-          ], 'Madera')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Madera')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -112,7 +112,7 @@ const Madera = () => {
       <SearchBar placeholder="Buscar por especie, campamento, procedencia o volumen..." onSearch={setSearch} onFilterChange={setFilters} filters={filterConfigs} />
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
+        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#6b7280' }}>
           {search ? 'Sin resultados para la búsqueda' : 'No hay registros de madera'}
         </div>
       ) : (
@@ -134,29 +134,29 @@ const Madera = () => {
                   <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', padding: '2px' }}><Trash2 size={15} /></button>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', paddingBottom: '12px', borderBottom: '1px solid #1a1f1a', marginBottom: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', paddingBottom: '12px', borderBottom: '1px solid #374151', marginBottom: '12px' }}>
                 <div>
-                  <p style={{ color: '#555', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Piezas</p>
+                  <p style={{ color: '#6b7280', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Piezas</p>
                   <p style={{ color: '#fff', fontSize: '16px', fontWeight: '700', margin: '3px 0 0 0' }}>{m.piezas ?? '—'}</p>
                 </div>
                 <div>
-                  <p style={{ color: '#555', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Volumen</p>
+                  <p style={{ color: '#6b7280', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Volumen</p>
                   <p style={{ color: '#FFD700', fontSize: '16px', fontWeight: '700', margin: '3px 0 0 0' }}>{m.volumen}</p>
                 </div>
               </div>
               <div>
-                <p style={{ color: '#555', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Campamento</p>
+                <p style={{ color: '#6b7280', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Campamento</p>
                 <p style={{ color: '#aaa', fontSize: '13px', margin: '3px 0 0 0' }}>{m.campamento || '—'}</p>
               </div>
               {(m.procedencia || m.destino) && (
                 <div style={{ marginTop: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {m.procedencia && <div>
-                    <p style={{ color: '#555', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Origen</p>
-                    <p style={{ color: '#888', fontSize: '12px', margin: '2px 0 0 0' }}>{m.procedencia}</p>
+                    <p style={{ color: '#6b7280', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Origen</p>
+                    <p style={{ color: '#9ca3af', fontSize: '12px', margin: '2px 0 0 0' }}>{m.procedencia}</p>
                   </div>}
                   {m.destino && <div>
-                    <p style={{ color: '#555', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Destino</p>
-                    <p style={{ color: '#888', fontSize: '12px', margin: '2px 0 0 0' }}>{m.destino}</p>
+                    <p style={{ color: '#6b7280', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Destino</p>
+                    <p style={{ color: '#9ca3af', fontSize: '12px', margin: '2px 0 0 0' }}>{m.destino}</p>
                   </div>}
                 </div>
               )}
@@ -170,12 +170,12 @@ const Madera = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
             <div>
               <label style={lbl}>Especie <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.especie ? '#f87171' : '#252a25'}` }} value={formData.especie} onChange={set('especie')} placeholder="Ej: Almendrillo" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.especie ? '#f87171' : '#374151'}` }} value={formData.especie} onChange={set('especie')} placeholder="Ej: Almendrillo" disabled={submitting} />
               {formErrors.especie && <p style={errTxt}>{formErrors.especie}</p>}
             </div>
             <div>
               <label style={lbl}>Volumen <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.volumen ? '#f87171' : '#252a25'}` }} value={formData.volumen} onChange={set('volumen')} placeholder="Ej: 12.5 m3" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.volumen ? '#f87171' : '#374151'}` }} value={formData.volumen} onChange={set('volumen')} placeholder="Ej: 12.5 m3" disabled={submitting} />
               {formErrors.volumen && <p style={errTxt}>{formErrors.volumen}</p>}
             </div>
             <div>

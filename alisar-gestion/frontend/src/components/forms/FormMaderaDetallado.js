@@ -51,8 +51,8 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
       {/* SECCIÓN 1: INFORMACIÓN DE ESPECIE                            */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -61,7 +61,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
-            borderBottom: expandedSection === 'especie' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'especie' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -72,7 +72,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
             🌳 Información de Especie
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'especie' ? '▼' : '▶'}
           </span>
         </div>
@@ -84,7 +84,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -99,9 +99,9 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: errors.especie ? '1px solid #f87171' : '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: errors.especie ? '1px solid #f87171' : '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer',
@@ -152,7 +152,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -166,9 +166,9 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer'
@@ -190,7 +190,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -204,9 +204,9 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer'
@@ -228,8 +228,8 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
       {/* SECCIÓN 2: DIMENSIONES Y MEDIDAS                             */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -238,7 +238,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(96,165,250,.12), rgba(96,165,250,.04))',
-            borderBottom: expandedSection === 'dimensiones' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'dimensiones' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -249,7 +249,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#60a5fa' }}>
             📏 Dimensiones y Medidas
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'dimensiones' ? '▼' : '▶'}
           </span>
         </div>
@@ -339,8 +339,8 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
       {/* SECCIÓN 3: CALIDAD Y CONDICIÓN                               */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -349,7 +349,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(251,191,36,.12), rgba(251,191,36,.04))',
-            borderBottom: expandedSection === 'calidad' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'calidad' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -360,7 +360,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fbbf24' }}>
             ⭐ Calidad y Condición
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'calidad' ? '▼' : '▶'}
           </span>
         </div>
@@ -372,7 +372,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -386,9 +386,9 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer'
@@ -408,7 +408,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -422,9 +422,9 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer'
@@ -456,7 +456,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -471,9 +471,9 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   fontFamily: 'inherit',
@@ -490,8 +490,8 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
       {/* SECCIÓN 4: UBICACIÓN Y LOGÍSTICA                             */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -500,7 +500,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(248,113,113,.12), rgba(248,113,113,.04))',
-            borderBottom: expandedSection === 'ubicacion' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'ubicacion' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -511,7 +511,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#f87171' }}>
             📦 Ubicación y Logística
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'ubicacion' ? '▼' : '▶'}
           </span>
         </div>
@@ -597,7 +597,7 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -612,9 +612,9 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   fontFamily: 'inherit',

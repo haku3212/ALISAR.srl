@@ -24,10 +24,10 @@ export const theme = {
     bg: '#111827',             // Fondo muy oscuro
     bgElev: '#131313',         // Fondo elevado
     bgCard: '#1f2937',         // Fondo de cards
-    bgCardLight: '#252525',    // Fondo de cards más claro
+    bgCardLight: '#1f2937',    // Fondo de cards más claro
 
     // Bordes y Separadores
-    border: '#333333',         // Borde principal
+    border: '#374151',         // Borde principal
     borderSoft: '#222222',     // Borde suave
     borderLight: '#404040',    // Borde claro
 
@@ -124,7 +124,7 @@ export const theme = {
     // Estilo para input/textarea
     input: {
       background: '#1f2937',
-      border: '1px solid #333333',
+      border: '1px solid #374151',
       color: '#ffffff',
       padding: '10px 12px',
       borderRadius: '10px',
@@ -137,7 +137,7 @@ export const theme = {
     // Estilo para card
     card: {
       background: '#1f2937',
-      border: '1px solid #333333',
+      border: '1px solid #374151',
       borderRadius: '14px',
       padding: '20px',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
@@ -146,7 +146,7 @@ export const theme = {
     // Estilo para sección expandible
     section: {
       background: '#1f2937',
-      border: '1px solid #333333',
+      border: '1px solid #374151',
       borderRadius: '14px',
       overflow: 'hidden',
     },
@@ -154,7 +154,7 @@ export const theme = {
     sectionHeader: {
       padding: '14px 16px',
       background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.12), rgba(255, 215, 0, 0.04))',
-      borderBottom: '1px solid #333333',
+      borderBottom: '1px solid #374151',
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',

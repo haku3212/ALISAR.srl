@@ -10,11 +10,11 @@ import { generateMaquinariaReport, generateExcelReport } from '../utils/reportGe
 
 const inp = {
   width: '100%', padding: '10px 12px', borderRadius: '8px',
-  border: '1px solid #252a25', background: '#131613', color: '#e0e0e0',
+  border: '1px solid #374151', background: '#111827', color: '#e0e0e0',
   fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit'
 };
 const lbl = {
-  display: 'block', fontSize: '11px', fontWeight: '600', color: '#888',
+  display: 'block', fontSize: '11px', fontWeight: '600', color: '#9ca3af',
   textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px'
 };
 const errTxt = { color: '#f87171', fontSize: '11px', margin: '4px 0 0 0' };
@@ -24,10 +24,10 @@ const EMPTY = {
 };
 
 const estadoBadge = {
-  'Operativo': { bg: '#1a2a1a', color: '#FFD700' },
-  'Mantenimiento': { bg: '#2a1f1a', color: '#f97316' },
-  'Inactivo': { bg: '#2a1a1a', color: '#f87171' },
-  'Baja': { bg: '#252525', color: '#888' }
+  'Operativo': { bg: '#1e293b', color: '#FFD700' },
+  'Mantenimiento': { bg: '#1c1008', color: '#f97316' },
+  'Inactivo': { bg: '#2d1515', color: '#f87171' },
+  'Baja': { bg: '#1f2937', color: '#9ca3af' }
 };
 
 const Maquinaria = () => {
@@ -98,14 +98,14 @@ const Maquinaria = () => {
           <p style={{ color: '#6b7280', fontSize: '13px', margin: '6px 0 0 0' }}>Control de equipos y activos</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generateMaquinariaReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => generateMaquinariaReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
             { label: 'Nombre', key: 'nombre' }, { label: 'Tipo', key: 'tipo' },
             { label: 'Modelo', key: 'modelo' }, { label: 'Estado', key: 'estado' },
             { label: 'Última Revisión', key: 'ultimaRevision' }
-          ], 'Maquinaria')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Maquinaria')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -118,7 +118,7 @@ const Maquinaria = () => {
       <SearchBar placeholder="Buscar por nombre, tipo, modelo u operador..." onSearch={setSearch} onFilterChange={setFilters} filters={filterConfigs} />
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
+        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#6b7280' }}>
           {search ? 'Sin resultados para la búsqueda' : 'No hay maquinaria registrada'}
         </div>
       ) : (
@@ -127,13 +127,13 @@ const Maquinaria = () => {
             <thead>
               <tr style={{ background: '#111827' }}>
                 {['Equipo', 'Tipo', 'Modelo / Año', 'Operador', 'Estado', 'Ult. Revisión', ''].map(h => (
-                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#555', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #374151' }}>{h}</th>
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#6b7280', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #374151' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map(m => {
-                const badge = estadoBadge[m.estado] || { bg: '#252525', color: '#888' };
+                const badge = estadoBadge[m.estado] || { bg: '#1f2937', color: '#9ca3af' };
                 return (
                   <tr key={m.id} style={{ borderBottom: '1px solid #1f2937' }}>
                     <td style={{ padding: '14px 16px' }}>
@@ -168,12 +168,12 @@ const Maquinaria = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
             <div>
               <label style={lbl}>Nombre <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.nombre ? '#f87171' : '#252a25'}` }} value={formData.nombre} onChange={set('nombre')} placeholder="Ej: Motoniveladora CAT 140H" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.nombre ? '#f87171' : '#374151'}` }} value={formData.nombre} onChange={set('nombre')} placeholder="Ej: Motoniveladora CAT 140H" disabled={submitting} />
               {formErrors.nombre && <p style={errTxt}>{formErrors.nombre}</p>}
             </div>
             <div>
               <label style={lbl}>Tipo <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.tipo ? '#f87171' : '#252a25'}` }} value={formData.tipo} onChange={set('tipo')} placeholder="Ej: Motoniveladora" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.tipo ? '#f87171' : '#374151'}` }} value={formData.tipo} onChange={set('tipo')} placeholder="Ej: Motoniveladora" disabled={submitting} />
               {formErrors.tipo && <p style={errTxt}>{formErrors.tipo}</p>}
             </div>
             <div>

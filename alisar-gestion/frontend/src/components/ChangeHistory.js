@@ -106,7 +106,7 @@ const ChangeHistory = () => {
               padding: '8px 16px',
               borderRadius: '6px',
               border: filtroTabla === tabla ? '2px solid #60a5fa' : '1px solid #374151',
-              background: filtroTabla === tabla ? '#1a1f22' : '#1f2937',
+              background: filtroTabla === tabla ? '#1e293b' : '#1f2937',
               color: filtroTabla === tabla ? '#60a5fa' : '#999',
               cursor: 'pointer',
               fontSize: '13px',

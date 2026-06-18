@@ -11,11 +11,11 @@ import { generateExcelReport } from '../utils/reportGenerator';
 
 const inp = {
   width: '100%', padding: '10px 12px', borderRadius: '8px',
-  border: '1px solid #252a25', background: '#131613', color: '#e0e0e0',
+  border: '1px solid #374151', background: '#111827', color: '#e0e0e0',
   fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit'
 };
 const lbl = {
-  display: 'block', fontSize: '11px', fontWeight: '600', color: '#888',
+  display: 'block', fontSize: '11px', fontWeight: '600', color: '#9ca3af',
   textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px'
 };
 const errTxt = { color: '#f87171', fontSize: '11px', margin: '4px 0 0 0' };
@@ -126,7 +126,7 @@ const Documentos = () => {
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {alertas > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 12px', background: '#2a1a1a', border: '1px solid #f87171', borderRadius: '8px', color: '#f87171', fontSize: '12px', fontWeight: '600' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 12px', background: '#2d1515', border: '1px solid #f87171', borderRadius: '8px', color: '#f87171', fontSize: '12px', fontWeight: '600' }}>
               <AlertCircle size={14} /> {alertas} alerta{alertas > 1 ? 's' : ''}
             </div>
           )}
@@ -134,7 +134,7 @@ const Documentos = () => {
             { label: 'Tipo', key: 'tipo_documento' }, { label: 'Número', key: 'numero_documento' },
             { label: 'Entidad', key: 'entidad_emisora' }, { label: 'Responsable', key: 'responsable' },
             { label: 'Emisión', key: 'fecha_emision' }, { label: 'Vencimiento', key: 'fecha_vencimiento' }
-          ], 'Documentos')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Documentos')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -147,7 +147,7 @@ const Documentos = () => {
       <SearchBar placeholder="Buscar por número, tipo, entidad o responsable..." onSearch={setSearch} onFilterChange={setFilters} filters={filterConfigs} />
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
+        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#6b7280' }}>
           {search ? 'Sin resultados para la búsqueda' : 'No hay documentos registrados'}
         </div>
       ) : (
@@ -156,7 +156,7 @@ const Documentos = () => {
             <thead>
               <tr style={{ background: '#111827' }}>
                 {['Tipo', 'Número', 'Entidad Emisora', 'Responsable', 'Vencimiento', 'Estado', ''].map(h => (
-                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#555', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #374151' }}>{h}</th>
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#6b7280', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #374151' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -176,7 +176,7 @@ const Documentos = () => {
                     <td style={{ padding: '14px 16px', color: '#aaa', fontSize: '12px', maxWidth: '180px' }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{d.entidad_emisora}</span>
                     </td>
-                    <td style={{ padding: '14px 16px', color: '#888', fontSize: '13px' }}>{d.responsable || '—'}</td>
+                    <td style={{ padding: '14px 16px', color: '#9ca3af', fontSize: '13px' }}>{d.responsable || '—'}</td>
                     <td style={{ padding: '14px 16px', color: ev === 'vencido' ? '#f87171' : ev === 'proximo_vencer' ? '#fbbf24' : '#aaa', fontSize: '13px', fontWeight: ev !== 'vigente' ? '600' : '400' }}>
                       {formatDate(d.fecha_vencimiento)}
                     </td>
@@ -204,7 +204,7 @@ const Documentos = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
             <div>
               <label style={lbl}>Tipo de Documento <span style={{ color: '#FFD700' }}>*</span></label>
-              <select style={{ ...inp, border: `1px solid ${formErrors.tipo_documento ? '#f87171' : '#252a25'}`, cursor: 'pointer' }} value={formData.tipo_documento} onChange={set('tipo_documento')} disabled={submitting}>
+              <select style={{ ...inp, border: `1px solid ${formErrors.tipo_documento ? '#f87171' : '#374151'}`, cursor: 'pointer' }} value={formData.tipo_documento} onChange={set('tipo_documento')} disabled={submitting}>
                 <option value="">Seleccionar...</option>
                 {TIPO_DOC_OPTS.map(t => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
               </select>
@@ -212,12 +212,12 @@ const Documentos = () => {
             </div>
             <div>
               <label style={lbl}>Número de Documento <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.numero_documento ? '#f87171' : '#252a25'}` }} value={formData.numero_documento} onChange={set('numero_documento')} placeholder="Ej: POAT-2026-001" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.numero_documento ? '#f87171' : '#374151'}` }} value={formData.numero_documento} onChange={set('numero_documento')} placeholder="Ej: POAT-2026-001" disabled={submitting} />
               {formErrors.numero_documento && <p style={errTxt}>{formErrors.numero_documento}</p>}
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Entidad Emisora <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.entidad_emisora ? '#f87171' : '#252a25'}` }} value={formData.entidad_emisora} onChange={set('entidad_emisora')} placeholder="Ej: ABT - Autoridad de Fiscalización de Bosques" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.entidad_emisora ? '#f87171' : '#374151'}` }} value={formData.entidad_emisora} onChange={set('entidad_emisora')} placeholder="Ej: ABT - Autoridad de Fiscalización de Bosques" disabled={submitting} />
               {formErrors.entidad_emisora && <p style={errTxt}>{formErrors.entidad_emisora}</p>}
             </div>
             <div>
@@ -235,12 +235,12 @@ const Documentos = () => {
             </div>
             <div>
               <label style={lbl}>Fecha de Emisión <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.fecha_emision ? '#f87171' : '#252a25'}` }} type="date" value={formData.fecha_emision} onChange={set('fecha_emision')} disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.fecha_emision ? '#f87171' : '#374151'}` }} type="date" value={formData.fecha_emision} onChange={set('fecha_emision')} disabled={submitting} />
               {formErrors.fecha_emision && <p style={errTxt}>{formErrors.fecha_emision}</p>}
             </div>
             <div>
               <label style={lbl}>Fecha de Vencimiento <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.fecha_vencimiento ? '#f87171' : '#252a25'}` }} type="date" value={formData.fecha_vencimiento} onChange={set('fecha_vencimiento')} disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.fecha_vencimiento ? '#f87171' : '#374151'}` }} type="date" value={formData.fecha_vencimiento} onChange={set('fecha_vencimiento')} disabled={submitting} />
               {formErrors.fecha_vencimiento && <p style={errTxt}>{formErrors.fecha_vencimiento}</p>}
             </div>
             <div>

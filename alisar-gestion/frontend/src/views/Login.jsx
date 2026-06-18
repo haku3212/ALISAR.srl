@@ -21,13 +21,13 @@ const Login = () => {
   };
 
   const styles = {
-    container: { height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1410', color: '#e7ebe5', fontFamily: 'sans-serif' },
-    card: { background: '#182219', padding: '40px', borderRadius: '16px', border: '1px solid #28342a', width: '350px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' },
-    logo: { width: '50px', height: '50px', background: '#4ade80', borderRadius: '12px', margin: '0 auto 20px', display: 'grid', placeItems: 'center', color: '#0a110d', fontSize: '24px', fontWeight: 'bold' },
+    container: { height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111827', color: '#e0e0e0', fontFamily: 'sans-serif' },
+    card: { background: '#1f2937', padding: '40px', borderRadius: '16px', border: '1px solid #374151', width: '350px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' },
+    logo: { width: '50px', height: '50px', background: '#4ade80', borderRadius: '12px', margin: '0 auto 20px', display: 'grid', placeItems: 'center', color: '#111827', fontSize: '24px', fontWeight: 'bold' },
     title: { textAlign: 'center', fontSize: '24px', marginBottom: '8px' },
-    sub: { textAlign: 'center', color: '#9aa39a', fontSize: '12px', marginBottom: '30px', textTransform: 'uppercase', letterSpacing: '1px' },
-    input: { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #28342a', background: '#131c17', color: '#fff', outline: 'none', marginBottom: '15px' },
-    btn: { width: '100%', padding: '12px', borderRadius: '8px', border: 'none', background: '#4ade80', color: '#0a110d', fontWeight: 'bold', cursor: 'pointer' },
+    sub: { textAlign: 'center', color: '#9ca3af', fontSize: '12px', marginBottom: '30px', textTransform: 'uppercase', letterSpacing: '1px' },
+    input: { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #374151', background: '#111827', color: '#fff', outline: 'none', marginBottom: '15px' },
+    btn: { width: '100%', padding: '12px', borderRadius: '8px', border: 'none', background: '#4ade80', color: '#111827', fontWeight: 'bold', cursor: 'pointer' },
     error: { color: '#f87171', fontSize: '12px', textAlign: 'center', marginBottom: '10px' }
   };
 

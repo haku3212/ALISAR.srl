@@ -401,7 +401,7 @@ const Settings = () => {
               style={{ display: 'none' }}
             />
           </div>
-          <p style={{ color: '#555', fontSize: '12px', marginTop: '12px', marginBottom: 0 }}>
+          <p style={{ color: '#6b7280', fontSize: '12px', marginTop: '12px', marginBottom: 0 }}>
             ⚠️ La importación reemplaza todos los datos actuales. Se recomienda exportar antes de importar.
           </p>
         </div>

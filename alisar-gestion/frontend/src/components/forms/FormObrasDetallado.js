@@ -51,8 +51,8 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
       {/* SECCIÓN 1: INFORMACIÓN GENERAL                               */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -61,7 +61,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
-            borderBottom: expandedSection === 'general' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'general' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -72,7 +72,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
             📋 Información General
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'general' ? '▼' : '▶'}
           </span>
         </div>
@@ -104,7 +104,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -119,9 +119,9 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   fontFamily: 'inherit',
@@ -136,7 +136,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -150,9 +150,9 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer'
@@ -184,8 +184,8 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
       {/* SECCIÓN 2: UBICACIÓN Y FASES                                 */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -194,7 +194,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(96,165,250,.12), rgba(96,165,250,.04))',
-            borderBottom: expandedSection === 'ubicacion' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'ubicacion' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -205,7 +205,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#60a5fa' }}>
             📍 Ubicación y Fases
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'ubicacion' ? '▼' : '▶'}
           </span>
         </div>
@@ -267,7 +267,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -281,9 +281,9 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer'
@@ -322,8 +322,8 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
       {/* SECCIÓN 3: PERSONAL Y RESPONSABLES                           */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -332,7 +332,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(251,191,36,.12), rgba(251,191,36,.04))',
-            borderBottom: expandedSection === 'personal' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'personal' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -343,7 +343,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fbbf24' }}>
             👥 Personal y Responsables
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'personal' ? '▼' : '▶'}
           </span>
         </div>
@@ -396,8 +396,8 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
       {/* SECCIÓN 4: PRESUPUESTO Y CRONOGRAMA                          */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -406,7 +406,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(248,113,113,.12), rgba(248,113,113,.04))',
-            borderBottom: expandedSection === 'presupuesto' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'presupuesto' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -417,7 +417,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#f87171' }}>
             💰 Presupuesto y Cronograma
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'presupuesto' ? '▼' : '▶'}
           </span>
         </div>
@@ -491,7 +491,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -506,9 +506,9 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   fontFamily: 'inherit',

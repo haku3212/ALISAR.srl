@@ -10,11 +10,11 @@ import { generateRodeoReport, generateExcelReport } from '../utils/reportGenerat
 
 const inp = {
   width: '100%', padding: '10px 12px', borderRadius: '8px',
-  border: '1px solid #252a25', background: '#131613', color: '#e0e0e0',
+  border: '1px solid #374151', background: '#111827', color: '#e0e0e0',
   fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit'
 };
 const lbl = {
-  display: 'block', fontSize: '11px', fontWeight: '600', color: '#888',
+  display: 'block', fontSize: '11px', fontWeight: '600', color: '#9ca3af',
   textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px'
 };
 const errTxt = { color: '#f87171', fontSize: '11px', margin: '4px 0 0 0' };
@@ -34,10 +34,10 @@ const EMPTY = {
 };
 
 const estadoBadge = {
-  'En Proceso': { bg: '#1a1f2a', color: '#60a5fa' },
-  'Completado': { bg: '#1a2a1a', color: '#FFD700' },
-  'Entregado': { bg: '#1a2a1a', color: '#4ade80' },
-  'Cancelado': { bg: '#2a1a1a', color: '#f87171' }
+  'En Proceso': { bg: '#1e293b', color: '#60a5fa' },
+  'Completado': { bg: '#1e293b', color: '#FFD700' },
+  'Entregado': { bg: '#1e293b', color: '#4ade80' },
+  'Cancelado': { bg: '#2d1515', color: '#f87171' }
 };
 
 const Rodeos = () => {
@@ -115,7 +115,7 @@ const Rodeos = () => {
           <p style={{ color: '#6b7280', fontSize: '13px', margin: '6px 0 0 0' }}>Registro de operaciones de extracción de madera</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generateRodeoReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => generateRodeoReport(data)} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <FileText size={15} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
@@ -123,7 +123,7 @@ const Rodeos = () => {
             { label: 'Especie', key: 'especie_principal' }, { label: 'Responsable', key: 'responsable_rodeo' },
             { label: 'Origen', key: 'procedencia' }, { label: 'Destino', key: 'destino_final' },
             { label: 'Estado', key: 'estado_operacion' }
-          ], 'Rodeos')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #2a2f2a', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+          ], 'Rodeos')} style={{ background: '#1f2937', color: '#ccc', border: '1px solid #374151', padding: '9px 14px', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
             <Download size={15} /> Excel
           </button>
           <button onClick={handleNew} style={{ background: '#FFD700', color: '#000', border: 'none', padding: '9px 18px', borderRadius: '8px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '13px' }}>
@@ -136,7 +136,7 @@ const Rodeos = () => {
       <SearchBar placeholder="Buscar por responsable, especie, origen, destino o contrato..." onSearch={setSearch} onFilterChange={setFilters} filters={filterConfigs} />
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#555' }}>
+        <div style={{ textAlign: 'center', padding: '48px', background: '#1f2937', borderRadius: '12px', border: '1px solid #374151', color: '#6b7280' }}>
           {search ? 'Sin resultados para la búsqueda' : 'No hay rodeos registrados'}
         </div>
       ) : (
@@ -145,13 +145,13 @@ const Rodeos = () => {
             <thead>
               <tr style={{ background: '#111827' }}>
                 {['Fecha', 'Vol. (m³)', 'Especie', 'Responsable', 'Origen → Destino', 'Estado', ''].map(h => (
-                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#555', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #374151' }}>{h}</th>
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', color: '#6b7280', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #374151' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map(r => {
-                const badge = estadoBadge[r.estado_operacion] || { bg: '#252525', color: '#888' };
+                const badge = estadoBadge[r.estado_operacion] || { bg: '#1f2937', color: '#9ca3af' };
                 return (
                   <tr key={r.id} style={{ borderBottom: '1px solid #1f2937' }}>
                     <td style={{ padding: '14px 16px' }}>
@@ -163,7 +163,7 @@ const Rodeos = () => {
                     <td style={{ padding: '14px 16px', color: '#FFD700', fontWeight: '600', fontSize: '14px' }}>{r.volumen_total}</td>
                     <td style={{ padding: '14px 16px', color: '#aaa', fontSize: '13px', textTransform: 'capitalize' }}>{r.especie_principal || '—'}</td>
                     <td style={{ padding: '14px 16px', color: '#aaa', fontSize: '13px' }}>{r.responsable_rodeo}</td>
-                    <td style={{ padding: '14px 16px', color: '#888', fontSize: '12px', maxWidth: '200px' }}>
+                    <td style={{ padding: '14px 16px', color: '#9ca3af', fontSize: '12px', maxWidth: '200px' }}>
                       <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {r.procedencia} → {r.destino_final}
                       </div>
@@ -190,17 +190,17 @@ const Rodeos = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
             <div>
               <label style={lbl}>Fecha del Rodeo <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.fecha_rodeo ? '#f87171' : '#252a25'}` }} type="date" value={formData.fecha_rodeo} onChange={set('fecha_rodeo')} disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.fecha_rodeo ? '#f87171' : '#374151'}` }} type="date" value={formData.fecha_rodeo} onChange={set('fecha_rodeo')} disabled={submitting} />
               {formErrors.fecha_rodeo && <p style={errTxt}>{formErrors.fecha_rodeo}</p>}
             </div>
             <div>
               <label style={lbl}>Volumen Total (m³) <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.volumen_total ? '#f87171' : '#252a25'}` }} type="number" min="0" step="0.1" value={formData.volumen_total} onChange={set('volumen_total')} placeholder="Ej: 48.5" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.volumen_total ? '#f87171' : '#374151'}` }} type="number" min="0" step="0.1" value={formData.volumen_total} onChange={set('volumen_total')} placeholder="Ej: 48.5" disabled={submitting} />
               {formErrors.volumen_total && <p style={errTxt}>{formErrors.volumen_total}</p>}
             </div>
             <div>
               <label style={lbl}>Responsable <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.responsable_rodeo ? '#f87171' : '#252a25'}` }} value={formData.responsable_rodeo} onChange={set('responsable_rodeo')} placeholder="Ej: Juan Pablo Suárez" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.responsable_rodeo ? '#f87171' : '#374151'}` }} value={formData.responsable_rodeo} onChange={set('responsable_rodeo')} placeholder="Ej: Juan Pablo Suárez" disabled={submitting} />
               {formErrors.responsable_rodeo && <p style={errTxt}>{formErrors.responsable_rodeo}</p>}
             </div>
             <div>
@@ -209,12 +209,12 @@ const Rodeos = () => {
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Procedencia / Origen <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.procedencia ? '#f87171' : '#252a25'}` }} value={formData.procedencia} onChange={set('procedencia')} placeholder="Ej: Comunidad San Miguel Norte" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.procedencia ? '#f87171' : '#374151'}` }} value={formData.procedencia} onChange={set('procedencia')} placeholder="Ej: Comunidad San Miguel Norte" disabled={submitting} />
               {formErrors.procedencia && <p style={errTxt}>{formErrors.procedencia}</p>}
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Destino Final <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.destino_final ? '#f87171' : '#252a25'}` }} value={formData.destino_final} onChange={set('destino_final')} placeholder="Ej: Aserradero El Pino - Riberalta" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.destino_final ? '#f87171' : '#374151'}` }} value={formData.destino_final} onChange={set('destino_final')} placeholder="Ej: Aserradero El Pino - Riberalta" disabled={submitting} />
               {formErrors.destino_final && <p style={errTxt}>{formErrors.destino_final}</p>}
             </div>
             <div>

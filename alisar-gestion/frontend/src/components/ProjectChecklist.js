@@ -325,7 +325,7 @@ const ProjectChecklist = () => {
                         transition: 'width 0.3s',
                       }} />
                     </div>
-                    <span style={{ color: '#888', fontSize: '12px', minWidth: '42px', textAlign: 'right' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '12px', minWidth: '42px', textAlign: 'right' }}>
                       {done}/{total}
                     </span>
                   </div>

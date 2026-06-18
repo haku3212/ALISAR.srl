@@ -53,8 +53,8 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
       {/* SECCIÓN 1: INFORMACIÓN DEL RODEO                             */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -63,7 +63,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
-            borderBottom: expandedSection === 'rodeo' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'rodeo' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -74,7 +74,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
             🪚 Información del Rodeo
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'rodeo' ? '▼' : '▶'}
           </span>
         </div>
@@ -133,8 +133,8 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
       {/* SECCIÓN 2: ESPECIES Y ORIGEN                                 */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -143,7 +143,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(96,165,250,.12), rgba(96,165,250,.04))',
-            borderBottom: expandedSection === 'especies' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'especies' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -154,7 +154,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#60a5fa' }}>
             🌳 Especies y Origen
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'especies' ? '▼' : '▶'}
           </span>
         </div>
@@ -166,7 +166,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -180,9 +180,9 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer'
@@ -242,8 +242,8 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
       {/* SECCIÓN 3: DESTINO Y LOGÍSTICA                               */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -252,7 +252,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(251,191,36,.12), rgba(251,191,36,.04))',
-            borderBottom: expandedSection === 'destino' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'destino' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -263,7 +263,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fbbf24' }}>
             🚛 Destino y Logística
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'destino' ? '▼' : '▶'}
           </span>
         </div>
@@ -309,7 +309,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -323,9 +323,9 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer'
@@ -346,8 +346,8 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
       {/* SECCIÓN 4: DOCUMENTACIÓN Y PERMISOS                          */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -356,7 +356,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(248,113,113,.12), rgba(248,113,113,.04))',
-            borderBottom: expandedSection === 'documentacion' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'documentacion' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -367,7 +367,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#f87171' }}>
             📋 Documentación y Permisos
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'documentacion' ? '▼' : '▶'}
           </span>
         </div>
@@ -415,7 +415,7 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -430,9 +430,9 @@ const FormRodeoDetallado = ({ formData, onChange, errors = {}, submitting = fals
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   fontFamily: 'inherit',

@@ -180,7 +180,7 @@ const GoogleMapsLocation = ({
               width: '100%',
               padding: '10px 12px',
               borderRadius: '10px',
-              border: '1px solid #333333',
+              border: '1px solid #374151',
               background: '#1f2937',
               color: '#ffffff',
               outline: 'none',
@@ -198,8 +198,8 @@ const GoogleMapsLocation = ({
               top: '100%',
               left: 0,
               right: 0,
-              background: '#252525',
-              border: '1px solid #333333',
+              background: '#1f2937',
+              border: '1px solid #374151',
               borderTop: 'none',
               borderRadius: '0 0 10px 10px',
               maxHeight: '200px',
@@ -215,7 +215,7 @@ const GoogleMapsLocation = ({
                     padding: '10px 12px',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: idx < suggestions.length - 1 ? '1px solid #333333' : 'none',
+                    borderBottom: idx < suggestions.length - 1 ? '1px solid #374151' : 'none',
                     color: '#cccccc',
                     textAlign: 'left',
                     cursor: 'pointer',
@@ -240,7 +240,7 @@ const GoogleMapsLocation = ({
             disabled={disabled}
             style={{
               background: 'transparent',
-              border: '1px solid #333333',
+              border: '1px solid #374151',
               color: '#f87171',
               padding: '10px 12px',
               borderRadius: '10px',
@@ -290,7 +290,7 @@ const GoogleMapsLocation = ({
           fontSize: '12px',
           color: '#999999',
           padding: '4px 8px',
-          background: '#252525',
+          background: '#1f2937',
           borderRadius: '6px',
           marginBottom: '8px'
         }}>
@@ -314,7 +314,7 @@ const GoogleMapsLocation = ({
         }}>
           <div style={{
             background: '#1f2937',
-            border: '1px solid #333333',
+            border: '1px solid #374151',
             borderRadius: '16px',
             padding: '24px',
             width: '100%',
@@ -330,7 +330,7 @@ const GoogleMapsLocation = ({
               alignItems: 'center',
               marginBottom: '16px',
               paddingBottom: '16px',
-              borderBottom: '1px solid #333333'
+              borderBottom: '1px solid #374151'
             }}>
               <h3 style={{
                 margin: 0,
@@ -347,7 +347,7 @@ const GoogleMapsLocation = ({
                 onClick={toggleMapModal}
                 style={{
                   background: 'transparent',
-                  border: '1px solid #333333',
+                  border: '1px solid #374151',
                   color: '#cccccc',
                   width: '32px',
                   height: '32px',
@@ -368,9 +368,9 @@ const GoogleMapsLocation = ({
               style={{
                 width: '100%',
                 height: '400px',
-                background: '#252525',
+                background: '#1f2937',
                 borderRadius: '12px',
-                border: '1px solid #333333',
+                border: '1px solid #374151',
                 marginBottom: '16px',
                 display: 'grid',
                 placeItems: 'center',
@@ -416,8 +416,8 @@ const GoogleMapsLocation = ({
                       width: '100%',
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      border: '1px solid #333333',
-                      background: '#252525',
+                      border: '1px solid #374151',
+                      background: '#1f2937',
                       color: '#FFD700',
                       fontSize: '13px',
                       fontFamily: "'JetBrains Mono', monospace"
@@ -443,8 +443,8 @@ const GoogleMapsLocation = ({
                       width: '100%',
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      border: '1px solid #333333',
-                      background: '#252525',
+                      border: '1px solid #374151',
+                      background: '#1f2937',
                       color: '#FFD700',
                       fontSize: '13px',
                       fontFamily: "'JetBrains Mono', monospace"
@@ -465,7 +465,7 @@ const GoogleMapsLocation = ({
                 style={{
                   background: 'transparent',
                   color: '#cccccc',
-                  border: '1px solid #333333',
+                  border: '1px solid #374151',
                   padding: '10px 20px',
                   borderRadius: '8px',
                   fontWeight: '600',

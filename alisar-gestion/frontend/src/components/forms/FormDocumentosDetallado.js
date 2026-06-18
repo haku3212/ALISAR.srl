@@ -72,8 +72,8 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
       {/* SECCIÓN 1: INFORMACIÓN BÁSICA                                */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -82,7 +82,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
-            borderBottom: expandedSection === 'basico' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'basico' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -93,7 +93,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
             📋 Información Básica
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'basico' ? '▼' : '▶'}
           </span>
         </div>
@@ -105,7 +105,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -120,9 +120,9 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: errors.tipo_documento ? '1px solid #f87171' : '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: errors.tipo_documento ? '1px solid #f87171' : '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   cursor: 'pointer',
@@ -179,8 +179,8 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
       {/* SECCIÓN 2: FECHAS Y VALIDEZ                                  */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -189,7 +189,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(96,165,250,.12), rgba(96,165,250,.04))',
-            borderBottom: expandedSection === 'fechas' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'fechas' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -200,7 +200,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#60a5fa' }}>
             📅 Fechas y Validez
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'fechas' ? '▼' : '▶'}
           </span>
         </div>
@@ -235,7 +235,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
                 gridColumn: '1 / -1',
                 padding: '12px',
                 borderRadius: '8px',
-                background: diasVencimiento < 0 ? '#2a1a1a' : diasVencimiento < 30 ? '#2a2a1a' : '#1a2a1a',
+                background: diasVencimiento < 0 ? '#2d1515' : diasVencimiento < 30 ? '#291a00' : '#1e293b',
                 border: `1px solid ${diasVencimiento < 0 ? '#f87171' : diasVencimiento < 30 ? '#fbbf24' : '#4ade80'}`,
                 color: diasVencimiento < 0 ? '#f87171' : diasVencimiento < 30 ? '#fbbf24' : '#4ade80'
               }}>
@@ -270,8 +270,8 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
       {/* SECCIÓN 3: ASOCIACIÓN                                         */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -280,7 +280,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(251,191,36,.12), rgba(251,191,36,.04))',
-            borderBottom: expandedSection === 'asociacion' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'asociacion' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -291,7 +291,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fbbf24' }}>
             🔗 Asociación
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'asociacion' ? '▼' : '▶'}
           </span>
         </div>
@@ -341,8 +341,8 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
       {/* SECCIÓN 4: DOCUMENTACIÓN                                     */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
+        background: '#1f2937',
+        border: '1px solid #374151',
         borderRadius: '14px',
         overflow: 'hidden'
       }}>
@@ -351,7 +351,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
           style={{
             padding: '14px 16px',
             background: 'linear-gradient(135deg, rgba(248,113,113,.12), rgba(248,113,113,.04))',
-            borderBottom: expandedSection === 'documentacion' ? '1px solid #28342a' : 'none',
+            borderBottom: expandedSection === 'documentacion' ? '1px solid #374151' : 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -362,7 +362,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#f87171' }}>
             📎 Documentación
           </h3>
-          <span style={{ color: '#9aa39a' }}>
+          <span style={{ color: '#9ca3af' }}>
             {expandedSection === 'documentacion' ? '▼' : '▶'}
           </span>
         </div>
@@ -393,7 +393,7 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
               <label style={{
                 display: 'block',
                 marginBottom: '8px',
-                color: '#e7ebe5',
+                color: '#e0e0e0',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
@@ -408,9 +408,9 @@ const FormDocumentosDetallado = ({ formData, onChange, errors = {}, submitting =
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
+                  border: '1px solid #374151',
+                  background: '#111827',
+                  color: '#e0e0e0',
                   outline: 'none',
                   fontSize: '14px',
                   fontFamily: 'inherit',
