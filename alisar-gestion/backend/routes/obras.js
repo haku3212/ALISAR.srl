@@ -15,21 +15,30 @@ const createObrasRoutes = (db, logAudit) => {
   });
 
   router.post('/', verifyToken, async (req, res) => {
-    const { nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones } = req.body;
+    const { nombre, avance, presupuesto, tipo, cliente, descripcion,
+            responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
+            gastos_totales, estado } = req.body;
+
     if (!nombre || avance === undefined || !presupuesto) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
     }
     if (isNaN(avance) || avance < 0 || avance > 100) {
       return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
     }
-    if (isNaN(Number(presupuesto)) || Number(presupuesto) < 0) {
+    const presupNum = parseFloat(String(presupuesto).replace(/[^0-9.]/g, ''));
+    if (isNaN(presupNum) || presupNum < 0) {
       return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
     }
+
     try {
       const result = await db.run(
-        `INSERT INTO obras (nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones]
+        `INSERT INTO obras (nombre, avance, presupuesto, tipo, cliente, descripcion,
+          responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
+          gastos_totales, estado)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [nombre, avance, presupuesto, tipo, cliente, descripcion,
+         responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
+         gastos_totales || 0, estado || 'Planeado']
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'obras', result.lastID, null, req.body);
       res.status(201).json({ status: 'Obra registrada con éxito', id: result.lastID });
@@ -40,23 +49,32 @@ const createObrasRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
-    const { nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones } = req.body;
+    const { nombre, avance, presupuesto, tipo, cliente, descripcion,
+            responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
+            gastos_totales, estado } = req.body;
+
     if (!nombre || avance === undefined || !presupuesto) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
     }
     if (isNaN(avance) || avance < 0 || avance > 100) {
       return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
     }
-    if (isNaN(Number(presupuesto)) || Number(presupuesto) < 0) {
+    const presupNum = parseFloat(String(presupuesto).replace(/[^0-9.]/g, ''));
+    if (isNaN(presupNum) || presupNum < 0) {
       return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
     }
+
     try {
       const anterior = await db.get('SELECT * FROM obras WHERE id = ?', [req.params.id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
-        `UPDATE obras SET nombre = ?, avance = ?, presupuesto = ?, tipo = ?, cliente = ?, descripcion = ?,
-         responsable_tecnico = ?, inicio_planeado = ?, fin_planeado = ?, observaciones = ? WHERE id = ?`,
-        [nombre, avance, presupuesto, tipo, cliente, descripcion, responsable_tecnico, inicio_planeado, fin_planeado, observaciones, req.params.id]
+        `UPDATE obras SET nombre = ?, avance = ?, presupuesto = ?, tipo = ?, cliente = ?,
+          descripcion = ?, responsable_tecnico = ?, inicio_planeado = ?, fin_planeado = ?,
+          observaciones = ?, gastos_totales = ?, estado = ?
+         WHERE id = ?`,
+        [nombre, avance, presupuesto, tipo, cliente, descripcion,
+         responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
+         gastos_totales || 0, estado || 'Planeado', req.params.id]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'obras', req.params.id, anterior, req.body);
       res.json({ status: 'Obra actualizada con éxito' });

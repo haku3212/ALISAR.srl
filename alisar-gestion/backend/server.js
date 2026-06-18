@@ -182,6 +182,8 @@ const { createLogAudit }    = require('./utils/audit');
   await addCol('obras', 'inicio_planeado', 'TEXT');
   await addCol('obras', 'fin_planeado', 'TEXT');
   await addCol('obras', 'observaciones', 'TEXT');
+  await addCol('obras', 'gastos_totales', 'REAL DEFAULT 0');
+  await addCol('obras', 'estado', "TEXT DEFAULT 'Planeado'");
   await addCol('personal', 'email', 'TEXT');
   await addCol('personal', 'departamento', 'TEXT');
   await addCol('personal', 'fecha_ingreso', 'TEXT');
