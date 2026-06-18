@@ -29,7 +29,7 @@ function createWindow() {
       contextIsolation: true,
       sandbox: true
     },
-    icon: path.join(__dirname, 'assets', 'icon.png')
+    ...(process.platform !== 'linux' && { icon: path.join(__dirname, 'assets', 'icon.png') })
   });
 
   // Determinar URL para cargar
@@ -172,18 +172,17 @@ ipcMain.handle('get-app-path', () => {
  */
 app.on('ready', async () => {
   try {
-    // Iniciar backend
-    await startBackend();
-    console.log('Backend iniciado correctamente');
-
-    // Crear ventana principal
-    createWindow();
+    if (isDev) {
+      // En desarrollo el backend ya está corriendo (npm run dev lo levanta)
+      createWindow();
+    } else {
+      await startBackend();
+      console.log('Backend iniciado correctamente');
+      createWindow();
+    }
   } catch (error) {
     console.error('Error durante la inicialización:', error);
-    // Mostrar error y salir
-    setTimeout(() => {
-      app.quit();
-    }, 1000);
+    setTimeout(() => app.quit(), 1000);
   }
 });
 
