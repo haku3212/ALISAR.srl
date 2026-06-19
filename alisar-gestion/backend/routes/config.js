@@ -1,7 +1,7 @@
 const express = require('express');
 const { verifyToken } = require('../middleware/auth');
 
-const createConfigRoutes = (db) => {
+const createConfigRoutes = (db, logAudit) => {
   const router = express.Router();
 
   router.get('/', verifyToken, async (req, res) => {
@@ -26,10 +26,13 @@ const createConfigRoutes = (db) => {
       return res.status(400).json({ msg: 'Campo requerido: valor' });
     }
     try {
+      const anterior = await db.get('SELECT valor FROM config WHERE clave = ?', [clave]);
       await db.run(
         'INSERT INTO config (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizado = CURRENT_TIMESTAMP',
         [clave, valor]
       );
+      const actor = req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema');
+      await logAudit(actor, 'UPDATE', 'config', null, { clave, valor: anterior?.valor }, { clave, valor });
       res.json({ status: 'Configuración actualizada con éxito' });
     } catch (err) {
       console.error('Error:', err);

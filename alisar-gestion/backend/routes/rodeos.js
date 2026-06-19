@@ -24,7 +24,7 @@ const createRodeosRoutes = (db, logAudit) => {
       poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones
     } = req.body;
 
-    if (!fecha_rodeo || !responsable_rodeo || !procedencia || !destino_final) {
+    if (!fecha_rodeo?.toString().trim() || !responsable_rodeo?.trim() || !procedencia?.trim() || !destino_final?.trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: fecha_rodeo, responsable_rodeo, procedencia, destino_final' });
     }
 
@@ -58,6 +58,9 @@ const createRodeosRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
     const {
       fecha_rodeo, volumen_total, responsable_rodeo,
       procedencia, destino_final, especie_principal, otras_especies,
@@ -67,7 +70,7 @@ const createRodeosRoutes = (db, logAudit) => {
       poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones
     } = req.body;
 
-    if (!fecha_rodeo || !responsable_rodeo || !procedencia || !destino_final) {
+    if (!fecha_rodeo?.toString().trim() || !responsable_rodeo?.trim() || !procedencia?.trim() || !destino_final?.trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: fecha_rodeo, responsable_rodeo, procedencia, destino_final' });
     }
 
@@ -78,7 +81,7 @@ const createRodeosRoutes = (db, logAudit) => {
     try {
       const coordsOrigen = ubicacion_origen_coords ? JSON.stringify(ubicacion_origen_coords) : null;
       const coordsDestino = ubicacion_destino_coords ? JSON.stringify(ubicacion_destino_coords) : null;
-      const anterior = await db.get('SELECT * FROM rodeos WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM rodeos WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE rodeos SET
@@ -96,9 +99,9 @@ const createRodeosRoutes = (db, logAudit) => {
           ubicacion_origen, coordsOrigen, ubicacion_destino, coordsDestino,
           fecha_transporte, estado_operacion || 'Activo', lat, lng, descripcion,
           poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones,
-          req.params.id]
+          id]
       );
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'rodeos', req.params.id, anterior, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'rodeos', id, anterior, req.body);
       res.json({ status: 'Rodeo actualizado con éxito' });
     } catch (err) {
       console.error('Error:', err);
@@ -107,11 +110,18 @@ const createRodeosRoutes = (db, logAudit) => {
   });
 
   router.delete('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ msg: 'Solo administradores pueden eliminar registros' });
+    }
+
     try {
-      const anterior = await db.get('SELECT * FROM rodeos WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM rodeos WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
-      await db.run('DELETE FROM rodeos WHERE id = ?', [req.params.id]);
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'rodeos', req.params.id, anterior, null);
+      await db.run('DELETE FROM rodeos WHERE id = ?', [id]);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'rodeos', id, anterior, null);
       res.json({ status: 'Rodeo eliminado con éxito' });
     } catch (err) {
       console.error('Error:', err);

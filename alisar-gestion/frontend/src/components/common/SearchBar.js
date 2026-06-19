@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Filter, ChevronDown } from 'lucide-react';
 
 const SearchBar = ({
@@ -11,18 +11,18 @@ const SearchBar = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
-  const [debounceTimer, setDebounceTimer] = useState(null);
+  const debounceTimer = useRef(null);
 
   useEffect(() => {
-    if (debounceTimer) clearTimeout(debounceTimer);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
     const timer = setTimeout(() => {
       onSearch(searchTerm);
     }, debounceMs);
 
-    setDebounceTimer(timer);
+    debounceTimer.current = timer;
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(debounceTimer.current);
   }, [searchTerm, onSearch, debounceMs]);
 
   const handleFilterChange = (filterId, value) => {

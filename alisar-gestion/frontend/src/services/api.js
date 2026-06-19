@@ -22,14 +22,20 @@ api.interceptors.request.use(
 );
 
 // Interceptor para manejar errores de autenticación
+let logoutInProgress = false;
+
 api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      window.dispatchEvent(new Event('auth:logout'));
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/';
+      if (!logoutInProgress) {
+        logoutInProgress = true;
+        window.dispatchEvent(new Event('auth:logout'));
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+        setTimeout(() => { logoutInProgress = false; }, 2000);
+      }
     }
     return Promise.reject(error);
   }

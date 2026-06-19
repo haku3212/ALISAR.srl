@@ -10,7 +10,17 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
-app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000', credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowed = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
+    if (!origin || origin === 'null' || origin === allowed || allowed === '*') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '5mb' }));
 
 // ─── IMPORTAR RUTAS ───────────────────────────────────────────────────────────
@@ -271,8 +281,8 @@ const { createLogAudit }    = require('./utils/audit');
   app.use('/api/rodeos',     createRodeosRoutes(db, logAudit));
   app.use('/api/documentos', createDocumentosRoutes(db, logAudit));
   app.use('/api/audit',      createAuditRoutes(db));
-  app.use('/api/config',     createConfigRoutes(db));
-  app.use('/api/backup',     createBackupRoutes(db));
+  app.use('/api/config',     createConfigRoutes(db, logAudit));
+  app.use('/api/backup',     createBackupRoutes(db, logAudit));
 
   // ─── INICIAR SERVIDOR ─────────────────────────────────────────────────────
   const PORT = process.env.PORT || 4000;

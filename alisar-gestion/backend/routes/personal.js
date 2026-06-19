@@ -16,7 +16,7 @@ const createPersonalRoutes = (db, logAudit) => {
 
   router.post('/', verifyToken, async (req, res) => {
     const { nombre, cargo, celular, estado, email, departamento, fecha_ingreso, tipo_contrato } = req.body;
-    if (!nombre || !cargo) {
+    if (!nombre?.trim() || !cargo?.trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, cargo' });
     }
     try {
@@ -34,19 +34,22 @@ const createPersonalRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
     const { nombre, cargo, celular, estado, email, departamento, fecha_ingreso, tipo_contrato } = req.body;
-    if (!nombre || !cargo) {
+    if (!nombre?.trim() || !cargo?.trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, cargo' });
     }
     try {
-      const anterior = await db.get('SELECT * FROM personal WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM personal WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE personal SET nombre = ?, cargo = ?, celular = ?, estado = ?, email = ?,
          departamento = ?, fecha_ingreso = ?, tipo_contrato = ? WHERE id = ?`,
-        [nombre, cargo, celular, estado || 'Activo', email, departamento, fecha_ingreso, tipo_contrato, req.params.id]
+        [nombre, cargo, celular, estado || 'Activo', email, departamento, fecha_ingreso, tipo_contrato, id]
       );
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'personal', req.params.id, anterior, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'personal', id, anterior, req.body);
       res.json({ status: 'Personal actualizado con éxito' });
     } catch (err) {
       console.error('Error:', err);
@@ -55,11 +58,18 @@ const createPersonalRoutes = (db, logAudit) => {
   });
 
   router.delete('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ msg: 'Solo administradores pueden eliminar registros' });
+    }
+
     try {
-      const anterior = await db.get('SELECT * FROM personal WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM personal WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
-      await db.run('DELETE FROM personal WHERE id = ?', [req.params.id]);
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'personal', req.params.id, anterior, null);
+      await db.run('DELETE FROM personal WHERE id = ?', [id]);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'personal', id, anterior, null);
       res.json({ status: 'Personal eliminado con éxito' });
     } catch (err) {
       console.error('Error:', err);

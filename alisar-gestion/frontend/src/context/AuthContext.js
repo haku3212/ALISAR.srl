@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useMemo } from 'react';
 import { authService } from '../services/api';
 
 export const AuthContext = createContext();
@@ -39,17 +39,20 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   };
 
+  const isAuthenticated = useMemo(() => {
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 > Date.now();
+    } catch { return false; }
+  }, [token]);
+
   const value = {
     user,
     token,
     loading,
     error,
-    isAuthenticated: !!token && (() => {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.exp * 1000 > Date.now();
-      } catch { return false; }
-    })(),
+    isAuthenticated,
     login,
     logout
   };

@@ -37,11 +37,11 @@ export const generatePDFFromHTML = async (element, filename) => {
     let heightLeft = imgHeight;
     let position = 0;
 
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
     while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
+      position -= pageHeight;
       pdf.addPage();
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
@@ -58,6 +58,7 @@ export const generatePDFFromHTML = async (element, filename) => {
  * Genera un PDF con formato profesional para reportes de Obras
  */
 export const generateObrasReport = (obras) => {
+  if (!obras || obras.length === 0) { alert('No hay datos para generar el reporte'); return; }
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -141,6 +142,7 @@ export const generateObrasReport = (obras) => {
  * Genera un PDF con formato profesional para reportes de Personal
  */
 export const generatePersonalReport = (personal) => {
+  if (!personal || personal.length === 0) { alert('No hay datos para generar el reporte'); return; }
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -211,6 +213,7 @@ export const generatePersonalReport = (personal) => {
  * Genera un PDF con formato profesional para reportes de Maquinaria
  */
 export const generateMaquinariaReport = (maquinaria) => {
+  if (!maquinaria || maquinaria.length === 0) { alert('No hay datos para generar el reporte'); return; }
   const pdf = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
@@ -302,6 +305,7 @@ export const generateMaquinariaReport = (maquinaria) => {
  * Genera un PDF con formato profesional para reportes de Rodeos
  */
 export const generateRodeoReport = (rodeos) => {
+  if (!rodeos || rodeos.length === 0) { alert('No hay datos para generar el reporte'); return; }
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -383,6 +387,7 @@ export const generateRodeoReport = (rodeos) => {
  * Genera un PDF con formato profesional para reportes de Madera
  */
 export const generateMaderaReport = (madera) => {
+  if (!madera || madera.length === 0) { alert('No hay datos para generar el reporte'); return; }
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',

@@ -11,22 +11,27 @@ const ChangeHistory = () => {
   const [filtroTabla, setFiltroTabla] = useState('');
 
   useEffect(() => {
+    let isMounted = true;
+    const fetchLogs = async () => {
+      try {
+        setLoading(true);
+        const response = await dataService.getAuditLogs();
+        if (isMounted) {
+          setLogs(response.data || response || []);
+          setError(null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError('Error al cargar el historial de cambios');
+          console.error(err);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
     fetchLogs();
+    return () => { isMounted = false; };
   }, []);
-
-  const fetchLogs = async () => {
-    try {
-      setLoading(true);
-      const response = await dataService.getAuditLogs();
-      setLogs(response.data || response || []);
-      setError(null);
-    } catch (err) {
-      setError('Error al cargar el historial de cambios');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getActionColor = (accion) => {
     if (!accion) return '#f97316';

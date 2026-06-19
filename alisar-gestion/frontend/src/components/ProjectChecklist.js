@@ -114,7 +114,7 @@ const loadState = () => {
 };
 
 const ProjectChecklist = () => {
-  const [checked, setChecked] = useState(loadState);
+  const [checked, setChecked] = useState(() => loadState());
 
   const toggle = (id) => {
     setChecked(prev => {
@@ -362,7 +362,7 @@ const ProjectChecklist = () => {
                       ) : isTaskDone ? (
                         <CheckSquare size={17} color={phase.color} style={{ flexShrink: 0 }} />
                       ) : (
-                        <Square size={17} color="#444" style={{ flexShrink: 0 }} />
+                        <Square size={17} color="#6b7280" style={{ flexShrink: 0 }} />
                       )}
                       <span style={{
                         fontSize: '13px',

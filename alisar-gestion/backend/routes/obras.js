@@ -19,7 +19,7 @@ const createObrasRoutes = (db, logAudit) => {
             responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
             gastos_totales, estado } = req.body;
 
-    if (!nombre || avance === undefined || !presupuesto) {
+    if (!nombre?.trim() || avance === undefined || !presupuesto?.toString().trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
     }
     if (isNaN(avance) || avance < 0 || avance > 100) {
@@ -49,11 +49,14 @@ const createObrasRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
     const { nombre, avance, presupuesto, tipo, cliente, descripcion,
             responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
             gastos_totales, estado } = req.body;
 
-    if (!nombre || avance === undefined || !presupuesto) {
+    if (!nombre?.trim() || avance === undefined || !presupuesto?.toString().trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
     }
     if (isNaN(avance) || avance < 0 || avance > 100) {
@@ -65,7 +68,7 @@ const createObrasRoutes = (db, logAudit) => {
     }
 
     try {
-      const anterior = await db.get('SELECT * FROM obras WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM obras WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE obras SET nombre = ?, avance = ?, presupuesto = ?, tipo = ?, cliente = ?,
@@ -74,9 +77,9 @@ const createObrasRoutes = (db, logAudit) => {
          WHERE id = ?`,
         [nombre, avance, presupuesto, tipo, cliente, descripcion,
          responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
-         gastos_totales || 0, estado || 'Planeado', req.params.id]
+         gastos_totales || 0, estado || 'Planeado', id]
       );
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'obras', req.params.id, anterior, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'obras', id, anterior, req.body);
       res.json({ status: 'Obra actualizada con éxito' });
     } catch (err) {
       console.error('Error:', err);
@@ -85,11 +88,18 @@ const createObrasRoutes = (db, logAudit) => {
   });
 
   router.delete('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ msg: 'Solo administradores pueden eliminar registros' });
+    }
+
     try {
-      const anterior = await db.get('SELECT * FROM obras WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM obras WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
-      await db.run('DELETE FROM obras WHERE id = ?', [req.params.id]);
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'obras', req.params.id, anterior, null);
+      await db.run('DELETE FROM obras WHERE id = ?', [id]);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'obras', id, anterior, null);
       res.json({ status: 'Obra eliminada con éxito' });
     } catch (err) {
       console.error('Error:', err);

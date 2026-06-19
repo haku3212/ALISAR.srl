@@ -16,7 +16,7 @@ const createMaquinariaRoutes = (db, logAudit) => {
 
   router.post('/', verifyToken, async (req, res) => {
     const { nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado } = req.body;
-    if (!nombre || !tipo) {
+    if (!nombre?.trim() || !tipo?.trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
     }
     try {
@@ -34,19 +34,22 @@ const createMaquinariaRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
     const { nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado } = req.body;
-    if (!nombre || !tipo) {
+    if (!nombre?.trim() || !tipo?.trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
     }
     try {
-      const anterior = await db.get('SELECT * FROM maquinaria WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM maquinaria WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ?,
          modelo = ?, anio = ?, numero_serie = ?, horas_operacion = ?, operador_asignado = ? WHERE id = ?`,
-        [nombre, tipo, estado || 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado, req.params.id]
+        [nombre, tipo, estado || 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado, id]
       );
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'maquinaria', req.params.id, anterior, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'maquinaria', id, anterior, req.body);
       res.json({ status: 'Maquinaria actualizada con éxito' });
     } catch (err) {
       console.error('Error:', err);
@@ -55,11 +58,18 @@ const createMaquinariaRoutes = (db, logAudit) => {
   });
 
   router.delete('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ msg: 'Solo administradores pueden eliminar registros' });
+    }
+
     try {
-      const anterior = await db.get('SELECT * FROM maquinaria WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM maquinaria WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
-      await db.run('DELETE FROM maquinaria WHERE id = ?', [req.params.id]);
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'maquinaria', req.params.id, anterior, null);
+      await db.run('DELETE FROM maquinaria WHERE id = ?', [id]);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'maquinaria', id, anterior, null);
       res.json({ status: 'Maquinaria eliminada con éxito' });
     } catch (err) {
       console.error('Error:', err);

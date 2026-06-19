@@ -16,7 +16,7 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
       setData(response.data || []);
       setError(null);
     } catch (err) {
-      const msg = err.response?.data?.msg || 'Error al cargar datos';
+      const msg = err.response?.data?.msg || err.response?.data?.error || 'Error desconocido';
       setError(msg);
       showError(msg);
     } finally {
@@ -35,7 +35,7 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
       showSuccess('Registrado correctamente');
       return true;
     } catch (err) {
-      const msg = err.response?.data?.msg || 'Error al crear';
+      const msg = err.response?.data?.msg || err.response?.data?.error || 'Error desconocido';
       showError(msg);
       return false;
     }
@@ -49,7 +49,7 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
       setEditingId(null);
       return true;
     } catch (err) {
-      const msg = err.response?.data?.msg || 'Error al actualizar';
+      const msg = err.response?.data?.msg || err.response?.data?.error || 'Error desconocido';
       showError(msg);
       return false;
     }

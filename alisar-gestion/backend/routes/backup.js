@@ -18,7 +18,7 @@ const ALLOWED_COLUMNS = {
                'referencia_archivo', 'url_documento', 'descripcion', 'observaciones', 'estado']
 };
 
-const createBackupRoutes = (db) => {
+const createBackupRoutes = (db, logAudit) => {
   const router = express.Router();
 
   router.get('/', verifyToken, async (req, res) => {
@@ -70,6 +70,8 @@ const createBackupRoutes = (db) => {
         }
       }
       await db.run('COMMIT');
+      const actor = req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema');
+      await logAudit(actor, 'RESTORE_BACKUP', 'backup', null, null, { tablas: restorableTables });
       res.json({ message: 'Datos restaurados correctamente' });
     } catch (err) {
       await db.run('ROLLBACK').catch(() => {});

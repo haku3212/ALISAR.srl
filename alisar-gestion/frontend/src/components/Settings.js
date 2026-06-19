@@ -17,6 +17,11 @@ const sectionStyle = {
 const Settings = () => {
   const { showSuccess, showError } = useToast();
   const fileInputRef = useRef(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,13 +59,15 @@ const Settings = () => {
     try {
       setLoading(true);
       const response = await dataService.getConfig();
-      setConfig(response.data || response || {});
-      setError(null);
+      if (isMountedRef.current) {
+        setConfig(response.data || response || {});
+        setError(null);
+      }
     } catch (err) {
-      setError('Error al cargar la configuración');
+      if (isMountedRef.current) setError('Error al cargar la configuración');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 
@@ -135,12 +142,12 @@ const Settings = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showSuccess('Respaldo exportado correctamente');
+      if (isMountedRef.current) showSuccess('Respaldo exportado correctamente');
     } catch (err) {
-      showError('Error al generar el respaldo');
+      if (isMountedRef.current) showError('Error al generar el respaldo');
       console.error(err);
     } finally {
-      setBackingUp(false);
+      if (isMountedRef.current) setBackingUp(false);
     }
   };
 
@@ -164,13 +171,15 @@ const Settings = () => {
         return;
       }
       await dataService.restoreBackup(backup.datos);
-      showSuccess('Datos restaurados correctamente. Recarga la aplicación.');
+      if (isMountedRef.current) showSuccess('Datos restaurados correctamente. Recarga la aplicación.');
     } catch (err) {
-      showError('Error al restaurar el respaldo');
+      if (isMountedRef.current) showError('Error al restaurar el respaldo');
       console.error(err);
     } finally {
-      setRestoring(false);
-      fileInputRef.current.value = '';
+      if (isMountedRef.current) {
+        setRestoring(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
     }
   };
 

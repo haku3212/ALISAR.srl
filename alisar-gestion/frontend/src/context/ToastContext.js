@@ -5,13 +5,14 @@ export const ToastContext = createContext();
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
   const timerRefs = useRef({});
+  const counterRef = useRef(0);
 
   const removeToast = useCallback((id) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
 
   const addToast = useCallback((message, type = 'success', duration = 3000) => {
-    const id = Date.now();
+    const id = ++counterRef.current;
     const toast = { id, message, type };
 
     setToasts(prev => [...prev, toast]);

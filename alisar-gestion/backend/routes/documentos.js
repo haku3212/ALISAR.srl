@@ -23,7 +23,7 @@ const createDocumentosRoutes = (db, logAudit) => {
       referencia_archivo, url_documento, descripcion, observaciones
     } = req.body;
 
-    if (!tipo_documento || !numero_documento || !entidad_emisora || !fecha_emision || !fecha_vencimiento) {
+    if (!tipo_documento?.trim() || !numero_documento?.trim() || !entidad_emisora?.trim() || !fecha_emision?.toString().trim() || !fecha_vencimiento?.toString().trim()) {
       return res.status(400).json({
         msg: 'Campos requeridos: tipo_documento, numero_documento, entidad_emisora, fecha_emision, fecha_vencimiento'
       });
@@ -67,6 +67,9 @@ const createDocumentosRoutes = (db, logAudit) => {
   });
 
   router.put('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
     const {
       tipo_documento, numero_documento, entidad_emisora,
       responsable, fecha_emision, fecha_vencimiento,
@@ -75,7 +78,7 @@ const createDocumentosRoutes = (db, logAudit) => {
       referencia_archivo, url_documento, descripcion, observaciones
     } = req.body;
 
-    if (!tipo_documento || !numero_documento || !entidad_emisora || !fecha_emision || !fecha_vencimiento) {
+    if (!tipo_documento?.trim() || !numero_documento?.trim() || !entidad_emisora?.trim() || !fecha_emision?.toString().trim() || !fecha_vencimiento?.toString().trim()) {
       return res.status(400).json({
         msg: 'Campos requeridos: tipo_documento, numero_documento, entidad_emisora, fecha_emision, fecha_vencimiento'
       });
@@ -98,7 +101,7 @@ const createDocumentosRoutes = (db, logAudit) => {
       if (diasRestantes < 0) estado = 'Vencido';
       else if (diasRestantes <= 30) estado = 'Por vencer';
 
-      const anterior = await db.get('SELECT * FROM documentos WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM documentos WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE documentos SET
@@ -113,9 +116,9 @@ const createDocumentosRoutes = (db, logAudit) => {
           fecha_emision, fecha_vencimiento, periodo_validez, asociado_rodeo,
           asociado_proyecto, asociado_maquinaria, asociado_campamento,
           referencia_archivo, url_documento, descripcion, observaciones, estado,
-          req.params.id]
+          id]
       );
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'documentos', req.params.id, anterior, req.body);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'documentos', id, anterior, req.body);
       res.json({ status: 'Documento actualizado con éxito' });
     } catch (err) {
       console.error('Error:', err);
@@ -124,11 +127,18 @@ const createDocumentosRoutes = (db, logAudit) => {
   });
 
   router.delete('/:id', verifyToken, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
+
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ msg: 'Solo administradores pueden eliminar registros' });
+    }
+
     try {
-      const anterior = await db.get('SELECT * FROM documentos WHERE id = ?', [req.params.id]);
+      const anterior = await db.get('SELECT * FROM documentos WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
-      await db.run('DELETE FROM documentos WHERE id = ?', [req.params.id]);
-      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'documentos', req.params.id, anterior, null);
+      await db.run('DELETE FROM documentos WHERE id = ?', [id]);
+      await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'DELETE', 'documentos', id, anterior, null);
       res.json({ status: 'Documento eliminado con éxito' });
     } catch (err) {
       console.error('Error:', err);

@@ -25,13 +25,13 @@ exports.createLoginController = (db) => {
       jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' }, (err, token) => {
         if (err) {
           console.error('Error al firmar JWT:', err);
-          return res.status(500).json({ error: 'Error al generar token' });
+          return res.status(500).json({ msg: 'Error al generar token' });
         }
         res.json({ token, user: { nombre: user.nombre, rol: user.rol } });
       });
     } catch (err) {
       console.error('Error en login:', err);
-      res.status(500).json({ error: 'Error en el servidor' });
+      res.status(500).json({ msg: 'Error en el servidor' });
     }
   };
 };

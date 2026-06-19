@@ -6,7 +6,8 @@ const createPasswordRoutes = (db, logAudit) => {
   const router = express.Router();
 
   router.put('/change-password', verifyToken, async (req, res) => {
-    const { currentPassword, newPassword } = req.body;
+    const currentPassword = req.body.currentPassword;
+    const newPassword = req.body.newPassword?.trim();
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Contraseña actual y nueva son requeridas' });
     }
