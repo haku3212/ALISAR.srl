@@ -31,7 +31,9 @@ const estadoBadge = {
 };
 
 const Maquinaria = () => {
-  const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
+  // useCRUD exporta requestDelete/confirmDelete/cancelDelete — NO "delete" directamente
+  const { data, loading, error, editingId, setEditingId, create, update,
+          requestDelete, confirmDelete, cancelDelete, pendingDeleteId } = useCRUD(
     dataService.getMaquinaria, dataService.createMaquinaria, dataService.updateMaquinaria, dataService.deleteMaquinaria
   );
   const [showModal, setShowModal] = useState(false);
@@ -152,7 +154,7 @@ const Maquinaria = () => {
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button onClick={() => handleEdit(m)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer', padding: '2px' }}><Edit2 size={16} /></button>
-                        <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', padding: '2px' }}><Trash2 size={16} /></button>
+                        <button onClick={() => requestDelete(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', padding: '2px' }}><Trash2 size={16} /></button>
                       </div>
                     </td>
                   </tr>
@@ -162,6 +164,17 @@ const Maquinaria = () => {
           </table>
         </div>
       )}
+
+      {/* Modal de confirmación — pendingDeleteId es seteado por requestDelete */}
+      <Modal isOpen={!!pendingDeleteId} onClose={cancelDelete} title="Confirmar Eliminación">
+        <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
+          <p style={{ color: '#e0e0e0', marginBottom: '24px' }}>¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.</p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <button onClick={cancelDelete} style={{ background: '#374151', color: '#e0e0e0', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>Cancelar</button>
+            <button onClick={confirmDelete} style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>Eliminar</button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal isOpen={showModal} onClose={handleClose} title={editingId ? 'Editar Maquinaria' : 'Nuevo Equipo'}>
         <form onSubmit={handleSubmit}>
