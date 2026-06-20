@@ -116,12 +116,15 @@ const Settings = () => {
         await Promise.all(
           Object.entries(defaults).map(([k, v]) => dataService.updateConfig(k, v))
         );
-        setConfig(defaults);
-        showSuccess('Configuración restaurada');
+        // Guard isMountedRef — el usuario puede navegar mientras espera el reset
+        if (isMountedRef.current) {
+          setConfig(defaults);
+          showSuccess('Configuración restaurada');
+        }
       } catch (err) {
-        showError('Error al restaurar configuración');
+        if (isMountedRef.current) showError('Error al restaurar configuración');
       } finally {
-        setSaving(false);
+        if (isMountedRef.current) setSaving(false);
       }
     }
   };
