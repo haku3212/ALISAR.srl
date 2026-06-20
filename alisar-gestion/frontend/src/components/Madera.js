@@ -72,9 +72,9 @@ const Madera = () => {
     if (!validate()) return;
     try {
       setSubmitting(true);
-      editingId ? await update(editingId, formData) : await create(formData);
-      setFormData(EMPTY);
-      setShowModal(false);
+      const ok = editingId ? await update(editingId, formData) : await create(formData);
+      // Solo cerrar el modal si la operación tuvo éxito — si falló, el toast ya mostró el error
+      if (ok) { setFormData(EMPTY); setShowModal(false); }
     } finally {
       setSubmitting(false);
     }

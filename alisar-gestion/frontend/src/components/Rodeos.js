@@ -93,9 +93,8 @@ const Rodeos = () => {
     try {
       setSubmitting(true);
       const payload = { ...formData };
-      editingId ? await update(editingId, payload) : await create(payload);
-      setFormData(EMPTY);
-      setShowModal(false);
+      const ok = editingId ? await update(editingId, payload) : await create(payload);
+      if (ok) { setFormData(EMPTY); setShowModal(false); }
     } finally {
       setSubmitting(false);
     }

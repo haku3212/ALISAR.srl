@@ -80,9 +80,8 @@ const Personal = () => {
     if (!validate()) return;
     try {
       setSubmitting(true);
-      editingId ? await update(editingId, formData) : await create(formData);
-      setFormData(EMPTY);
-      setShowModal(false);
+      const ok = editingId ? await update(editingId, formData) : await create(formData);
+      if (ok) { setFormData(EMPTY); setShowModal(false); }
     } finally {
       setSubmitting(false);
     }

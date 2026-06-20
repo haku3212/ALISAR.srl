@@ -5,7 +5,7 @@ const { verifyToken } = require('../middleware/auth');
 const ALLOWED_COLUMNS = {
   personal:   ['nombre', 'cargo', 'celular', 'estado', 'email', 'departamento', 'fecha_ingreso', 'tipo_contrato'],
   maquinaria: ['nombre', 'tipo', 'estado', 'ultimaRevision', 'modelo', 'anio', 'numero_serie', 'horas_operacion', 'operador_asignado'],
-  obras:      ['nombre', 'avance', 'presupuesto', 'tipo', 'cliente', 'descripcion', 'responsable_tecnico', 'inicio_planeado', 'fin_planeado', 'observaciones'],
+  obras:      ['nombre', 'avance', 'presupuesto', 'tipo', 'cliente', 'descripcion', 'responsable_tecnico', 'inicio_planeado', 'fin_planeado', 'observaciones', 'gastos_totales', 'estado'],
   madera:     ['especie', 'piezas', 'volumen', 'campamento', 'procedencia', 'destino', 'tipo_corte'],
   rodeos:     ['fecha_rodeo', 'volumen_total', 'responsable_rodeo', 'procedencia',
                'destino_final', 'especie_principal', 'otras_especies', 'contrato_asociado',

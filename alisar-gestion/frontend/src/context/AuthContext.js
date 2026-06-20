@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { authService } from '../services/api';
 
 export const AuthContext = createContext();
@@ -42,21 +42,31 @@ export const AuthProvider = ({ children }) => {
   // Escucha el evento que dispara el interceptor 401 de api.js para limpiar el estado React
   // (localStorage ya fue limpiado en el interceptor; aquí reseteamos el estado en memoria)
   useEffect(() => {
-    const handleForceLogout = () => {
-      setUser(null);
-      setToken(null);
-    };
+    const handleForceLogout = () => { setUser(null); setToken(null); };
     window.addEventListener('auth:logout', handleForceLogout);
     return () => window.removeEventListener('auth:logout', handleForceLogout);
   }, []);
 
-  const isAuthenticated = useMemo(() => {
+  // Timer que limpia el token exactamente al expirar — evita que isAuthenticated quede stale
+  useEffect(() => {
+    if (!token) return;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const msUntilExpiry = payload.exp * 1000 - Date.now();
+      if (msUntilExpiry <= 0) { setToken(null); setUser(null); return; }
+      const timer = setTimeout(() => { setToken(null); setUser(null); }, msUntilExpiry);
+      return () => clearTimeout(timer);
+    } catch { /* token malformado — el interceptor 401 lo manejará en la próxima petición */ }
+  }, [token]);
+
+  // Calculado en cada render (sin useMemo) para que Date.now() sea siempre fresco
+  const isAuthenticated = (() => {
     if (!token) return false;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.exp * 1000 > Date.now();
     } catch { return false; }
-  }, [token]);
+  })();
 
   const value = {
     user,

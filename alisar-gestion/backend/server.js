@@ -13,7 +13,9 @@ const app = express();
 app.use(cors({
   origin: (origin, callback) => {
     const allowed = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
-    if (!origin || origin === 'null' || origin === allowed || allowed === '*') {
+    // 'null' origin (file:// o iframe sandbox) solo se permite en desarrollo para Electron dev-mode
+    const allowNull = process.env.NODE_ENV === 'development' || process.env.ALLOW_NULL_ORIGIN === 'true';
+    if (!origin || (origin === 'null' && allowNull) || origin === allowed || allowed === '*') {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -165,7 +167,10 @@ const { createLogAudit }    = require('./utils/audit');
 
   // Migración: agrega columnas nuevas a tablas existentes (ignora si ya existen)
   const addCol = async (table, col, def) => {
-    try { await db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`); } catch (_) {}
+    try { await db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`); } catch (err) {
+      // Solo ignorar "duplicate column name" — cualquier otro error es un problema real de schema
+      if (!err.message?.includes('duplicate column name')) throw err;
+    }
   };
   await addCol('rodeos', 'otras_especies', 'TEXT');
   await addCol('rodeos', 'contrato_asociado', 'TEXT');
@@ -224,7 +229,7 @@ const { createLogAudit }    = require('./utils/audit');
 
   const seeds = {
     users: [
-      `INSERT INTO users (nombre, usuario, password, rol) VALUES ('Administrador', 'admin', '${adminHash}', 'admin')`
+      { sql: 'INSERT INTO users (nombre, usuario, password, rol) VALUES (?, ?, ?, ?)', params: ['Administrador', 'admin', adminHash, 'admin'] }
     ],
     personal: [
       "INSERT INTO personal (nombre, cargo, celular) VALUES ('Carlos Mendoza', 'Operador de Motoniveladora', '78231456')",
@@ -267,7 +272,10 @@ const { createLogAudit }    = require('./utils/audit');
   for (const [tabla, inserts] of Object.entries(seeds)) {
     const { total } = await db.get(`SELECT COUNT(*) as total FROM ${tabla}`);
     if (total === 0) {
-      for (const sql of inserts) await db.run(sql);
+      for (const item of inserts) {
+        // Los seeds pueden ser strings SQL o objetos { sql, params } para queries parametrizadas
+        typeof item === 'string' ? await db.run(item) : await db.run(item.sql, item.params);
+      }
       console.log(`🌱 Datos de ${tabla} inicializados.`);
     }
   }

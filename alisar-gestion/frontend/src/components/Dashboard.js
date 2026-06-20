@@ -25,6 +25,7 @@ const Dashboard = ({ content }) => {
   const [maintenanceNeeded, setMaintenanceNeeded] = useState([]);
   const [personalByRole, setPersonalByRole] = useState([]);
   const [pieData, setPieData] = useState([]);
+  const [fetchError, setFetchError] = useState(null);
   const [docsPorVencer, setDocsPorVencer] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -110,6 +111,7 @@ const Dashboard = ({ content }) => {
         setPersonalByRole(roleData);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
+        if (isMounted) setFetchError('Error al cargar los datos. Verifica la conexión e intenta de nuevo.');
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -304,6 +306,15 @@ const Dashboard = ({ content }) => {
           <FileText size={18} /> Generar Reporte
         </button>
       </div>
+
+      {/* Error de carga — visible si algún endpoint falló */}
+      {fetchError && (
+        <div style={{ background: '#2d1515', border: '1px solid #f87171', borderRadius: '12px', padding: '16px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <AlertCircle size={20} color="#f87171" style={{ flexShrink: 0 }} />
+          <span style={{ color: '#f87171', fontSize: '14px' }}>{fetchError}</span>
+          <button onClick={() => window.location.reload()} style={{ marginLeft: 'auto', background: '#f87171', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>Reintentar</button>
+        </div>
+      )}
 
       {/* Tarjetas de estadísticas */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
