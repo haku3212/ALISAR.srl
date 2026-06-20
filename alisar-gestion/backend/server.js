@@ -214,7 +214,12 @@ const { createLogAudit }    = require('./utils/audit');
 
   // Datos semilla — solo si las tablas están vacías
   const bcrypt = require('bcryptjs');
+  // ADVERTENCIA: si ADMIN_PASSWORD no está definido en .env, la cuenta admin usa 'admin123'
+  // Configura ADMIN_PASSWORD en producción antes del primer despliegue
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  if (!process.env.ADMIN_PASSWORD) {
+    console.warn('⚠️  ADMIN_PASSWORD no configurado — usando contraseña por defecto. Cambiala en .env antes de producción.');
+  }
   const adminHash = await bcrypt.hash(adminPassword, 12);
 
   const seeds = {

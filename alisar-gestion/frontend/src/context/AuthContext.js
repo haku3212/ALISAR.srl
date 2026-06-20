@@ -39,6 +39,17 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   };
 
+  // Escucha el evento que dispara el interceptor 401 de api.js para limpiar el estado React
+  // (localStorage ya fue limpiado en el interceptor; aquí reseteamos el estado en memoria)
+  useEffect(() => {
+    const handleForceLogout = () => {
+      setUser(null);
+      setToken(null);
+    };
+    window.addEventListener('auth:logout', handleForceLogout);
+    return () => window.removeEventListener('auth:logout', handleForceLogout);
+  }, []);
+
   const isAuthenticated = useMemo(() => {
     if (!token) return false;
     try {

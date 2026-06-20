@@ -36,7 +36,9 @@ const EMPTY = {
 };
 
 const Obras = () => {
-  const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
+  // useCRUD exporta requestDelete/confirmDelete/cancelDelete — NO "delete" directamente
+  const { data, loading, error, editingId, setEditingId, create, update,
+          requestDelete, confirmDelete, cancelDelete, pendingDeleteId } = useCRUD(
     dataService.getObras, dataService.createObra, dataService.updateObra, dataService.deleteObra
   );
   const [showModal, setShowModal] = useState(false);
@@ -214,7 +216,7 @@ const Obras = () => {
                   onMouseEnter={e => e.currentTarget.style.background = '#1e3a5f'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 ><Edit2 size={15} /></button>
-                <button onClick={() => deleteItem(obra.id)}
+                <button onClick={() => requestDelete(obra.id)}
                   style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', padding: '6px', borderRadius: '6px', lineHeight: 0 }}
                   onMouseEnter={e => e.currentTarget.style.background = '#2d1515'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -239,6 +241,25 @@ const Obras = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de confirmación de eliminación — pendingDeleteId es seteado por requestDelete */}
+      <Modal isOpen={!!pendingDeleteId} onClose={cancelDelete} title="Confirmar Eliminación">
+        <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
+          <p style={{ color: '#e0e0e0', marginBottom: '24px' }}>
+            ¿Estás seguro de que deseas eliminar esta obra? Esta acción no se puede deshacer.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <button onClick={cancelDelete}
+              style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #374151', background: 'transparent', color: '#9ca3af', cursor: 'pointer', fontWeight: '600' }}>
+              Cancelar
+            </button>
+            <button onClick={confirmDelete}
+              style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#f87171', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Form Modal */}
       <Modal isOpen={showModal} onClose={handleClose} title={editingId ? 'Editar Obra' : 'Nueva Obra'}>

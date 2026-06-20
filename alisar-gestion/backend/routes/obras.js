@@ -25,6 +25,7 @@ const createObrasRoutes = (db, logAudit) => {
     if (isNaN(avance) || avance < 0 || avance > 100) {
       return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
     }
+    // presupNum se usa tanto para validar como para guardar — evita almacenar strings con letras o formatos inválidos
     const presupNum = parseFloat(String(presupuesto).replace(/[^0-9.]/g, ''));
     if (isNaN(presupNum) || presupNum < 0) {
       return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
@@ -36,7 +37,8 @@ const createObrasRoutes = (db, logAudit) => {
           responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
           gastos_totales, estado)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [nombre, avance, presupuesto, tipo, cliente, descripcion,
+        // Guardamos String(presupNum) — número limpio sin unidades ni formatos del usuario
+        [nombre, avance, String(presupNum), tipo, cliente, descripcion,
          responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
          gastos_totales || 0, estado || 'Planeado']
       );
@@ -62,6 +64,7 @@ const createObrasRoutes = (db, logAudit) => {
     if (isNaN(avance) || avance < 0 || avance > 100) {
       return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
     }
+    // Misma lógica que POST: valida y guarda el número limpio
     const presupNum = parseFloat(String(presupuesto).replace(/[^0-9.]/g, ''));
     if (isNaN(presupNum) || presupNum < 0) {
       return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
@@ -75,7 +78,8 @@ const createObrasRoutes = (db, logAudit) => {
           descripcion = ?, responsable_tecnico = ?, inicio_planeado = ?, fin_planeado = ?,
           observaciones = ?, gastos_totales = ?, estado = ?
          WHERE id = ?`,
-        [nombre, avance, presupuesto, tipo, cliente, descripcion,
+        // Guardamos String(presupNum) — igual que en POST para consistencia
+        [nombre, avance, String(presupNum), tipo, cliente, descripcion,
          responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
          gastos_totales || 0, estado || 'Planeado', id]
       );
@@ -91,6 +95,7 @@ const createObrasRoutes = (db, logAudit) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
 
+    // Solo administradores pueden eliminar — los residentes solo pueden crear/editar
     if (req.user?.rol !== 'admin') {
       return res.status(403).json({ msg: 'Solo administradores pueden eliminar registros' });
     }

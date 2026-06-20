@@ -45,10 +45,11 @@ const Settings = () => {
     confirmPassword: ''
   });
   const [passwordErrors, setPasswordErrors] = useState({});
+  // Las claves deben coincidir EXACTAMENTE con las de passwordForm para que onChange funcione
   const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false
   });
 
   useEffect(() => {
@@ -424,21 +425,22 @@ const Settings = () => {
             <p style={{ color: '#6b7280', fontSize: '13px', margin: '0 0 20px 0' }}>
               Mínimo 8 caracteres, una mayúscula, una minúscula y un número.
             </p>
+            {/* field DEBE coincidir con la clave en passwordForm para que onChange actualice el estado correcto */}
             <PasswordField
               label="Contraseña Actual"
-              field="current"
+              field="currentPassword"
               value={passwordForm.currentPassword}
               error={passwordErrors.currentPassword}
             />
             <PasswordField
               label="Nueva Contraseña"
-              field="new"
+              field="newPassword"
               value={passwordForm.newPassword}
               error={passwordErrors.newPassword}
             />
             <PasswordField
               label="Confirmar Nueva Contraseña"
-              field="confirm"
+              field="confirmPassword"
               value={passwordForm.confirmPassword}
               error={passwordErrors.confirmPassword}
             />

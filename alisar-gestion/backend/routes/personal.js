@@ -33,6 +33,8 @@ const createPersonalRoutes = (db, logAudit) => {
     }
   });
 
+  // PUT permite a todos los usuarios autenticados (incluido 'residente') editar registros.
+  // Solo DELETE está restringido a admin — los residentes necesitan poder actualizar datos del día a día.
   router.put('/:id', verifyToken, async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });

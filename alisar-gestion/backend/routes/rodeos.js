@@ -46,7 +46,8 @@ const createRodeosRoutes = (db, logAudit) => {
         [fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
           especie_principal, otras_especies, contrato_asociado,
           ubicacion_origen, coordsOrigen, ubicacion_destino, coordsDestino,
-          fecha_transporte, estado_operacion || 'Activo', lat, lng, descripcion,
+                    // ?? en lugar de || para permitir limpiar el campo enviando string vacío
+          fecha_transporte, estado_operacion ?? 'Activo', lat, lng, descripcion,
           poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'rodeos', result.lastID, null, req.body);
@@ -97,7 +98,8 @@ const createRodeosRoutes = (db, logAudit) => {
         [fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
           especie_principal, otras_especies, contrato_asociado,
           ubicacion_origen, coordsOrigen, ubicacion_destino, coordsDestino,
-          fecha_transporte, estado_operacion || 'Activo', lat, lng, descripcion,
+                    // ?? en lugar de || para permitir limpiar el campo enviando string vacío
+          fecha_transporte, estado_operacion ?? 'Activo', lat, lng, descripcion,
           poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones,
           id]
       );

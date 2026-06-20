@@ -33,6 +33,7 @@ const createMaquinariaRoutes = (db, logAudit) => {
     }
   });
 
+  // PUT permite a todos los autenticados editar — DELETE solo admin. Ver personal.js para más detalle.
   router.put('/:id', verifyToken, async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });

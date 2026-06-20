@@ -72,7 +72,9 @@ const createBackupRoutes = (db, logAudit) => {
       await db.run('COMMIT');
       const actor = req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema');
       await logAudit(actor, 'RESTORE_BACKUP', 'backup', null, null, { tablas: restorableTables });
-      res.json({ message: 'Datos restaurados correctamente' });
+      // config se excluye del restore intencionalmente — parámetros como moneda e idioma
+      // son de la instalación actual y no deberían sobrescribirse con datos de otro entorno
+      res.json({ message: 'Datos restaurados correctamente', config_skipped: true });
     } catch (err) {
       await db.run('ROLLBACK').catch(() => {});
       console.error('Error al restaurar backup:', err);

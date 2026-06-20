@@ -22,7 +22,8 @@ const createConfigRoutes = (db, logAudit) => {
     if (req.user?.rol !== 'admin') return res.status(403).json({ msg: 'Acceso denegado' });
     const ALLOWED_KEYS = ['empresa_nombre', 'empresa_ubicacion', 'empresa_moneda', 'empresa_idioma', 'tema_modo'];
     if (!ALLOWED_KEYS.includes(clave)) return res.status(400).json({ msg: 'Clave no permitida' });
-    if (valor === undefined || valor === null) {
+    // Rechazamos null, undefined Y string vacío para evitar blanquear el nombre de empresa via API directa
+    if (valor === undefined || valor === null || String(valor).trim() === '') {
       return res.status(400).json({ msg: 'Campo requerido: valor' });
     }
     try {

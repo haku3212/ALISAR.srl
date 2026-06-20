@@ -29,9 +29,13 @@ const Dashboard = ({ content }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Flag isMounted para evitar setState sobre componente desmontado si el usuario navega antes de que resuelvan las promesas
+    let isMounted = true;
+
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+        // Todas las peticiones en paralelo para reducir tiempo de carga
         const [obraRes, maquinariaRes, personalRes, maderaRes, docsRes] = await Promise.all([
           dataService.getObras(),
           dataService.getMaquinaria(),
@@ -39,6 +43,9 @@ const Dashboard = ({ content }) => {
           dataService.getMadera(),
           dataService.getDocumentos()
         ]);
+
+        // Si el componente se desmontó mientras esperábamos, no actualizamos estado
+        if (!isMounted) return;
 
         const obras = obraRes.data || [];
         const maquinaria = maquinariaRes.data || [];
@@ -104,11 +111,13 @@ const Dashboard = ({ content }) => {
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchDashboardData();
+    // Cleanup: marca el componente como desmontado al salir
+    return () => { isMounted = false; };
   }, []);
 
   const handleLogout = () => {
