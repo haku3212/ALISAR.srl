@@ -5,6 +5,7 @@ const createAuditRoutes = (db) => {
   const router = express.Router();
 
   router.get('/', verifyToken, async (req, res) => {
+    if (req.user?.rol !== 'admin') return res.status(403).json({ msg: 'Acceso denegado' });
     try {
       const { modulo } = req.query;
       const parsedLimit = parseInt(req.query.limit);

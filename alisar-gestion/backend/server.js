@@ -15,7 +15,9 @@ app.use(cors({
     const allowed = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
     // 'null' origin (file:// o iframe sandbox) solo se permite en desarrollo para Electron dev-mode
     const allowNull = process.env.NODE_ENV === 'development' || process.env.ALLOW_NULL_ORIGIN === 'true';
-    if (!origin || (origin === 'null' && allowNull) || origin === allowed || allowed === '*') {
+    // ALLOWED_ORIGIN=* solo se permite en desarrollo — en producción es un riesgo de seguridad
+    const allowWildcard = allowed === '*' && (process.env.NODE_ENV === 'development' || process.env.ALLOW_WILDCARD_ORIGIN === 'true');
+    if (!origin || (origin === 'null' && allowNull) || origin === allowed || allowWildcard) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -223,7 +225,11 @@ const { createLogAudit }    = require('./utils/audit');
   // Configura ADMIN_PASSWORD en producción antes del primer despliegue
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
   if (!process.env.ADMIN_PASSWORD) {
-    console.warn('⚠️  ADMIN_PASSWORD no configurado — usando contraseña por defecto. Cambiala en .env antes de producción.');
+    if (process.env.NODE_ENV === 'production') {
+      console.error('FATAL: ADMIN_PASSWORD no está definido en producción. Configúralo en .env antes de desplegar.');
+      process.exit(1);
+    }
+    console.warn('⚠️  ADMIN_PASSWORD no configurado — usando contraseña por defecto admin123. Cambiala en .env antes de producción.');
   }
   const adminHash = await bcrypt.hash(adminPassword, 12);
 

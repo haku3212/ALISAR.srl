@@ -1,6 +1,14 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { authService } from '../services/api';
 
+// JWT usa base64url (- y _ en vez de + y /) sin padding — atob() solo acepta base64 estándar
+const decodeJwtPayload = (token) => {
+  const b64url = token.split('.')[1];
+  const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
+  return JSON.parse(atob(padded));
+};
+
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -51,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (!token) return;
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = decodeJwtPayload(token);
       const msUntilExpiry = payload.exp * 1000 - Date.now();
       if (msUntilExpiry <= 0) { setToken(null); setUser(null); return; }
       const timer = setTimeout(() => { setToken(null); setUser(null); }, msUntilExpiry);
@@ -63,7 +71,7 @@ export const AuthProvider = ({ children }) => {
   const isAuthenticated = (() => {
     if (!token) return false;
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = decodeJwtPayload(token);
       return payload.exp * 1000 > Date.now();
     } catch { return false; }
   })();

@@ -27,7 +27,10 @@ let logoutInProgress = false;
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
+    // Excluir el endpoint de login: un 401 ahí significa credenciales incorrectas,
+    // no sesión expirada — no debe disparar el logout global
+    const isLoginRequest = error.config?.url?.endsWith('/auth/login');
+    if (error.response?.status === 401 && !isLoginRequest) {
       if (!logoutInProgress) {
         logoutInProgress = true;
         window.dispatchEvent(new Event('auth:logout'));

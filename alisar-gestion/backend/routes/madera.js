@@ -16,8 +16,10 @@ const createMaderaRoutes = (db, logAudit) => {
 
   router.post('/', verifyToken, async (req, res) => {
     const { especie, piezas, volumen, campamento, procedencia, destino, tipo_corte } = req.body;
-    if (!especie?.trim() || !volumen?.toString().trim() || isNaN(Number(volumen)) || Number(volumen) <= 0) {
-      return res.status(400).json({ msg: 'Campos requeridos: especie, volumen (número positivo)' });
+    if (!especie?.trim() || !campamento?.trim() ||
+        !volumen?.toString().trim() || isNaN(Number(volumen)) || Number(volumen) <= 0 ||
+        piezas == null || isNaN(Number(piezas)) || Number(piezas) <= 0) {
+      return res.status(400).json({ msg: 'Campos requeridos: especie, piezas (entero positivo), volumen (número positivo), campamento' });
     }
     try {
       const result = await db.run(
@@ -39,8 +41,10 @@ const createMaderaRoutes = (db, logAudit) => {
     if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
 
     const { especie, piezas, volumen, campamento, procedencia, destino, tipo_corte } = req.body;
-    if (!especie?.trim() || !volumen?.toString().trim() || isNaN(Number(volumen)) || Number(volumen) <= 0) {
-      return res.status(400).json({ msg: 'Campos requeridos: especie, volumen (número positivo)' });
+    if (!especie?.trim() || !campamento?.trim() ||
+        !volumen?.toString().trim() || isNaN(Number(volumen)) || Number(volumen) <= 0 ||
+        piezas == null || isNaN(Number(piezas)) || Number(piezas) <= 0) {
+      return res.status(400).json({ msg: 'Campos requeridos: especie, piezas (entero positivo), volumen (número positivo), campamento' });
     }
     try {
       const anterior = await db.get('SELECT * FROM madera WHERE id = ?', [id]);

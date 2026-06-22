@@ -19,7 +19,7 @@ const createObrasRoutes = (db, logAudit) => {
             responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
             gastos_totales, estado } = req.body;
 
-    if (!nombre?.trim() || avance === undefined || !presupuesto?.toString().trim()) {
+    if (!nombre?.trim() || avance == null || !presupuesto?.toString().trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
     }
     if (isNaN(avance) || avance < 0 || avance > 100) {
@@ -45,7 +45,7 @@ const createObrasRoutes = (db, logAudit) => {
         // Guardamos String(presupNum) — número limpio sin unidades ni formatos del usuario
         [nombre, avance, String(presupNum), tipo, cliente, descripcion,
          responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
-         gastos_totales || 0, estado || 'Planeado']
+         gastos_totales || 0, estado ?? 'Planeado']
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'obras', result.lastID, null, req.body);
       res.status(201).json({ status: 'Obra registrada con éxito', id: result.lastID });
@@ -63,7 +63,7 @@ const createObrasRoutes = (db, logAudit) => {
             responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
             gastos_totales, estado } = req.body;
 
-    if (!nombre?.trim() || avance === undefined || !presupuesto?.toString().trim()) {
+    if (!nombre?.trim() || avance == null || !presupuesto?.toString().trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
     }
     if (isNaN(avance) || avance < 0 || avance > 100) {
@@ -90,7 +90,7 @@ const createObrasRoutes = (db, logAudit) => {
         // Guardamos String(presupNum) — igual que en POST para consistencia
         [nombre, avance, String(presupNum), tipo, cliente, descripcion,
          responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
-         gastos_totales || 0, estado || 'Planeado', id]
+         gastos_totales || 0, estado ?? 'Planeado', id]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'obras', id, anterior, req.body);
       res.json({ status: 'Obra actualizada con éxito' });
