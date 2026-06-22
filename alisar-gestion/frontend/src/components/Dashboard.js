@@ -571,15 +571,18 @@ const Dashboard = ({ content }) => {
             <ClipboardList size={18} /> Checklist SW
           </div>
 
-          {/* Separador */}
-          <div style={{ height: '1px', background: '#374151', margin: '16px 0' }} />
-
-          <div style={styles.navItem('/historial')} onClick={() => navigate('/historial')}>
-            <History size={18} /> Historial
-          </div>
-          <div style={styles.navItem('/configuracion')} onClick={() => navigate('/configuracion')}>
-            <SettingsIcon size={18} /> Configuración
-          </div>
+          {/* Historial y Configuración — solo admin */}
+          {user?.rol === 'admin' && (
+            <>
+              <div style={{ height: '1px', background: '#374151', margin: '16px 0' }} />
+              <div style={styles.navItem('/historial')} onClick={() => navigate('/historial')}>
+                <History size={18} /> Historial
+              </div>
+              <div style={styles.navItem('/configuracion')} onClick={() => navigate('/configuracion')}>
+                <SettingsIcon size={18} /> Configuración
+              </div>
+            </>
+          )}
         </nav>
         <div style={{ ...styles.navItem('/logout'), color: '#f87171', marginTop: 'auto' }} onClick={handleLogout}>
           <LogOut size={18} /> Salir

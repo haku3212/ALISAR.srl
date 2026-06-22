@@ -23,7 +23,7 @@ const createPersonalRoutes = (db, logAudit) => {
       const result = await db.run(
         `INSERT INTO personal (nombre, cargo, celular, estado, email, departamento, fecha_ingreso, tipo_contrato)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [nombre, cargo, celular, estado || 'Activo', email, departamento, fecha_ingreso, tipo_contrato]
+        [nombre, cargo, celular, estado ?? 'Activo', email, departamento, fecha_ingreso, tipo_contrato]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'personal', result.lastID, null, req.body);
       res.status(201).json({ status: 'Personal registrado con éxito', id: result.lastID });
@@ -49,7 +49,7 @@ const createPersonalRoutes = (db, logAudit) => {
       await db.run(
         `UPDATE personal SET nombre = ?, cargo = ?, celular = ?, estado = ?, email = ?,
          departamento = ?, fecha_ingreso = ?, tipo_contrato = ? WHERE id = ?`,
-        [nombre, cargo, celular, estado || 'Activo', email, departamento, fecha_ingreso, tipo_contrato, id]
+        [nombre, cargo, celular, estado ?? 'Activo', email, departamento, fecha_ingreso, tipo_contrato, id]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'personal', id, anterior, req.body);
       res.json({ status: 'Personal actualizado con éxito' });

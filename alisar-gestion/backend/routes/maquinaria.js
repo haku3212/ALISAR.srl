@@ -23,7 +23,7 @@ const createMaquinariaRoutes = (db, logAudit) => {
       const result = await db.run(
         `INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [nombre, tipo, estado || 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado]
+        [nombre, tipo, estado ?? 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'maquinaria', result.lastID, null, req.body);
       res.status(201).json({ status: 'Maquinaria registrada con éxito', id: result.lastID });
@@ -48,7 +48,7 @@ const createMaquinariaRoutes = (db, logAudit) => {
       await db.run(
         `UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ?,
          modelo = ?, anio = ?, numero_serie = ?, horas_operacion = ?, operador_asignado = ? WHERE id = ?`,
-        [nombre, tipo, estado || 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado, id]
+        [nombre, tipo, estado ?? 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado, id]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'maquinaria', id, anterior, req.body);
       res.json({ status: 'Maquinaria actualizada con éxito' });

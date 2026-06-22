@@ -10,6 +10,9 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
+// Necesario para que express-rate-limit use el IP real detrás de proxies/load balancers
+// Sin esto, X-Forwarded-For puede ser suplantado y el rate limiter es bypasseable
+app.set('trust proxy', 1);
 app.use(cors({
   origin: (origin, callback) => {
     const allowed = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';

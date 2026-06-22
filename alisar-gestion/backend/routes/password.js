@@ -1,11 +1,20 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const { verifyToken } = require('../middleware/auth');
+
+const changePwdLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { msg: 'Demasiados intentos de cambio de contraseña. Intenta de nuevo en 15 minutos.' }
+});
 
 const createPasswordRoutes = (db, logAudit) => {
   const router = express.Router();
 
-  router.put('/change-password', verifyToken, async (req, res) => {
+  router.put('/change-password', changePwdLimiter, verifyToken, async (req, res) => {
     const currentPassword = req.body.currentPassword;
     const newPassword = req.body.newPassword?.trim();
     if (!currentPassword || !newPassword) {

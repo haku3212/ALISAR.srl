@@ -31,6 +31,8 @@ const createRodeosRoutes = (db, logAudit) => {
     if (volumen_total !== undefined && volumen_total !== '' && (isNaN(Number(volumen_total)) || Number(volumen_total) < 0)) {
       return res.status(400).json({ msg: 'volumen_total debe ser un número positivo' });
     }
+    // Normalizar string vacío a null para evitar almacenar '' en columna REAL
+    const volTotal = (volumen_total === '' || volumen_total === undefined) ? null : Number(volumen_total);
 
     try {
       const coordsOrigen = ubicacion_origen_coords ? JSON.stringify(ubicacion_origen_coords) : null;
@@ -43,7 +45,7 @@ const createRodeosRoutes = (db, logAudit) => {
            fecha_transporte, estado_operacion, lat, lng, descripcion,
            poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
+        [fecha_rodeo, volTotal, responsable_rodeo, procedencia, destino_final,
           especie_principal, otras_especies, contrato_asociado,
           ubicacion_origen, coordsOrigen, ubicacion_destino, coordsDestino,
                     // ?? permite limpiar el campo enviando ''; PUT requiere payload completo (semántica HTTP PUT)
@@ -78,6 +80,7 @@ const createRodeosRoutes = (db, logAudit) => {
     if (volumen_total !== undefined && volumen_total !== '' && (isNaN(Number(volumen_total)) || Number(volumen_total) < 0)) {
       return res.status(400).json({ msg: 'volumen_total debe ser un número positivo' });
     }
+    const volTotal = (volumen_total === '' || volumen_total === undefined) ? null : Number(volumen_total);
 
     try {
       const coordsOrigen = ubicacion_origen_coords ? JSON.stringify(ubicacion_origen_coords) : null;
@@ -95,10 +98,9 @@ const createRodeosRoutes = (db, logAudit) => {
           poat_numero = ?, poat_vencimiento = ?, otros_permisos = ?,
           fecha_limite_permisos = ?, observaciones = ?
          WHERE id = ?`,
-        [fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
+        [fecha_rodeo, volTotal, responsable_rodeo, procedencia, destino_final,
           especie_principal, otras_especies, contrato_asociado,
           ubicacion_origen, coordsOrigen, ubicacion_destino, coordsDestino,
-                    // ?? permite limpiar el campo enviando ''; PUT requiere payload completo (semántica HTTP PUT)
           fecha_transporte, estado_operacion ?? 'Activo', lat, lng, descripcion,
           poat_numero, poat_vencimiento, otros_permisos, fecha_limite_permisos, observaciones,
           id]

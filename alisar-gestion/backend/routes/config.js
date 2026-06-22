@@ -5,6 +5,7 @@ const createConfigRoutes = (db, logAudit) => {
   const router = express.Router();
 
   router.get('/', verifyToken, async (req, res) => {
+    if (req.user?.rol !== 'admin') return res.status(403).json({ msg: 'Acceso denegado' });
     try {
       const configs = await db.all('SELECT * FROM config');
       const result = {};

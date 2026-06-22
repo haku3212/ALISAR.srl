@@ -45,7 +45,7 @@ const createObrasRoutes = (db, logAudit) => {
         // Guardamos String(presupNum) — número limpio sin unidades ni formatos del usuario
         [nombre, avance, String(presupNum), tipo, cliente, descripcion,
          responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
-         gastos_totales || 0, estado ?? 'Planeado']
+         gastos_totales ?? 0, estado ?? 'Planeado']
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'obras', result.lastID, null, req.body);
       res.status(201).json({ status: 'Obra registrada con éxito', id: result.lastID });
@@ -90,7 +90,7 @@ const createObrasRoutes = (db, logAudit) => {
         // Guardamos String(presupNum) — igual que en POST para consistencia
         [nombre, avance, String(presupNum), tipo, cliente, descripcion,
          responsable_tecnico, inicio_planeado, fin_planeado, observaciones,
-         gastos_totales || 0, estado ?? 'Planeado', id]
+         gastos_totales ?? 0, estado ?? 'Planeado', id]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'obras', id, anterior, req.body);
       res.json({ status: 'Obra actualizada con éxito' });

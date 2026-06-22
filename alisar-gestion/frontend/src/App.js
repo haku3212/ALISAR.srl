@@ -39,6 +39,13 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/" />;
 };
 
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/" />;
+  if (user?.rol !== 'admin') return <Navigate to="/dashboard" />;
+  return children;
+};
+
 /**
  * Componente AppRoutes
  * Define todas las rutas de la aplicación
@@ -72,8 +79,8 @@ function AppRoutes() {
       <Route path="/rodeos" element={<ProtectedRoute><Dashboard content={<Rodeos />} /></ProtectedRoute>} />
       <Route path="/documentos" element={<ProtectedRoute><Dashboard content={<Documentos />} /></ProtectedRoute>} />
       <Route path="/checklist" element={<ProtectedRoute><Dashboard content={<ProjectChecklist />} /></ProtectedRoute>} />
-      <Route path="/historial" element={<ProtectedRoute><Dashboard content={<ChangeHistory />} /></ProtectedRoute>} />
-      <Route path="/configuracion" element={<ProtectedRoute><Dashboard content={<Settings />} /></ProtectedRoute>} />
+      <Route path="/historial" element={<AdminRoute><Dashboard content={<ChangeHistory />} /></AdminRoute>} />
+      <Route path="/configuracion" element={<AdminRoute><Dashboard content={<Settings />} /></AdminRoute>} />
 
       {/* Ruta comodín: Redirige a login si la ruta no existe */}
       <Route path="*" element={<Navigate to="/" />} />
