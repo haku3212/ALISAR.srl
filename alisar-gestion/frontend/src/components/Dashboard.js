@@ -37,7 +37,7 @@ const Dashboard = ({ content }) => {
       try {
         setLoading(true);
         // Todas las peticiones en paralelo para reducir tiempo de carga
-        const [obraRes, maquinariaRes, personalRes, maderaRes, docsRes] = await Promise.all([
+        const [obraRes, maquinariaRes, personalRes, maderaRes, docsRes] = await Promise.allSettled([
           dataService.getObras(),
           dataService.getMaquinaria(),
           dataService.getPersonal(),
@@ -48,11 +48,11 @@ const Dashboard = ({ content }) => {
         // Si el componente se desmontó mientras esperábamos, no actualizamos estado
         if (!isMounted) return;
 
-        const obras = obraRes.data || [];
-        const maquinaria = maquinariaRes.data || [];
-        const personal = personalRes.data || [];
-        const madera = maderaRes.data || [];
-        const docs = docsRes.data || [];
+        const obras = obraRes.status === 'fulfilled' ? (obraRes.value.data || []) : [];
+        const maquinaria = maquinariaRes.status === 'fulfilled' ? (maquinariaRes.value.data || []) : [];
+        const personal = personalRes.status === 'fulfilled' ? (personalRes.value.data || []) : [];
+        const madera = maderaRes.status === 'fulfilled' ? (maderaRes.value.data || []) : [];
+        const docs = docsRes.status === 'fulfilled' ? (docsRes.value.data || []) : [];
 
         // Actualizar estadísticas
         setStats({
@@ -402,7 +402,11 @@ const Dashboard = ({ content }) => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, value }) => `${name} ${value}%`}
+                label={({ name, value, payload }) => {
+                  const total = pieData.reduce((s, e) => s + e.value, 0);
+                  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+                  return `${name} ${pct}%`;
+                }}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"

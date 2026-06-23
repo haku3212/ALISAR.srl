@@ -7,7 +7,7 @@ import ErrorMessage from './common/ErrorMessage';
 const Login = () => {
   const [formData, setFormData] = useState({ usuario: '', password: '' });
   const [localError, setLocalError] = useState('');
-  const { login, loading, error: authError } = useAuth();
+  const { login, loading, error: authError, clearError } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async e => {
@@ -102,7 +102,7 @@ const Login = () => {
         {displayError && (
           <ErrorMessage
             message={displayError}
-            onDismiss={() => setLocalError('')}
+            onDismiss={() => { setLocalError(''); clearError(); }}
           />
         )}
 

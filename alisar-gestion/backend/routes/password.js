@@ -23,8 +23,8 @@ const createPasswordRoutes = (db, logAudit) => {
     if (newPassword.length < 8) {
       return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
     }
-    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-      return res.status(400).json({ msg: 'La contraseña debe tener al menos una mayúscula y un número' });
+    if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos una mayúscula, una minúscula y un número' });
     }
     try {
       const user = await db.get('SELECT * FROM users WHERE id = ?', [req.user.id]);

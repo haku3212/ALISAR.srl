@@ -50,7 +50,7 @@ const Obras = () => {
   const set = (field) => (e) => setFormData(prev => ({ ...prev, [field]: e.target.value }));
 
   const filtered = useMemo(() => data.filter(o =>
-    [o.nombre, o.tipo, o.cliente, o.estado].some(v => v?.toLowerCase().includes(search.toLowerCase()))
+    [o.nombre, o.tipo, o.cliente, o.estado, o.descripcion, o.observaciones].some(v => v?.toLowerCase().includes(search.toLowerCase()))
   ), [data, search]);
 
   const totals = useMemo(() => {

@@ -76,6 +76,8 @@ export const AuthProvider = ({ children }) => {
     } catch { return false; }
   })();
 
+  const clearError = () => setError(null);
+
   const value = {
     user,
     token,
@@ -83,7 +85,8 @@ export const AuthProvider = ({ children }) => {
     error,
     isAuthenticated,
     login,
-    logout
+    logout,
+    clearError
   };
 
   return (

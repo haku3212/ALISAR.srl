@@ -66,8 +66,11 @@ const FormPersonalDetallado = ({ formData, onChange, errors = {}, submitting = f
    * @param {Object} locationData - {address, coordinates: {lat, lng}}
    */
   const handleLocationChange = (locationData) => {
-    handleChange('direccion', locationData.address);
-    handleChange('ubicacion_coordenadas', locationData.coordinates);
+    onChange({
+      ...formData,
+      direccion: locationData.address,
+      ubicacion_coordenadas: locationData.coordinates,
+    });
   };
 
   /**
