@@ -25,8 +25,13 @@ const createObrasRoutes = (db, logAudit) => {
     if (isNaN(avance) || avance < 0 || avance > 100) {
       return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
     }
-    // presupNum se usa tanto para validar como para guardar — evita almacenar strings con letras o formatos inválidos
-    const presupClean = String(presupuesto).replace(/[^0-9.]/g, '');
+    // Rechazar explícitamente valores negativos antes de limpiar el string —
+    // replace(/[^0-9.]/g, '') eliminaría el '-' y un negativo pasaría la validación presupNum < 0
+    const presupStr = String(presupuesto).trim();
+    if (presupStr.startsWith('-')) {
+      return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
+    }
+    const presupClean = presupStr.replace(/[^0-9.]/g, '');
     // Rechazamos strings con más de un punto decimal (ej: "1.2.3" daría parseFloat=1.2 sin error)
     if ((presupClean.match(/\./g) || []).length > 1) {
       return res.status(400).json({ msg: 'Formato de presupuesto inválido' });
@@ -69,8 +74,12 @@ const createObrasRoutes = (db, logAudit) => {
     if (isNaN(avance) || avance < 0 || avance > 100) {
       return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
     }
-    // Misma lógica que POST: valida y guarda el número limpio
-    const presupCleanU = String(presupuesto).replace(/[^0-9.]/g, '');
+    // Misma lógica que POST: rechazar negativos antes de limpiar el string
+    const presupStrU = String(presupuesto).trim();
+    if (presupStrU.startsWith('-')) {
+      return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
+    }
+    const presupCleanU = presupStrU.replace(/[^0-9.]/g, '');
     if ((presupCleanU.match(/\./g) || []).length > 1) {
       return res.status(400).json({ msg: 'Formato de presupuesto inválido' });
     }

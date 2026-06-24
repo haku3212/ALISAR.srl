@@ -80,13 +80,13 @@ function createMenu() {
             if (mainWindow) mainWindow.webContents.reload();
           }
         },
-        {
+        ...(isDev ? [{
           label: 'Herramientas de Desarrollo',
           accelerator: 'CmdOrCtrl+Shift+I',
           click: () => {
             if (mainWindow) mainWindow.webContents.toggleDevTools();
           }
-        }
+        }] : [])
       ]
     },
     {
@@ -112,7 +112,6 @@ function createMenu() {
 function startBackend() {
   return new Promise((resolve, reject) => {
     const backendDir = path.join(__dirname, '../backend');
-    const isProduction = !isDev;
 
     // Determinar el comando según el SO
     const nodeExe = process.platform === 'win32' ? 'node.exe' : 'node';
@@ -127,12 +126,15 @@ function startBackend() {
       shell: process.platform === 'win32'
     });
 
+    // Garantizar que resolve/reject se llame exactamente una vez
+    let settled = false;
+    const settle = (fn, arg) => { if (!settled) { settled = true; fn(arg); } };
+
     // Capturar salida del backend
     backendProcess.stdout.on('data', (data) => {
       console.log(`[BACKEND] ${data}`);
-      // Resolver cuando el backend está listo
       if (data.toString().includes('API activa') || data.toString().includes('listening')) {
-        resolve();
+        settle(resolve);
       }
     });
 
@@ -142,13 +144,19 @@ function startBackend() {
 
     backendProcess.on('error', (err) => {
       console.error('Error al iniciar backend:', err);
-      reject(err);
+      settle(reject, err);
     });
 
-    // Timeout de 10 segundos para que el backend inicie
-    setTimeout(() => {
-      resolve(); // Resolver de todas formas después de 10 segundos
-    }, 10000);
+    // Si el proceso termina con error antes de arrancar, rechazar la promesa
+    backendProcess.on('close', (code) => {
+      if (code !== 0 && code !== null) {
+        console.error(`[BACKEND] Proceso cerró con código ${code}`);
+        settle(reject, new Error(`Backend terminó inesperadamente (código ${code})`));
+      }
+    });
+
+    // Timeout de 10 segundos — resolver de todas formas si el backend no anunció que está listo
+    setTimeout(() => settle(resolve), 10000);
   });
 }
 

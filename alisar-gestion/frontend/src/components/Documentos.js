@@ -69,12 +69,16 @@ const Documentos = () => {
   ], [uniqueTypes]);
 
   const filtered = useMemo(() => {
-    let r = data.filter(d =>
-      d.numero_documento?.toLowerCase().includes(search.toLowerCase()) ||
-      d.tipo_documento?.toLowerCase().includes(search.toLowerCase()) ||
-      d.entidad_emisora?.toLowerCase().includes(search.toLowerCase()) ||
-      d.responsable?.toLowerCase().includes(search.toLowerCase())
-    );
+    let r = data.filter(d => {
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return (
+        d.numero_documento?.toLowerCase().includes(s) ||
+        d.tipo_documento?.toLowerCase().includes(s) ||
+        d.entidad_emisora?.toLowerCase().includes(s) ||
+        d.responsable?.toLowerCase().includes(s)
+      );
+    });
     if (filters.tipo_documento) r = r.filter(d => d.tipo_documento === filters.tipo_documento);
     if (filters.estado_vencimiento) r = r.filter(d => getEstadoVenc(d.fecha_vencimiento) === filters.estado_vencimiento);
     r.sort((a, b) => new Date(a.fecha_vencimiento || '9999-12-31') - new Date(b.fecha_vencimiento || '9999-12-31'));
