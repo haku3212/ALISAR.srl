@@ -34,8 +34,8 @@ const createDocumentosRoutes = (db, logAudit) => {
     if (isNaN(dEmision.getTime()) || isNaN(dVencimiento.getTime())) {
       return res.status(400).json({ msg: 'Formato de fecha inválido' });
     }
-    if (dVencimiento <= dEmision) {
-      return res.status(400).json({ msg: 'La fecha de vencimiento debe ser posterior a la fecha de emisión' });
+    if (dVencimiento < dEmision) {
+      return res.status(400).json({ msg: 'La fecha de vencimiento debe ser igual o posterior a la fecha de emisión' });
     }
 
     try {
@@ -89,8 +89,8 @@ const createDocumentosRoutes = (db, logAudit) => {
     if (isNaN(dEmision.getTime()) || isNaN(dVencimiento.getTime())) {
       return res.status(400).json({ msg: 'Formato de fecha inválido' });
     }
-    if (dVencimiento <= dEmision) {
-      return res.status(400).json({ msg: 'La fecha de vencimiento debe ser posterior a la fecha de emisión' });
+    if (dVencimiento < dEmision) {
+      return res.status(400).json({ msg: 'La fecha de vencimiento debe ser igual o posterior a la fecha de emisión' });
     }
 
     try {

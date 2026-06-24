@@ -56,6 +56,8 @@ const createBackupRoutes = (db, logAudit) => {
       await db.run('BEGIN TRANSACTION');
       for (const table of restorableTables) {
         if (!datos[table] || !Array.isArray(datos[table])) continue;
+        // Saltar tablas con array vacío — sin datos que restaurar no se borra nada
+        if (datos[table].length === 0) continue;
         await db.run(`DELETE FROM ${table}`);
         const allowed = ALLOWED_COLUMNS[table] || [];
         for (const row of datos[table]) {

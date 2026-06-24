@@ -147,12 +147,11 @@ function startBackend() {
       settle(reject, err);
     });
 
-    // Si el proceso termina con error antes de arrancar, rechazar la promesa
+    // Cualquier cierre antes de que el backend anuncie que está listo es un fallo de arranque,
+    // independientemente del código de salida (incluido 0)
     backendProcess.on('close', (code) => {
-      if (code !== 0 && code !== null) {
-        console.error(`[BACKEND] Proceso cerró con código ${code}`);
-        settle(reject, new Error(`Backend terminó inesperadamente (código ${code})`));
-      }
+      console.error(`[BACKEND] Proceso cerró con código ${code ?? 'señal'}`);
+      settle(reject, new Error(`Backend terminó inesperadamente (código ${code ?? 'señal'})`));
     });
 
     // Timeout de 10 segundos — resolver de todas formas si el backend no anunció que está listo

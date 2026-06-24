@@ -25,18 +25,13 @@ const createObrasRoutes = (db, logAudit) => {
     if (isNaN(avance) || avance < 0 || avance > 100) {
       return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
     }
-    // Rechazar explícitamente valores negativos antes de limpiar el string —
-    // replace(/[^0-9.]/g, '') eliminaría el '-' y un negativo pasaría la validación presupNum < 0
-    const presupStr = String(presupuesto).trim();
-    if (presupStr.startsWith('-')) {
-      return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
+    // Validar presupuesto: aceptar decimal con comas/espacios de formato ("150,000.50"),
+    // rechazar notación científica ("1e-5" → antes se strippeaba a "15"), negativos y letras
+    const presupStr = String(presupuesto).trim().replace(/[\s,]/g, '');
+    if (!/^\d+(\.\d+)?$/.test(presupStr)) {
+      return res.status(400).json({ msg: 'Formato de presupuesto inválido (use un número positivo)' });
     }
-    const presupClean = presupStr.replace(/[^0-9.]/g, '');
-    // Rechazamos strings con más de un punto decimal (ej: "1.2.3" daría parseFloat=1.2 sin error)
-    if ((presupClean.match(/\./g) || []).length > 1) {
-      return res.status(400).json({ msg: 'Formato de presupuesto inválido' });
-    }
-    const presupNum = parseFloat(presupClean);
+    const presupNum = parseFloat(presupStr);
     if (isNaN(presupNum) || presupNum < 0) {
       return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
     }
@@ -74,16 +69,12 @@ const createObrasRoutes = (db, logAudit) => {
     if (isNaN(avance) || avance < 0 || avance > 100) {
       return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
     }
-    // Misma lógica que POST: rechazar negativos antes de limpiar el string
-    const presupStrU = String(presupuesto).trim();
-    if (presupStrU.startsWith('-')) {
-      return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
+    // Misma lógica que POST: regex estricto evita notación científica y letras
+    const presupStrU = String(presupuesto).trim().replace(/[\s,]/g, '');
+    if (!/^\d+(\.\d+)?$/.test(presupStrU)) {
+      return res.status(400).json({ msg: 'Formato de presupuesto inválido (use un número positivo)' });
     }
-    const presupCleanU = presupStrU.replace(/[^0-9.]/g, '');
-    if ((presupCleanU.match(/\./g) || []).length > 1) {
-      return res.status(400).json({ msg: 'Formato de presupuesto inválido' });
-    }
-    const presupNum = parseFloat(presupCleanU);
+    const presupNum = parseFloat(presupStrU);
     if (isNaN(presupNum) || presupNum < 0) {
       return res.status(400).json({ msg: 'El presupuesto debe ser un número positivo' });
     }

@@ -58,13 +58,26 @@ export const AuthProvider = ({ children }) => {
   // Timer que limpia el token exactamente al expirar — evita que isAuthenticated quede stale
   useEffect(() => {
     if (!token) return;
+    const clearSession = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+    };
     try {
       const payload = decodeJwtPayload(token);
       const msUntilExpiry = payload.exp * 1000 - Date.now();
-      if (msUntilExpiry <= 0) { setToken(null); setUser(null); return; }
-      const timer = setTimeout(() => { setToken(null); setUser(null); }, msUntilExpiry);
+      if (msUntilExpiry <= 0) { clearSession(); return; }
+      // setTimeout desborda a 32 bits (~24.8 días); Math.min previene logout inmediato
+      // si expiresIn se cambia a 30d o más en el backend
+      const delay = Math.min(msUntilExpiry, 2_147_483_647);
+      const timer = setTimeout(clearSession, delay);
       return () => clearTimeout(timer);
-    } catch { /* token malformado — el interceptor 401 lo manejará en la próxima petición */ }
+    } catch {
+      // Token malformado: limpiar estado para evitar que token/user queden no-null
+      // mientras isAuthenticated devuelve false — inconsistencia que confunde a guards con !!token
+      clearSession();
+    }
   }, [token]);
 
   // Calculado en cada render (sin useMemo) para que Date.now() sea siempre fresco
