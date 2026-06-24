@@ -16,16 +16,17 @@ const createMaderaRoutes = (db, logAudit) => {
 
   router.post('/', verifyToken, async (req, res) => {
     const { especie, piezas, volumen, campamento, procedencia, destino, tipo_corte } = req.body;
+    const piezasInt = parseInt(piezas, 10);
     if (!especie?.trim() || !campamento?.trim() ||
         !volumen?.toString().trim() || isNaN(Number(volumen)) || Number(volumen) <= 0 ||
-        piezas == null || isNaN(Number(piezas)) || Number(piezas) <= 0) {
+        piezas == null || isNaN(piezasInt) || piezasInt <= 0 || String(piezasInt) !== String(Number(piezas))) {
       return res.status(400).json({ msg: 'Campos requeridos: especie, piezas (entero positivo), volumen (número positivo), campamento' });
     }
     try {
       const result = await db.run(
         `INSERT INTO madera (especie, piezas, volumen, campamento, procedencia, destino, tipo_corte)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [especie, piezas, volumen, campamento, procedencia, destino, tipo_corte]
+        [especie, piezasInt, Number(volumen), campamento, procedencia, destino, tipo_corte]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'madera', result.lastID, null, req.body);
       res.status(201).json({ status: 'Madera registrada con éxito', id: result.lastID });
@@ -41,9 +42,10 @@ const createMaderaRoutes = (db, logAudit) => {
     if (isNaN(id) || id <= 0) return res.status(400).json({ msg: 'ID inválido' });
 
     const { especie, piezas, volumen, campamento, procedencia, destino, tipo_corte } = req.body;
+    const piezasInt = parseInt(piezas, 10);
     if (!especie?.trim() || !campamento?.trim() ||
         !volumen?.toString().trim() || isNaN(Number(volumen)) || Number(volumen) <= 0 ||
-        piezas == null || isNaN(Number(piezas)) || Number(piezas) <= 0) {
+        piezas == null || isNaN(piezasInt) || piezasInt <= 0 || String(piezasInt) !== String(Number(piezas))) {
       return res.status(400).json({ msg: 'Campos requeridos: especie, piezas (entero positivo), volumen (número positivo), campamento' });
     }
     try {
@@ -52,7 +54,7 @@ const createMaderaRoutes = (db, logAudit) => {
       await db.run(
         `UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ?,
          procedencia = ?, destino = ?, tipo_corte = ? WHERE id = ?`,
-        [especie, piezas, volumen, campamento, procedencia, destino, tipo_corte, id]
+        [especie, piezasInt, Number(volumen), campamento, procedencia, destino, tipo_corte, id]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'madera', id, anterior, req.body);
       res.json({ status: 'Madera actualizada con éxito' });

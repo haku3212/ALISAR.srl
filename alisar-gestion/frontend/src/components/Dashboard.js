@@ -90,12 +90,14 @@ const Dashboard = ({ content }) => {
         setPieData(pieDataReal);
 
         // Documentos próximos a vencer (próximos 30 días)
-        const hoy = new Date();
-        const en30 = new Date(hoy.getTime() + 30 * 24 * 60 * 60 * 1000);
+        // Comparamos strings YYYY-MM-DD para evitar el desfase de UTC vs hora local
+        // que hace que new Date('2026-06-24') sea medianoche UTC (= 20:00 en Bolivia UTC-4)
+        const hoyStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD en hora local
+        const en30Str = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
         const docsPorVencerFiltrados = docs.filter(d => {
           if (!d.fecha_vencimiento) return false;
-          const v = new Date(d.fecha_vencimiento);
-          return v >= hoy && v <= en30;
+          const v = d.fecha_vencimiento.split('T')[0];
+          return v >= hoyStr && v <= en30Str;
         }).slice(0, 3);
         setDocsPorVencer(docsPorVencerFiltrados);
 

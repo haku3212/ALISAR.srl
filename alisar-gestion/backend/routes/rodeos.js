@@ -35,8 +35,9 @@ const createRodeosRoutes = (db, logAudit) => {
     const volTotal = (volumen_total === '' || volumen_total === undefined) ? null : Number(volumen_total);
 
     try {
-      const coordsOrigen = ubicacion_origen_coords ? JSON.stringify(ubicacion_origen_coords) : null;
-      const coordsDestino = ubicacion_destino_coords ? JSON.stringify(ubicacion_destino_coords) : null;
+      const normCoords = (v) => v == null ? null : (typeof v === 'string' ? v : JSON.stringify(v));
+      const coordsOrigen = normCoords(ubicacion_origen_coords);
+      const coordsDestino = normCoords(ubicacion_destino_coords);
       const result = await db.run(
         `INSERT INTO rodeos
           (fecha_rodeo, volumen_total, responsable_rodeo, procedencia, destino_final,
@@ -83,8 +84,9 @@ const createRodeosRoutes = (db, logAudit) => {
     const volTotal = (volumen_total === '' || volumen_total === undefined) ? null : Number(volumen_total);
 
     try {
-      const coordsOrigen = ubicacion_origen_coords ? JSON.stringify(ubicacion_origen_coords) : null;
-      const coordsDestino = ubicacion_destino_coords ? JSON.stringify(ubicacion_destino_coords) : null;
+      const normCoords = (v) => v == null ? null : (typeof v === 'string' ? v : JSON.stringify(v));
+      const coordsOrigen = normCoords(ubicacion_origen_coords);
+      const coordsDestino = normCoords(ubicacion_destino_coords);
       const anterior = await db.get('SELECT * FROM rodeos WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(

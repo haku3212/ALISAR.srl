@@ -49,9 +49,9 @@ const createBackupRoutes = (db, logAudit) => {
     if (!datos || typeof datos !== 'object') {
       return res.status(400).json({ error: 'Archivo de respaldo inválido' });
     }
-    const hasData = Object.values(datos).some(arr => Array.isArray(arr) && arr.length > 0);
-    if (!hasData) return res.status(400).json({ error: 'El archivo de respaldo está vacío' });
     const restorableTables = ['personal', 'maquinaria', 'obras', 'madera', 'rodeos', 'documentos'];
+    const hasData = restorableTables.some(t => Array.isArray(datos[t]) && datos[t].length > 0);
+    if (!hasData) return res.status(400).json({ error: 'El archivo de respaldo está vacío' });
     try {
       await db.run('BEGIN TRANSACTION');
       for (const table of restorableTables) {
