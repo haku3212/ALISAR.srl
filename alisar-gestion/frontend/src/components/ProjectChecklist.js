@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckSquare, Square, Flag, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { useAuth } from '../context/AuthContext';
 
 const PHASES = [
   {
@@ -104,22 +105,24 @@ const PHASES = [
   },
 ];
 
-const STORAGE_KEY = 'alisar_project_checklist';
+const getStorageKey = (userId) => `alisar_project_checklist_${userId || 'default'}`;
 
-const loadState = () => {
+const loadState = (userId) => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStorageKey(userId));
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
 };
 
 const ProjectChecklist = () => {
-  const [checked, setChecked] = useState(() => loadState());
+  const { user } = useAuth();
+  const storageKey = getStorageKey(user?.id);
+  const [checked, setChecked] = useState(() => loadState(user?.id));
 
   const toggle = (id) => {
     setChecked(prev => {
       const next = { ...prev, [id]: !prev[id] };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
       return next;
     });
   };

@@ -190,7 +190,7 @@ const Madera = () => {
             </div>
             <div>
               <label style={lbl}>Volumen <span style={{ color: '#FFD700' }}>*</span></label>
-              <input style={{ ...inp, border: `1px solid ${formErrors.volumen ? '#f87171' : '#374151'}` }} value={formData.volumen} onChange={set('volumen')} placeholder="Ej: 12.5 m3" disabled={submitting} />
+              <input style={{ ...inp, border: `1px solid ${formErrors.volumen ? '#f87171' : '#374151'}` }} type="number" min="0" step="0.01" value={formData.volumen} onChange={set('volumen')} placeholder="Ej: 12.5" disabled={submitting} />
               {formErrors.volumen && <p style={errTxt}>{formErrors.volumen}</p>}
             </div>
             <div>

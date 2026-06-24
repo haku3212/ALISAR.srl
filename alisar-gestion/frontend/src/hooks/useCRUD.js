@@ -68,6 +68,7 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
       await fetchData();
     } catch (err) {
       showError(err.response?.data?.msg || err.response?.data?.error || 'Error al eliminar');
+      setPendingDeleteId(null);
     }
   }, [pendingDeleteId, serviceDelete, showSuccess, showError, fetchData]);
 

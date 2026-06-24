@@ -99,10 +99,21 @@ const Dashboard = ({ content }) => {
         }).slice(0, 3);
         setDocsPorVencer(docsPorVencerFiltrados);
 
+        // Avisar si algún endpoint falló individualmente
+        [obraRes, maquinariaRes, personalRes, maderaRes, docsRes].forEach((r, i) => {
+          if (r.status === 'rejected') {
+            const names = ['obras', 'maquinaria', 'personal', 'madera', 'documentos'];
+            console.warn(`Dashboard: fallo al cargar ${names[i]}:`, r.reason);
+          }
+        });
+        const anyFailed = [obraRes, maquinariaRes, personalRes, maderaRes, docsRes].some(r => r.status === 'rejected');
+        if (anyFailed && isMounted) setFetchError('Algunos datos no pudieron cargarse. La información puede estar incompleta.');
+
         // Personal por cargo (para BarChart)
         const roleMap = {};
         personal.forEach(p => {
-          roleMap[p.cargo] = (roleMap[p.cargo] || 0) + 1;
+          const cargo = p.cargo || 'Sin cargo';
+          roleMap[cargo] = (roleMap[cargo] || 0) + 1;
         });
         const roleData = Object.entries(roleMap).map(([cargo, count]) => ({
           name: cargo,
