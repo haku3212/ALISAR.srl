@@ -3,32 +3,31 @@ import { Search, Filter, ChevronDown } from 'lucide-react';
 
 const SearchBar = ({
   placeholder = 'Buscar...',
-  onSearch = () => {},
-  onFilterChange = () => {},
+  onSearch,
+  onFilterChange,
   filters = [],
   debounceMs = 300
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
-  const debounceTimer = useRef(null);
+
+  const onSearchRef = useRef(onSearch);
+  onSearchRef.current = onSearch;
+  const onFilterChangeRef = useRef(onFilterChange);
+  onFilterChangeRef.current = onFilterChange;
 
   useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-
     const timer = setTimeout(() => {
-      onSearch(searchTerm);
+      onSearchRef.current?.(searchTerm);
     }, debounceMs);
-
-    debounceTimer.current = timer;
-
     return () => clearTimeout(timer);
-  }, [searchTerm, onSearch, debounceMs]);
+  }, [searchTerm, debounceMs]);
 
   const handleFilterChange = (filterId, value) => {
     const updatedFilters = { ...activeFilters, [filterId]: value };
     setActiveFilters(updatedFilters);
-    onFilterChange(updatedFilters);
+    onFilterChangeRef.current?.(updatedFilters);
   };
 
   const hasActiveFilters = Object.values(activeFilters).some(v => v);
