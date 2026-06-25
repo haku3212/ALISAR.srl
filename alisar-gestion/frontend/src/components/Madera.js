@@ -195,12 +195,14 @@ const Madera = () => {
               {formErrors.volumen && <p style={errTxt}>{formErrors.volumen}</p>}
             </div>
             <div>
-              <label style={lbl}>Piezas</label>
-              <input style={inp} type="number" min="0" value={formData.piezas} onChange={set('piezas')} placeholder="Ej: 45" disabled={submitting} />
+              <label style={lbl}>Piezas <span style={{ color: '#FFD700' }}>*</span></label>
+              <input style={{ ...inp, border: `1px solid ${formErrors.piezas ? '#f87171' : '#374151'}` }} type="number" min="0" value={formData.piezas} onChange={set('piezas')} placeholder="Ej: 45" disabled={submitting} />
+              {formErrors.piezas && <p style={errTxt}>{formErrors.piezas}</p>}
             </div>
             <div>
-              <label style={lbl}>Campamento</label>
-              <input style={inp} value={formData.campamento} onChange={set('campamento')} placeholder="Ej: Sena" disabled={submitting} />
+              <label style={lbl}>Campamento <span style={{ color: '#FFD700' }}>*</span></label>
+              <input style={{ ...inp, border: `1px solid ${formErrors.campamento ? '#f87171' : '#374151'}` }} value={formData.campamento} onChange={set('campamento')} placeholder="Ej: Sena" disabled={submitting} />
+              {formErrors.campamento && <p style={errTxt}>{formErrors.campamento}</p>}
             </div>
             <div>
               <label style={lbl}>Procedencia</label>

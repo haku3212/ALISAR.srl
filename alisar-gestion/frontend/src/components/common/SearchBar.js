@@ -3,8 +3,8 @@ import { Search, Filter, ChevronDown } from 'lucide-react';
 
 const SearchBar = ({
   placeholder = 'Buscar...',
-  onSearch,
-  onFilterChange,
+  onSearch = () => {},
+  onFilterChange = () => {},
   filters = [],
   debounceMs = 300
 }) => {
@@ -22,7 +22,7 @@ const SearchBar = ({
 
     debounceTimer.current = timer;
 
-    return () => clearTimeout(debounceTimer.current);
+    return () => clearTimeout(timer);
   }, [searchTerm, onSearch, debounceMs]);
 
   const handleFilterChange = (filterId, value) => {
@@ -133,7 +133,7 @@ const SearchBar = ({
                   }}
                 >
                   <option value="">Todos</option>
-                  {filter.options.map(opt => (
+                  {(filter.options || []).map(opt => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>

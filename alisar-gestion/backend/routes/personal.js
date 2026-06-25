@@ -6,7 +6,7 @@ const createPersonalRoutes = (db, logAudit) => {
 
   router.get('/', verifyToken, async (req, res) => {
     try {
-      const rows = await db.all('SELECT * FROM personal');
+      const rows = await db.all('SELECT * FROM personal ORDER BY nombre ASC');
       res.json(rows);
     } catch (err) {
       console.error('Error:', err);

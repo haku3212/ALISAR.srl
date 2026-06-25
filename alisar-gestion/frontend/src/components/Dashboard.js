@@ -484,8 +484,8 @@ const Dashboard = ({ content }) => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
                     <h4 style={{ margin: 0, color: '#e0e0e0', fontSize: '14px' }}>{obra.nombre}</h4>
                     <span style={{
-                      background: obra.avance >= 75 ? '#1e293b' : obra.avance >= 50 ? '#1e3a5f' : '#2d1515',
-                      color: obra.avance >= 75 ? '#FFD700' : obra.avance >= 50 ? '#60a5fa' : '#f87171',
+                      background: (obra.avance ?? 0) >= 75 ? '#1e293b' : (obra.avance ?? 0) >= 50 ? '#1e3a5f' : '#2d1515',
+                      color: (obra.avance ?? 0) >= 75 ? '#FFD700' : (obra.avance ?? 0) >= 50 ? '#60a5fa' : '#f87171',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '12px',
@@ -496,8 +496,8 @@ const Dashboard = ({ content }) => {
                   </div>
                   <div style={{ background: '#111827', height: '4px', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{
-                      background: obra.avance >= 75 ? '#FFD700' : obra.avance >= 50 ? '#60a5fa' : '#f97316',
-                      width: `${obra.avance}%`,
+                      background: (obra.avance ?? 0) >= 75 ? '#FFD700' : (obra.avance ?? 0) >= 50 ? '#60a5fa' : '#f97316',
+                      width: `${obra.avance ?? 0}%`,
                       height: '100%',
                       transition: 'width 0.3s'
                     }} />
@@ -531,7 +531,7 @@ const Dashboard = ({ content }) => {
                       Documento por vencer: {doc.numero_documento || doc.tipo_documento || 'Sin nombre'}
                     </p>
                     <p style={{ color: '#6b7280', margin: 0, fontSize: '12px' }}>
-                      Vence: {new Date(doc.fecha_vencimiento.split('T')[0] + 'T00:00:00').toLocaleDateString('es-ES')}
+                      Vence: {new Date((doc.fecha_vencimiento || '').split('T')[0] + 'T00:00:00').toLocaleDateString('es-ES')}
                     </p>
                   </div>
                 ))}

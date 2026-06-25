@@ -1,6 +1,15 @@
 const express = require('express');
 const { verifyToken } = require('../middleware/auth');
 
+const computeEstado = (dVencimiento) => {
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const venc = new Date(dVencimiento.toISOString().split('T')[0] + 'T00:00:00');
+  const dias = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+  if (dias < 0) return 'Vencido';
+  if (dias <= 30) return 'Por vencer';
+  return 'Vigente';
+};
+
 const createDocumentosRoutes = (db, logAudit) => {
   const router = express.Router();
 
@@ -39,13 +48,7 @@ const createDocumentosRoutes = (db, logAudit) => {
     }
 
     try {
-      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-      const vencimiento = new Date(dVencimiento.toISOString().split('T')[0] + 'T00:00:00');
-      const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
-      let estado = 'Vigente';
-      if (diasRestantes < 0) estado = 'Vencido';
-      else if (diasRestantes <= 30) estado = 'Por vencer';
-
+      const estado = computeEstado(dVencimiento);
       const result = await db.run(
         `INSERT INTO documentos
           (tipo_documento, numero_documento, entidad_emisora, responsable,
@@ -94,13 +97,7 @@ const createDocumentosRoutes = (db, logAudit) => {
     }
 
     try {
-      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-      const vencimiento = new Date(dVencimiento.toISOString().split('T')[0] + 'T00:00:00');
-      const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
-      let estado = 'Vigente';
-      if (diasRestantes < 0) estado = 'Vencido';
-      else if (diasRestantes <= 30) estado = 'Por vencer';
-
+      const estado = computeEstado(dVencimiento);
       const anterior = await db.get('SELECT * FROM documentos WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(

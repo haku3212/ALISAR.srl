@@ -28,7 +28,7 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
     fetchData();
   }, [fetchData]);
 
-  const create = async (newItem) => {
+  const create = useCallback(async (newItem) => {
     try {
       await serviceCreate(newItem);
       await fetchData();
@@ -39,9 +39,9 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
       showError(msg);
       return false;
     }
-  };
+  }, [serviceCreate, fetchData, showSuccess, showError]);
 
-  const update = async (id, updatedItem) => {
+  const update = useCallback(async (id, updatedItem) => {
     try {
       await serviceUpdate(id, updatedItem);
       await fetchData();
@@ -53,7 +53,7 @@ export const useCRUD = (serviceGet, serviceCreate, serviceUpdate, serviceDelete)
       showError(msg);
       return false;
     }
-  };
+  }, [serviceUpdate, fetchData, showSuccess, showError]);
 
   const requestDelete = useCallback((id) => {
     setPendingDeleteId(id);

@@ -6,7 +6,7 @@ const createMaquinariaRoutes = (db, logAudit) => {
 
   router.get('/', verifyToken, async (req, res) => {
     try {
-      const rows = await db.all('SELECT * FROM maquinaria');
+      const rows = await db.all('SELECT * FROM maquinaria ORDER BY nombre ASC');
       res.json(rows);
     } catch (err) {
       console.error('Error:', err);
@@ -19,11 +19,22 @@ const createMaquinariaRoutes = (db, logAudit) => {
     if (!nombre?.trim() || !tipo?.trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
     }
+    if (ultimaRevision && isNaN(new Date(ultimaRevision).getTime())) {
+      return res.status(400).json({ msg: 'Formato de fecha inválido en ultimaRevision' });
+    }
+    const anioNum = anio != null ? parseInt(anio, 10) : null;
+    if (anio != null && (isNaN(anioNum) || anioNum < 1900 || anioNum > 2100)) {
+      return res.status(400).json({ msg: 'Año inválido (debe ser entre 1900 y 2100)' });
+    }
+    const horasNum = horas_operacion != null ? parseFloat(horas_operacion) : null;
+    if (horas_operacion != null && (isNaN(horasNum) || horasNum < 0)) {
+      return res.status(400).json({ msg: 'horas_operacion debe ser un número positivo' });
+    }
     try {
       const result = await db.run(
         `INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [nombre, tipo, estado ?? 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado]
+        [nombre, tipo, estado ?? 'Operativo', ultimaRevision || null, modelo, anioNum, numero_serie, horasNum, operador_asignado]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'CREATE', 'maquinaria', result.lastID, null, req.body);
       res.status(201).json({ status: 'Maquinaria registrada con éxito', id: result.lastID });
@@ -42,13 +53,24 @@ const createMaquinariaRoutes = (db, logAudit) => {
     if (!nombre?.trim() || !tipo?.trim()) {
       return res.status(400).json({ msg: 'Campos requeridos: nombre, tipo' });
     }
+    if (ultimaRevision && isNaN(new Date(ultimaRevision).getTime())) {
+      return res.status(400).json({ msg: 'Formato de fecha inválido en ultimaRevision' });
+    }
+    const anioNum = anio != null ? parseInt(anio, 10) : null;
+    if (anio != null && (isNaN(anioNum) || anioNum < 1900 || anioNum > 2100)) {
+      return res.status(400).json({ msg: 'Año inválido (debe ser entre 1900 y 2100)' });
+    }
+    const horasNum = horas_operacion != null ? parseFloat(horas_operacion) : null;
+    if (horas_operacion != null && (isNaN(horasNum) || horasNum < 0)) {
+      return res.status(400).json({ msg: 'horas_operacion debe ser un número positivo' });
+    }
     try {
       const anterior = await db.get('SELECT * FROM maquinaria WHERE id = ?', [id]);
       if (!anterior) return res.status(404).json({ msg: 'Registro no encontrado' });
       await db.run(
         `UPDATE maquinaria SET nombre = ?, tipo = ?, estado = ?, ultimaRevision = ?,
          modelo = ?, anio = ?, numero_serie = ?, horas_operacion = ?, operador_asignado = ? WHERE id = ?`,
-        [nombre, tipo, estado ?? 'Operativo', ultimaRevision, modelo, anio, numero_serie, horas_operacion, operador_asignado, id]
+        [nombre, tipo, estado ?? 'Operativo', ultimaRevision || null, modelo, anioNum, numero_serie, horasNum, operador_asignado, id]
       );
       await logAudit(req.user?.nombre || req.user?.usuario || String(req.user?.id || 'sistema'), 'UPDATE', 'maquinaria', id, anterior, req.body);
       res.json({ status: 'Maquinaria actualizada con éxito' });
