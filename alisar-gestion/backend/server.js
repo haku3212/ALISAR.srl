@@ -15,7 +15,7 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(cors({
   origin: (origin, callback) => {
-    const allowed = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
+    const allowed = process.env.ALLOWED_ORIGIN || 'http://localhost:3002';
     // 'null' origin (file:// o iframe sandbox) solo se permite en desarrollo para Electron dev-mode
     const allowNull = process.env.NODE_ENV === 'development' || process.env.ALLOW_NULL_ORIGIN === 'true';
     // ALLOWED_ORIGIN=* solo se permite en desarrollo — en producción es un riesgo de seguridad
