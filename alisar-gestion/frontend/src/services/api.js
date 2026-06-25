@@ -33,10 +33,14 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !isLoginRequest) {
       if (!logoutInProgress) {
         logoutInProgress = true;
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.dispatchEvent(new Event('auth:logout'));
-        setTimeout(() => { logoutInProgress = false; }, 2000);
+        try {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.dispatchEvent(new Event('auth:logout'));
+          setTimeout(() => { logoutInProgress = false; }, 2000);
+        } catch (_) {
+          logoutInProgress = false;
+        }
       }
     }
     return Promise.reject(error);

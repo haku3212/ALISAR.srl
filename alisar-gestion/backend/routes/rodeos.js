@@ -1,6 +1,8 @@
 const express = require('express');
 const { verifyToken } = require('../middleware/auth');
 
+const normCoords = (v) => (v == null || v === '') ? null : (typeof v === 'string' ? v : JSON.stringify(v));
+
 const createRodeosRoutes = (db, logAudit) => {
   const router = express.Router();
 
@@ -35,7 +37,6 @@ const createRodeosRoutes = (db, logAudit) => {
     const volTotal = (volumen_total === '' || volumen_total === undefined) ? null : Number(volumen_total);
 
     try {
-      const normCoords = (v) => v == null ? null : (typeof v === 'string' ? v : JSON.stringify(v));
       const coordsOrigen = normCoords(ubicacion_origen_coords);
       const coordsDestino = normCoords(ubicacion_destino_coords);
       const result = await db.run(
@@ -84,7 +85,6 @@ const createRodeosRoutes = (db, logAudit) => {
     const volTotal = (volumen_total === '' || volumen_total === undefined) ? null : Number(volumen_total);
 
     try {
-      const normCoords = (v) => v == null ? null : (typeof v === 'string' ? v : JSON.stringify(v));
       const coordsOrigen = normCoords(ubicacion_origen_coords);
       const coordsDestino = normCoords(ubicacion_destino_coords);
       const anterior = await db.get('SELECT * FROM rodeos WHERE id = ?', [id]);

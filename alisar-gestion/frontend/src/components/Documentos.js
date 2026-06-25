@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FileText, Plus, Edit2, Trash2, Download, AlertCircle } from 'lucide-react';
 import { dataService } from '../services/api';
-import { validateDate, validateDateAfter } from '../utils/validators';
+import { validateDateAfter } from '../utils/validators';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
@@ -89,7 +89,10 @@ const Documentos = () => {
     return r;
   }, [data, search, filters]);
 
-  const alertas = data.filter(d => ['vencido', 'vence_hoy', 'proximo_vencer'].includes(getEstadoVenc(d.fecha_vencimiento))).length;
+  const alertas = useMemo(
+    () => data.filter(d => ['vencido', 'vence_hoy', 'proximo_vencer'].includes(getEstadoVenc(d.fecha_vencimiento))).length,
+    [data]
+  );
 
   const validate = () => {
     const e = {};
