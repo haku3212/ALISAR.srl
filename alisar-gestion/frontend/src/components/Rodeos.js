@@ -79,7 +79,7 @@ const Rodeos = () => {
   const validate = () => {
     const e = {};
     if (!formData.fecha_rodeo?.trim()) e.fecha_rodeo = 'Campo requerido';
-    if (!formData.volumen_total?.toString().trim()) e.volumen_total = 'Campo requerido';
+    if (formData.volumen_total?.toString().trim() && (isNaN(Number(formData.volumen_total)) || Number(formData.volumen_total) < 0)) e.volumen_total = 'Debe ser un número positivo';
     if (!formData.responsable_rodeo?.trim()) e.responsable_rodeo = 'Campo requerido';
     if (!formData.procedencia?.trim()) e.procedencia = 'Campo requerido';
     if (!formData.destino_final?.trim()) e.destino_final = 'Campo requerido';

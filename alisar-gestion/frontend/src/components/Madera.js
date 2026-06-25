@@ -62,7 +62,8 @@ const Madera = () => {
   const validate = () => {
     const e = {};
     if (!formData.especie?.trim()) e.especie = 'Campo requerido';
-    if (!formData.piezas || isNaN(Number(formData.piezas)) || Number(formData.piezas) <= 0) e.piezas = 'Requerido (número positivo)';
+    const piezasN = parseInt(formData.piezas, 10);
+    if (!formData.piezas || isNaN(piezasN) || piezasN <= 0 || String(piezasN) !== String(Number(formData.piezas))) e.piezas = 'Requerido (entero positivo)';
     if (!formData.volumen?.toString().trim() || isNaN(Number(formData.volumen)) || Number(formData.volumen) <= 0) e.volumen = 'Requerido (número positivo)';
     if (!formData.campamento?.trim()) e.campamento = 'Campo requerido';
     setFormErrors(e);

@@ -29,10 +29,14 @@ const EMPTY = {
 
 const getEstadoVenc = (fv) => {
   if (!fv) return 'sin_fecha';
-  const d = Math.ceil((new Date(fv) - new Date()) / 86400000);
-  if (d < 0) return 'vencido';
-  if (d === 0) return 'vence_hoy';
-  if (d < 30) return 'proximo_vencer';
+  // Comparar strings YYYY-MM-DD para evitar que new Date('YYYY-MM-DD') se parsee
+  // como UTC midnight, lo que desplaza la fecha 1 día atrás en zonas UTC negativas (Bolivia UTC-4)
+  const hoyStr = new Date().toLocaleDateString('en-CA');
+  const vStr = fv.split('T')[0];
+  if (vStr < hoyStr) return 'vencido';
+  if (vStr === hoyStr) return 'vence_hoy';
+  const en30 = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
+  if (vStr <= en30) return 'proximo_vencer';
   return 'vigente';
 };
 
@@ -93,7 +97,7 @@ const Documentos = () => {
     if (!formData.numero_documento?.trim()) e.numero_documento = 'Campo requerido';
     if (!formData.entidad_emisora?.trim()) e.entidad_emisora = 'Campo requerido';
     if (!formData.fecha_emision?.trim()) e.fecha_emision = 'Campo requerido';
-    else if (!validateDate(formData.fecha_emision)) e.fecha_emision = 'Fecha no válida';
+    else if (isNaN(new Date(formData.fecha_emision).getTime())) e.fecha_emision = 'Fecha no válida';
     if (!formData.fecha_vencimiento?.trim()) e.fecha_vencimiento = 'Campo requerido';
     else if (formData.fecha_emision && !validateDateAfter(formData.fecha_vencimiento, formData.fecha_emision)) {
       e.fecha_vencimiento = 'Debe ser posterior a la fecha de emisión';
@@ -118,7 +122,11 @@ const Documentos = () => {
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose = () => { setShowModal(false); setEditingId(null); };
 
-  const formatDate = (d) => { try { return d ? new Date(d).toLocaleDateString('es-BO') : '—'; } catch { return d || '—'; } };
+  const formatDate = (d) => {
+    if (!d) return '—';
+    // Append T00:00:00 to force local-time parse instead of UTC midnight parse
+    try { return new Date(d.split('T')[0] + 'T00:00:00').toLocaleDateString('es-BO'); } catch { return d; }
+  };
 
   if (loading) return <LoadingSpinner />;
 

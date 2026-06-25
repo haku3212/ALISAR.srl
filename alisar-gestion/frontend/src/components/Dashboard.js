@@ -531,7 +531,7 @@ const Dashboard = ({ content }) => {
                       Documento por vencer: {doc.numero_documento || doc.tipo_documento || 'Sin nombre'}
                     </p>
                     <p style={{ color: '#6b7280', margin: 0, fontSize: '12px' }}>
-                      Vence: {new Date(doc.fecha_vencimiento).toLocaleDateString('es-ES')}
+                      Vence: {new Date(doc.fecha_vencimiento.split('T')[0] + 'T00:00:00').toLocaleDateString('es-ES')}
                     </p>
                   </div>
                 ))}
