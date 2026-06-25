@@ -121,7 +121,27 @@ const Documentos = () => {
     }
   };
 
-  const handleEdit = (d) => { setFormData({ ...EMPTY, ...d }); setFormErrors({}); setEditingId(d.id); setShowModal(true); };
+  const handleEdit = (d) => {
+    setFormData({
+      tipo_documento: d.tipo_documento ?? '',
+      numero_documento: d.numero_documento ?? '',
+      entidad_emisora: d.entidad_emisora ?? '',
+      responsable: d.responsable ?? '',
+      fecha_emision: d.fecha_emision ?? '',
+      fecha_vencimiento: d.fecha_vencimiento ?? '',
+      periodo_validez: d.periodo_validez ?? '',
+      descripcion: d.descripcion ?? '',
+      estado: d.estado ?? 'Vigente',
+      asociado_rodeo: d.asociado_rodeo ?? '',
+      asociado_proyecto: d.asociado_proyecto ?? '',
+      asociado_maquinaria: d.asociado_maquinaria ?? '',
+      asociado_campamento: d.asociado_campamento ?? '',
+      url_documento: d.url_documento ?? '',
+      referencia_archivo: d.referencia_archivo ?? '',
+      observaciones: d.observaciones ?? '',
+    });
+    setFormErrors({}); setEditingId(d.id); setShowModal(true);
+  };
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose = () => { setShowModal(false); setEditingId(null); };
 

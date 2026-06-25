@@ -84,7 +84,20 @@ const Obras = () => {
   };
 
   const handleEdit = (obra) => {
-    setFormData({ ...EMPTY, ...obra, gastos_totales: obra.gastos_totales || '' });
+    setFormData({
+      nombre: obra.nombre ?? '',
+      tipo: obra.tipo ?? '',
+      cliente: obra.cliente ?? '',
+      avance: obra.avance ?? 0,
+      presupuesto: obra.presupuesto ?? '',
+      gastos_totales: obra.gastos_totales ?? '',
+      responsable_tecnico: obra.responsable_tecnico ?? '',
+      inicio_planeado: obra.inicio_planeado ?? '',
+      fin_planeado: obra.fin_planeado ?? '',
+      descripcion: obra.descripcion ?? '',
+      observaciones: obra.observaciones ?? '',
+      estado: obra.estado ?? 'Planeado',
+    });
     setFormErrors({}); setEditingId(obra.id); setShowModal(true);
   };
   const handleNew = () => { setFormData(EMPTY); setEditingId(null); setFormErrors({}); setShowModal(true); };
