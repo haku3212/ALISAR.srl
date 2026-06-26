@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Trees, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
+import { Trees, Plus, Pencil, Trash2, Download, FileText, AlertTriangle, MapPin, User, Package } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -69,6 +69,7 @@ const Madera = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [confirmId, setConfirmId] = useState(null);
   const [personalList, setPersonalList] = useState([]);
   const [selectedPersonal, setSelectedPersonal] = useState([]);
 
@@ -199,69 +200,44 @@ const Madera = () => {
     setShowModal(true);
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingId(null);
+  const handleClose = () => { setShowModal(false); setEditingId(null); };
+  const confirmItem = data.find(m => m.id === confirmId);
+
+  const C = {
+    bg: '#080a08', surface: '#0f110f', card: '#131513', border: '#1c221c',
+    border2: '#232a23', yellow: '#FFD700', blue: '#60a5fa', green: '#34d399',
+    orange: '#f97316', red: '#f87171', text: '#e2e8e2', muted: '#6b7a6b',
+  };
+
+  const btnBase = {
+    border: 'none', borderRadius: '8px', fontWeight: '600',
+    display: 'flex', alignItems: 'center', gap: '6px',
+    cursor: 'pointer', fontSize: '13px', padding: '9px 16px',
   };
 
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div style={{ padding: '32px', color: '#e0e0e0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+    <div style={{ padding: '28px 32px', fontFamily: "'Inter', -apple-system, sans-serif", color: C.text, minHeight: '100%', background: C.bg }}>
+
+      {/* ── Header ─────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ margin: 0, color: '#fff' }}>Control de Rodeos / Madera</h1>
-          <p style={{ color: '#666', fontSize: '14px', margin: '8px 0 0 0' }}>Gestión de volúmenes y especies</p>
+          <h1 style={{ color: '#fff', margin: '0 0 6px 0', fontSize: '22px', fontWeight: '700' }}>Control Forestal</h1>
+          <p style={{ color: C.muted, fontSize: '13px', margin: 0 }}>Rodeos y extracción de madera — {data.length} registros</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => generateMaderaReport(data)} title="Generar reporte en PDF" style={{
-            background: '#f87171',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 16px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}>
-            <FileText size={16} /> PDF
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => generateMaderaReport(data)} style={{ ...btnBase, background: C.card, color: C.text, border: `1px solid ${C.border2}` }}>
+            <FileText size={14} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
-            { label: 'Especie', key: 'especie' },
-            { label: 'Piezas', key: 'piezas' },
-            { label: 'Volumen', key: 'volumen' },
-            { label: 'Campamento', key: 'campamento' }
-          ], 'Madera')} title="Exportar a Excel" style={{
-            background: '#60a5fa',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 16px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}>
-            <Download size={16} /> Excel
+            { label: 'Nombre', key: 'nombre' }, { label: 'Especie', key: 'especie' },
+            { label: 'Volumen', key: 'volumen' }, { label: 'Campamento', key: 'campamento' },
+          ], 'Madera')} style={{ ...btnBase, background: C.card, color: C.blue, border: `1px solid ${C.border2}` }}>
+            <Download size={14} /> Excel
           </button>
-          <button onClick={handleNew} style={{
-            background: '#FFD700',
-            color: '#000',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer'
-          }}>
-            <Plus size={18} /> Nuevo Rodeo
+          <button onClick={handleNew} style={{ ...btnBase, background: C.yellow, color: '#000', padding: '9px 20px' }}>
+            <Plus size={16} /> Nuevo Rodeo
           </button>
         </div>
       </div>
@@ -269,104 +245,190 @@ const Madera = () => {
       {error && <ErrorMessage message={error} onDismiss={() => {}} />}
 
       <SearchBar
-        placeholder="Buscar por especie, volumen o campamento..."
+        placeholder="Buscar por especie, campamento o contratante..."
         onSearch={setSearch}
         onFilterChange={setFilters}
         filters={filterConfigs}
       />
 
+      {/* ── Lista ──────────────────────────────────────────────────── */}
       {filtered.length === 0 ? (
         <div style={{
-          textAlign: 'center',
-          padding: '48px 32px',
-          background: '#111411',
-          borderRadius: '12px',
-          border: '1px solid #1f241f',
-          color: '#666'
+          textAlign: 'center', padding: '64px 32px',
+          background: C.card, borderRadius: '12px', border: `1px solid ${C.border}`, color: C.muted,
         }}>
-          <p>{search ? 'No hay resultados' : 'No hay rodeos registrados'}</p>
+          <Trees size={40} color={C.border2} style={{ marginBottom: '12px' }} />
+          <p style={{ margin: 0, fontSize: '15px' }}>{search ? 'No hay resultados para tu búsqueda' : 'Aún no hay rodeos registrados'}</p>
+          {!search && <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: C.border2 }}>Presiona "Nuevo Rodeo" para comenzar</p>}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-          {filtered.map(m => (
-            <div key={m.id} style={{
-              background: '#111411',
-              border: '1px solid #1f241f',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                  <div style={{ background: '#1a221a', padding: '8px', borderRadius: '50%' }}>
-                    <Trees size={18} color="#FFD700" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {filtered.map(m => {
+            const estadoColors = {
+              en_curso:  { bg: 'rgba(52,211,153,0.12)', color: C.green, label: 'En Curso' },
+              entregado: { bg: 'rgba(96,165,250,0.12)', color: C.blue,  label: 'Entregado' },
+              pausado:   { bg: 'rgba(249,115,22,0.12)', color: C.orange, label: 'Pausado' },
+              cancelado: { bg: 'rgba(248,113,113,0.12)',color: C.red,   label: 'Cancelado' },
+            };
+            const est = estadoColors[m.estado_contrato] || { bg: 'rgba(107,122,107,0.12)', color: C.muted, label: m.estado_contrato || '—' };
+            return (
+              <div key={m.id} style={{
+                background: C.card, border: `1px solid ${C.border}`,
+                borderLeft: `4px solid ${C.green}`,
+                borderRadius: '12px', padding: '18px 22px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                  <div style={{
+                    width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
+                    background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px',
+                  }}>
+                    🌳
                   </div>
-                  <div>
-                    <h3 style={{ margin: 0, color: '#e0e0e0' }}>{m.especie}</h3>
-                    <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '12px' }}>ID: {m.id}</p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '5px' }}>
+                      <span style={{ color: '#fff', fontSize: '15px', fontWeight: '700' }}>
+                        {m.nombre || m.especie || `Rodeo #${m.id}`}
+                      </span>
+                      <span style={{
+                        background: est.bg, color: est.color,
+                        padding: '2px 9px', borderRadius: '20px', fontSize: '11px', fontWeight: '600',
+                      }}>{est.label}</span>
+                      {m.especie && m.nombre && (
+                        <span style={{ color: C.muted, fontSize: '11px', background: C.surface, padding: '2px 6px', borderRadius: '4px' }}>{m.especie}</span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                      {m.contratante && (
+                        <span style={{ color: C.muted, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <User size={11} /> {m.contratante}
+                        </span>
+                      )}
+                      {m.campamento && (
+                        <span style={{ color: C.muted, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <MapPin size={11} /> {m.campamento}
+                        </span>
+                      )}
+                      {m.ing_forestal && (
+                        <span style={{ color: C.muted, fontSize: '12px' }}>Ing: {m.ing_forestal}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Métricas */}
+                  <div style={{ display: 'flex', gap: '20px', flexShrink: 0, alignItems: 'flex-start' }}>
+                    {m.volumen && (
+                      <div style={{ textAlign: 'right' }}>
+                        <p style={{ margin: 0, color: C.muted, fontSize: '10px', fontWeight: '600', letterSpacing: '0.8px' }}>VOLUMEN</p>
+                        <p style={{ margin: '2px 0 0 0', color: C.yellow, fontSize: '15px', fontWeight: '800' }}>{m.volumen} m³</p>
+                      </div>
+                    )}
+                    {m.num_piezas && (
+                      <div style={{ textAlign: 'right' }}>
+                        <p style={{ margin: 0, color: C.muted, fontSize: '10px', fontWeight: '600', letterSpacing: '0.8px' }}>PIEZAS</p>
+                        <p style={{ margin: '2px 0 0 0', color: C.text, fontSize: '15px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <Package size={12} color={C.muted} /> {m.num_piezas}
+                        </p>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={() => handleEdit(m)} style={{
+                        background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.25)',
+                        color: C.blue, cursor: 'pointer', borderRadius: '8px',
+                        padding: '7px 12px', display: 'flex', alignItems: 'center', gap: '5px',
+                        fontSize: '12px', fontWeight: '600',
+                      }}>
+                        <Pencil size={13} /> Editar
+                      </button>
+                      <button onClick={() => setConfirmId(m.id)} style={{
+                        background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)',
+                        color: C.red, cursor: 'pointer', borderRadius: '8px',
+                        padding: '7px 10px', display: 'flex', alignItems: 'center',
+                      }}>
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => handleEdit(m)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
-                    <Edit2 size={16} />
-                  </button>
-                  <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #1f241f' }}>
-                <div>
-                  <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>PIEZAS</p>
-                  <p style={{ color: '#fff', fontSize: '16px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{m.piezas}</p>
-                </div>
-                <div>
-                  <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>VOLUMEN</p>
-                  <p style={{ color: '#FFD700', fontSize: '16px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{m.volumen}</p>
-                </div>
-              </div>
-
-              <div>
-                <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>CAMPAMENTO</p>
-                <p style={{ color: '#e0e0e0', fontSize: '14px', margin: '4px 0 0 0' }}>{m.campamento}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      <Modal isOpen={showModal} onClose={handleCloseModal} title={editingId ? 'Editar Rodeo' : 'Nuevo Rodeo'}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Usar el formulario detallado con todas las secciones expandibles */}
+      {/* ── Confirmación eliminar ──────────────────────────────────── */}
+      {confirmId && confirmItem && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1100, backdropFilter: 'blur(3px)', padding: '16px',
+        }}>
+          <div style={{
+            background: C.card, border: `1px solid ${C.border2}`,
+            borderRadius: '14px', padding: '28px 32px', maxWidth: '400px', width: '100%',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(248,113,113,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AlertTriangle size={20} color={C.red} />
+              </div>
+              <div>
+                <p style={{ margin: 0, color: '#fff', fontWeight: '700', fontSize: '15px' }}>¿Eliminar rodeo?</p>
+                <p style={{ margin: '2px 0 0 0', color: C.muted, fontSize: '12px' }}>Esta acción no se puede deshacer</p>
+              </div>
+            </div>
+            <p style={{ color: C.text, fontSize: '13px', margin: '0 0 20px 0' }}>
+              Se eliminará <strong style={{ color: '#fff' }}>{confirmItem.nombre || confirmItem.especie || `Rodeo #${confirmItem.id}`}</strong> permanentemente.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmId(null)} style={{ ...btnBase, background: C.surface, color: C.text, border: `1px solid ${C.border2}` }}>Cancelar</button>
+              <button onClick={() => { deleteItem(confirmId); setConfirmId(null); }} style={{ ...btnBase, background: C.red, color: '#fff' }}>
+                <Trash2 size={14} /> Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal ─────────────────────────────────────────────────── */}
+      <Modal
+        isOpen={showModal}
+        onClose={handleClose}
+        mode={editingId ? 'edit' : 'create'}
+        title={editingId ? 'Editar Rodeo' : 'Nuevo Rodeo'}
+        subtitle={editingId ? `Modificando: ${formData.nombre || formData.especie || ''}` : 'Registra un nuevo trabajo de extracción forestal'}
+        footer={
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <button onClick={handleClose} style={{ ...btnBase, background: C.surface, color: C.text, border: `1px solid ${C.border2}` }}>
+              Cancelar
+            </button>
+            <button
+              form="form-madera"
+              type="submit"
+              disabled={submitting}
+              style={{
+                ...btnBase, background: submitting ? '#b8a000' : C.yellow,
+                color: '#000', padding: '10px 28px',
+                opacity: submitting ? 0.7 : 1,
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                fontSize: '14px', fontWeight: '700',
+              }}
+            >
+              {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear Rodeo'}
+            </button>
+          </div>
+        }
+      >
+        <form id="form-madera" onSubmit={handleSubmit}>
           <FormMaderaDetallado
             formData={formData}
-            onChange={(updatedData) => setFormData(updatedData)}
+            onChange={setFormData}
             errors={formErrors}
             submitting={submitting}
             personalList={personalList}
             selectedPersonal={selectedPersonal}
             onPersonalChange={setSelectedPersonal}
           />
-
-          {/* Botón de envío */}
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              background: '#FFD700',
-              color: '#000',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              opacity: submitting ? 0.6 : 1,
-              marginTop: '16px',
-              fontSize: '14px'
-            }}
-          >
-            {submitting ? 'Guardando...' : editingId ? 'Actualizar Rodeo' : 'Crear Rodeo'}
-          </button>
         </form>
       </Modal>
     </div>

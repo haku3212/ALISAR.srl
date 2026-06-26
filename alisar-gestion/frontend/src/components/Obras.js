@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { HardHat, MapPin, Plus, Pencil, Trash2, Download, FileText, TrendingUp, Calendar, User, DollarSign, Fuel, Wrench } from 'lucide-react';
+import { HardHat, MapPin, Plus, Pencil, Trash2, Download, FileText, TrendingUp, Calendar, User, DollarSign, Fuel, AlertTriangle } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -40,6 +40,47 @@ const StatMini = ({ icon: Icon, label, value, color }) => (
   </div>
 );
 
+const btnBase = {
+  border: 'none', borderRadius: '8px', fontWeight: '600',
+  display: 'flex', alignItems: 'center', gap: '6px',
+  cursor: 'pointer', fontSize: '13px', padding: '9px 16px',
+};
+
+const ConfirmDelete = ({ name, onConfirm, onCancel }) => (
+  <div style={{
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 1100, backdropFilter: 'blur(3px)', padding: '16px',
+  }}>
+    <div style={{
+      background: C.card, border: `1px solid ${C.border2}`,
+      borderRadius: '14px', padding: '28px 32px', maxWidth: '400px', width: '100%',
+      boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+        <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(248,113,113,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <AlertTriangle size={20} color={C.red} />
+        </div>
+        <div>
+          <p style={{ margin: 0, color: '#fff', fontWeight: '700', fontSize: '15px' }}>¿Eliminar obra?</p>
+          <p style={{ margin: '2px 0 0 0', color: C.muted, fontSize: '12px' }}>Esta acción no se puede deshacer</p>
+        </div>
+      </div>
+      <p style={{ color: C.text, fontSize: '13px', margin: '0 0 20px 0' }}>
+        Se eliminará permanentemente <strong style={{ color: '#fff' }}>{name}</strong>.
+      </p>
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        <button onClick={onCancel} style={{ ...btnBase, background: C.surface, color: C.text, border: `1px solid ${C.border2}` }}>
+          Cancelar
+        </button>
+        <button onClick={onConfirm} style={{ ...btnBase, background: C.red, color: '#fff' }}>
+          <Trash2 size={14} /> Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 const Obras = () => {
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
     dataService.getObras, dataService.createObra, dataService.updateObra, dataService.deleteObra
@@ -59,6 +100,7 @@ const Obras = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [formErrors,  setFormErrors]  = useState({});
+  const [confirmId, setConfirmId] = useState(null);
 
   const uniqueTipos = useMemo(() => [...new Set(data.map(o => o.tipo).filter(Boolean))], [data]);
   const filterConfigs = useMemo(() => [
@@ -108,16 +150,12 @@ const Obras = () => {
     }
   };
 
-  const handleEdit = (obra) => { setFormData(obra); setEditingId(obra.id); setShowModal(true); };
+  const handleEdit = (obra) => { setFormData(obra); setEditingId(obra.id); setFormErrors({}); setShowModal(true); };
   const handleNew  = () => { resetFormData(); setEditingId(null); setFormErrors({}); setShowModal(true); };
   const handleClose= () => { setShowModal(false); setEditingId(null); };
+  const confirmItem = data.find(o => o.id === confirmId);
 
   if (loading) return <LoadingSpinner />;
-
-  const btnBase = {
-    border: 'none', borderRadius: '8px', fontWeight: '600', display: 'flex',
-    alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', padding: '9px 16px'
-  };
 
   return (
     <div style={{ padding: '28px 32px', fontFamily: "'Inter', -apple-system, sans-serif", color: C.text, minHeight: '100%', background: C.bg }}>
@@ -244,7 +282,7 @@ const Obras = () => {
                     }}>
                       <Pencil size={13} /> Editar
                     </button>
-                    <button onClick={() => deleteItem(obra.id)} style={{
+                    <button onClick={() => setConfirmId(obra.id)} style={{
                       background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)',
                       color: C.red, cursor: 'pointer', borderRadius: '8px',
                       padding: '7px 10px', display: 'flex', alignItems: 'center',
@@ -296,28 +334,51 @@ const Obras = () => {
         </div>
       )}
 
+      {/* ── Confirmación eliminar ─────────────────────────────────── */}
+      {confirmId && confirmItem && (
+        <ConfirmDelete
+          name={confirmItem.nombre}
+          onConfirm={() => { deleteItem(confirmId); setConfirmId(null); }}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
+
       {/* ── Modal ────────────────────────────────────────────────────── */}
-      <Modal isOpen={showModal} onClose={handleClose} title={editingId ? 'Editar Obra' : 'Nueva Obra'}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <Modal
+        isOpen={showModal}
+        onClose={handleClose}
+        mode={editingId ? 'edit' : 'create'}
+        title={editingId ? 'Editar Obra' : 'Nueva Obra'}
+        subtitle={editingId ? `Modificando: ${formData.nombre || ''}` : 'Registra un nuevo proyecto u obra'}
+        footer={
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <button onClick={handleClose} style={{ ...btnBase, background: C.surface, color: C.text, border: `1px solid ${C.border2}` }}>
+              Cancelar
+            </button>
+            <button
+              form="form-obras"
+              type="submit"
+              disabled={submitting}
+              style={{
+                ...btnBase, background: submitting ? '#b8a000' : C.yellow,
+                color: '#000', padding: '10px 28px',
+                opacity: submitting ? 0.7 : 1,
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                fontSize: '14px', fontWeight: '700',
+              }}
+            >
+              {submitting ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear Obra'}
+            </button>
+          </div>
+        }
+      >
+        <form id="form-obras" onSubmit={handleSubmit}>
           <FormObrasDetallado
             formData={formData}
             onChange={setFormData}
             errors={formErrors}
             submitting={submitting}
           />
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              background: C.yellow, color: '#000', border: 'none',
-              padding: '13px 24px', borderRadius: '10px', fontWeight: '700',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              opacity: submitting ? 0.6 : 1, fontSize: '14px', marginTop: '8px',
-              letterSpacing: '0.3px'
-            }}
-          >
-            {submitting ? 'Guardando...' : editingId ? 'Actualizar Obra' : 'Crear Obra'}
-          </button>
         </form>
       </Modal>
     </div>
