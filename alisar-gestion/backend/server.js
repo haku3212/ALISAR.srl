@@ -6,8 +6,12 @@ const { initDB } = require('./db/init');
 const app = express();
 
 // Solo permite peticiones desde el frontend local
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:3002').split(',');
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, cb) => {
+        if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+        cb(new Error('CORS no permitido: ' + origin));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
