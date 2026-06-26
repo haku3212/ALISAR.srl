@@ -174,6 +174,28 @@ const runMigrations = async () => {
     await addCol('madera', 'comprador');
     await addCol('madera', 'precio_venta');
 
+    // Campos del flujo real de extracción forestal
+    await addCol('madera', 'nombre');
+    await addCol('madera', 'contratante');
+    await addCol('madera', 'segunda_parte');
+    await addCol('madera', 'estado_contrato');
+    await addCol('madera', 'ing_forestal');
+    await addCol('madera', 'jefe_campamento');
+    await addCol('madera', 'personal_asignado');
+    await addCol('madera', 'maquinaria_asignada');
+    await addCol('madera', 'obs_campamento');
+    await addCol('madera', 'zona_extraccion');
+    await addCol('madera', 'punto_medio');
+    await addCol('madera', 'fecha_inicio_tumba');
+    await addCol('madera', 'fecha_llegada_punto_medio');
+    await addCol('madera', 'obs_extraccion');
+    await addCol('madera', 'num_piezas');
+    await addCol('madera', 'obs_clasificacion');
+    await addCol('madera', 'aserradero_destino');
+    await addCol('madera', 'fecha_entrega_aserradero');
+    await addCol('madera', 'responsable_recepcion');
+    await addCol('madera', 'obs_entrega');
+
     // Nuevos campos operativos de maquinaria
     await addCol('maquinaria', 'obra_asignada');
     await addCol('maquinaria', 'fecha_traslado');

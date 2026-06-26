@@ -79,159 +79,145 @@ const Section = ({ icon, title, color = C.yellow, children }) => (
 const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = false }) => {
   const set = (field) => (e) => onChange({ ...formData, [field]: e.target.value });
 
-  const valorTotal = (Number(formData.volumen) || 0) * (Number(formData.precio_unitario) || 0);
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-      {/* ── 1. Especie e Identificación ──────────────────────────── */}
-      <Section icon="🌳" title="Especie e Identificación" color={C.yellow}>
-        <Field label="Nombre Común" required error={errors.nombre_comun}>
-          <Input value={formData.nombre_comun} onChange={set('nombre_comun')} placeholder="Ej: Cedro Rojo" disabled={submitting} error={errors.nombre_comun} />
+      {/* ── 1. Contrato ───────────────────────────────────────────── */}
+      <Section icon="📋" title="Datos del Contrato" color={C.yellow}>
+        <Field label="Nombre / Referencia del Trabajo" required error={errors.nombre} span={2}>
+          <Input value={formData.nombre} onChange={set('nombre')} placeholder="Ej: Extracción Forestal Zona Norte — Lote 12" disabled={submitting} error={errors.nombre} />
         </Field>
-        <Field label="Nombre Científico">
-          <Input value={formData.nombre_cientifico} onChange={set('nombre_cientifico')} placeholder="Ej: Cedrela odorata" disabled={submitting} />
+        <Field label="Contratante Principal" required error={errors.contratante}>
+          <Input value={formData.contratante} onChange={set('contratante')} placeholder="Ej: Municipalidad de Riberalta" disabled={submitting} error={errors.contratante} />
         </Field>
-        <Field label="Especie">
-          <Select value={formData.especie} onChange={set('especie')} disabled={submitting} options={[
-            { value: 'cedro',   label: 'Cedro' },
-            { value: 'caoba',   label: 'Caoba' },
-            { value: 'mara',    label: 'Mará' },
-            { value: 'roble',   label: 'Roble' },
-            { value: 'teca',    label: 'Teca' },
-            { value: 'pino',    label: 'Pino' },
-            { value: 'ocote',   label: 'Ocote' },
-            { value: 'otra',    label: 'Otra' },
-          ]} />
+        <Field label="Segunda Parte">
+          <Input value={formData.segunda_parte} onChange={set('segunda_parte')} placeholder="Ej: Aserradero El Bosque S.R.L." disabled={submitting} />
         </Field>
-        <Field label="Tipo de Corte">
-          <Select value={formData.tipo_corte} onChange={set('tipo_corte')} disabled={submitting} options={[
-            { value: 'tabla',    label: 'Tabla' },
-            { value: 'viga',     label: 'Viga' },
-            { value: 'bloque',   label: 'Bloque' },
-            { value: 'rollizo',  label: 'Rollizo' },
-            { value: 'aserrado', label: 'Aserrado' },
-          ]} />
-        </Field>
-      </Section>
-
-      {/* ── 2. Origen y Destino ───────────────────────────────────── */}
-      <Section icon="📍" title="Origen y Destino" color={C.blue}>
-        <Field label="Procedencia / Origen">
-          <Input value={formData.procedencia} onChange={set('procedencia')} placeholder="Ej: Comunidad San Miguel" disabled={submitting} />
-        </Field>
-        <Field label="Destino de la Madera">
-          <Select value={formData.destino} onChange={set('destino')} disabled={submitting} options={[
-            { value: 'construccion',  label: 'Construcción' },
-            { value: 'muebles',       label: 'Muebles' },
-            { value: 'ebanisteria',   label: 'Ebanistería' },
-            { value: 'revestimiento', label: 'Revestimiento' },
-            { value: 'energia',       label: 'Energía / Combustible' },
-            { value: 'pulpa',         label: 'Pulpa / Papel' },
-            { value: 'otro',          label: 'Otro' },
-          ]} />
-        </Field>
-        <Field label="Campamento / Depósito">
-          <Input value={formData.campamento} onChange={set('campamento')} placeholder="Ej: Depósito Central" disabled={submitting} />
-        </Field>
-        <Field label="Ubicación Exacta">
-          <Input value={formData.ubicacion_exacta} onChange={set('ubicacion_exacta')} placeholder="Ej: Fila 3, Pila 5" disabled={submitting} />
-        </Field>
-        <Field label="Obra Asociada">
-          <Input value={formData.obra_asociada} onChange={set('obra_asociada')} placeholder="Ej: Tramo Vial Riberalta–Guayaramerín" disabled={submitting} />
-        </Field>
-        <Field label="Responsable">
-          <Input value={formData.responsable} onChange={set('responsable')} placeholder="Nombre del responsable" disabled={submitting} />
-        </Field>
-      </Section>
-
-      {/* ── 3. Dimensiones ───────────────────────────────────────── */}
-      <Section icon="📏" title="Dimensiones y Medidas" color={C.green}>
-        <Field label="Largo (m)">
-          <Input type="number" value={formData.largo} onChange={set('largo')} placeholder="Ej: 4.5" min="0" step="0.1" disabled={submitting} />
-        </Field>
-        <Field label="Ancho (cm)">
-          <Input type="number" value={formData.ancho} onChange={set('ancho')} placeholder="Ej: 25" min="0" step="0.5" disabled={submitting} />
-        </Field>
-        <Field label="Espesor (cm)">
-          <Input type="number" value={formData.espesor} onChange={set('espesor')} placeholder="Ej: 5" min="0" step="0.5" disabled={submitting} />
-        </Field>
-        <Field label="Volumen Total (m³)" required error={errors.volumen}>
-          <Input type="number" value={formData.volumen} onChange={set('volumen')} placeholder="Ej: 2.5" min="0" step="0.1" disabled={submitting} error={errors.volumen} />
-        </Field>
-        <Field label="Cantidad de Piezas" required error={errors.cantidad}>
-          <Input type="number" value={formData.cantidad} onChange={set('cantidad')} placeholder="Ej: 50" min="0" step="1" disabled={submitting} error={errors.cantidad} />
-        </Field>
-        <Field label="Peso Estimado (ton)">
-          <Input type="number" value={formData.peso_estimado} onChange={set('peso_estimado')} placeholder="Ej: 3.2" min="0" step="0.1" disabled={submitting} />
-        </Field>
-      </Section>
-
-      {/* ── 4. Calidad ───────────────────────────────────────────── */}
-      <Section icon="⭐" title="Calidad y Condición" color={C.orange}>
-        <Field label="Grado de Calidad">
-          <Select value={formData.grado_calidad} onChange={set('grado_calidad')} disabled={submitting} options={[
-            { value: 'premium',   label: 'Premium (Exportación)' },
-            { value: 'primera',   label: 'Primera Calidad' },
-            { value: 'segunda',   label: 'Segunda Calidad' },
-            { value: 'tercera',   label: 'Tercera Calidad' },
-            { value: 'industrial',label: 'Industrial' },
-          ]} />
-        </Field>
-        <Field label="Estado de Conservación">
-          <Select value={formData.estado_conservacion} onChange={set('estado_conservacion')} disabled={submitting} options={[
-            { value: 'excelente', label: 'Excelente' },
-            { value: 'bueno',     label: 'Bueno' },
-            { value: 'regular',   label: 'Regular' },
-            { value: 'deficiente',label: 'Deficiente' },
-          ]} />
-        </Field>
-        <Field label="Humedad (%)">
-          <Input type="number" value={formData.humedad} onChange={set('humedad')} placeholder="Ej: 18" min="0" max="100" step="1" disabled={submitting} />
-        </Field>
-        <Field label="Defectos Presentes">
-          <Textarea value={formData.defectos} onChange={set('defectos')} placeholder="Ej: grietas, nudos, alabeo..." disabled={submitting} rows={2} />
-        </Field>
-      </Section>
-
-      {/* ── 5. Documentación y Comercialización ──────────────────── */}
-      <Section icon="📄" title="Documentación y Comercialización" color={C.purple}>
-        <Field label="N° Permiso Forestal">
-          <Input value={formData.permiso_forestal} onChange={set('permiso_forestal')} placeholder="Ej: PF-2025-00123" disabled={submitting} />
+        <Field label="N° Permiso Forestal" required error={errors.permiso_forestal}>
+          <Input value={formData.permiso_forestal} onChange={set('permiso_forestal')} placeholder="Ej: PF-2025-00123" disabled={submitting} error={errors.permiso_forestal} />
         </Field>
         <Field label="Vencimiento del Permiso">
           <Input type="date" value={formData.fecha_vencimiento_permiso} onChange={set('fecha_vencimiento_permiso')} disabled={submitting} />
         </Field>
-        <Field label="Fecha de Recepción">
+        <Field label="Fecha de Inicio del Contrato">
           <Input type="date" value={formData.fecha_recepcion} onChange={set('fecha_recepcion')} disabled={submitting} />
         </Field>
-        <Field label="Fecha de Aserrado">
-          <Input type="date" value={formData.fecha_aserrado} onChange={set('fecha_aserrado')} disabled={submitting} />
+        <Field label="Estado">
+          <Select value={formData.estado_contrato} onChange={set('estado_contrato')} disabled={submitting} options={[
+            { value: 'en_curso',   label: 'En Curso' },
+            { value: 'entregado',  label: 'Entregado al Aserradero' },
+            { value: 'pausado',    label: 'Pausado' },
+            { value: 'cancelado',  label: 'Cancelado' },
+          ]} />
         </Field>
-        <Field label="Precio Unitario (Bs/m³)">
-          <Input type="number" value={formData.precio_unitario} onChange={set('precio_unitario')} placeholder="Ej: 800" min="0" step="50" disabled={submitting} />
-        </Field>
-        <Field label="Comprador">
-          <Input value={formData.comprador} onChange={set('comprador')} placeholder="Ej: Aserradero El Bosque" disabled={submitting} />
-        </Field>
-        <Field label="Precio de Venta (Bs)">
-          <Input type="number" value={formData.precio_venta} onChange={set('precio_venta')} placeholder="Ej: 2500" min="0" step="100" disabled={submitting} />
-        </Field>
+      </Section>
 
-        {/* Valor total calculado */}
-        {valorTotal > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', background: `${C.purple}12`, border: `1px solid ${C.purple}30`, borderRadius: '8px' }}>
-            <div>
-              <p style={{ margin: 0, color: C.muted, fontSize: '11px', fontWeight: '600', letterSpacing: '0.6px' }}>VALOR TOTAL (vol × precio)</p>
-              <p style={{ margin: '4px 0 0 0', color: C.purple, fontSize: '22px', fontWeight: '800', lineHeight: 1 }}>
-                Bs {valorTotal.toLocaleString('es-BO')}
-              </p>
-            </div>
-          </div>
-        )}
+      {/* ── 2. Equipo y Campamento ────────────────────────────────── */}
+      <Section icon="⛺" title="Equipo y Campamento" color={C.blue}>
+        <Field label="Ing. Forestal a Cargo" required error={errors.ing_forestal}>
+          <Input value={formData.ing_forestal} onChange={set('ing_forestal')} placeholder="Nombre del ingeniero forestal" disabled={submitting} error={errors.ing_forestal} />
+        </Field>
+        <Field label="Jefe de Campamento">
+          <Input value={formData.jefe_campamento} onChange={set('jefe_campamento')} placeholder="Nombre del jefe de campamento" disabled={submitting} />
+        </Field>
+        <Field label="Ubicación del Campamento" span={2}>
+          <Input value={formData.campamento} onChange={set('campamento')} placeholder="Ej: Comunidad San Miguel, km 45 carretera Riberalta" disabled={submitting} />
+        </Field>
+        <Field label="Personal Asignado (cant.)">
+          <Input type="number" value={formData.personal_asignado} onChange={set('personal_asignado')} placeholder="Ej: 12" min="0" step="1" disabled={submitting} />
+        </Field>
+        <Field label="Maquinaria Asignada">
+          <Input value={formData.maquinaria_asignada} onChange={set('maquinaria_asignada')} placeholder="Ej: Motoniveladora CAT 140H, Volquete #3" disabled={submitting} />
+        </Field>
+        <Field label="Observaciones del Campamento" span={2}>
+          <Textarea value={formData.obs_campamento} onChange={set('obs_campamento')} placeholder="Condiciones del terreno, acceso, logística..." disabled={submitting} rows={2} />
+        </Field>
+      </Section>
 
-        <Field label="Notas / Observaciones" span={2}>
-          <Textarea value={formData.notas} onChange={set('notas')} placeholder="Información adicional relevante..." disabled={submitting} />
+      {/* ── 3. Extracción ────────────────────────────────────────── */}
+      <Section icon="🪓" title="Extracción — Monte al Punto Medio" color={C.green}>
+        <Field label="Zona de Extracción / Monte" span={2}>
+          <Input value={formData.zona_extraccion} onChange={set('zona_extraccion')} placeholder="Ej: Zona norte sector B, comunidad Cachuela Esperanza" disabled={submitting} />
+        </Field>
+        <Field label="Ubicación del Punto Medio" span={2}>
+          <Input value={formData.punto_medio} onChange={set('punto_medio')} placeholder="Ej: km 28 margen izquierda río Beni" disabled={submitting} />
+        </Field>
+        <Field label="Fecha de Inicio de Tumba">
+          <Input type="date" value={formData.fecha_inicio_tumba} onChange={set('fecha_inicio_tumba')} disabled={submitting} />
+        </Field>
+        <Field label="Fecha de Llegada al Punto Medio">
+          <Input type="date" value={formData.fecha_llegada_punto_medio} onChange={set('fecha_llegada_punto_medio')} disabled={submitting} />
+        </Field>
+        <Field label="Notas de Extracción" span={2}>
+          <Textarea value={formData.obs_extraccion} onChange={set('obs_extraccion')} placeholder="Dificultades, condiciones del terreno, incidentes..." disabled={submitting} rows={2} />
+        </Field>
+      </Section>
+
+      {/* ── 4. Clasificación en Punto Medio ──────────────────────── */}
+      <Section icon="📏" title="Clasificación en Punto Medio" color={C.orange}>
+        <Field label="Especie de Madera" required error={errors.especie}>
+          <Select value={formData.especie} onChange={set('especie')} disabled={submitting} options={[
+            { value: 'cedro',        label: 'Cedro' },
+            { value: 'caoba',        label: 'Caoba' },
+            { value: 'mara',         label: 'Mará' },
+            { value: 'roble',        label: 'Roble' },
+            { value: 'teca',         label: 'Teca' },
+            { value: 'pino',         label: 'Pino' },
+            { value: 'ocote',        label: 'Ocote' },
+            { value: 'almendrillo',  label: 'Almendrillo' },
+            { value: 'tajibo',       label: 'Tajibo' },
+            { value: 'otra',         label: 'Otra' },
+          ]} />
+        </Field>
+        <Field label="Nombre Común">
+          <Input value={formData.nombre_comun} onChange={set('nombre_comun')} placeholder="Ej: Cedro Rojo" disabled={submitting} />
+        </Field>
+        <Field label="Clase / Calidad">
+          <Select value={formData.grado_calidad} onChange={set('grado_calidad')} disabled={submitting} options={[
+            { value: 'primera',    label: 'Primera' },
+            { value: 'segunda',    label: 'Segunda' },
+            { value: 'tercera',    label: 'Tercera' },
+            { value: 'industrial', label: 'Industrial' },
+          ]} />
+        </Field>
+        <Field label="Tipo de Corte">
+          <Select value={formData.tipo_corte} onChange={set('tipo_corte')} disabled={submitting} options={[
+            { value: 'rollizo',  label: 'Rollizo (tronco entero)' },
+            { value: 'tabla',    label: 'Tabla' },
+            { value: 'viga',     label: 'Viga' },
+            { value: 'bloque',   label: 'Bloque' },
+          ]} />
+        </Field>
+        <Field label="Volumen Total (m³)" required error={errors.volumen}>
+          <Input type="number" value={formData.volumen} onChange={set('volumen')} placeholder="Ej: 45.5" min="0" step="0.1" disabled={submitting} error={errors.volumen} />
+        </Field>
+        <Field label="N° de Piezas / Trozas" required error={errors.num_piezas}>
+          <Input type="number" value={formData.num_piezas} onChange={set('num_piezas')} placeholder="Ej: 80" min="0" step="1" disabled={submitting} error={errors.num_piezas} />
+        </Field>
+        <Field label="Observaciones de Clasificación" span={2}>
+          <Textarea value={formData.obs_clasificacion} onChange={set('obs_clasificacion')} placeholder="Condición de la madera, defectos, humedad estimada..." disabled={submitting} rows={2} />
+        </Field>
+      </Section>
+
+      {/* ── 5. Entrega al Aserradero ──────────────────────────────── */}
+      <Section icon="🏭" title="Transporte y Entrega al Aserradero" color={C.purple}>
+        <Field label="Aserradero de Destino" span={2}>
+          <Input value={formData.aserradero_destino} onChange={set('aserradero_destino')} placeholder="Ej: Aserradero El Bosque, Riberalta" disabled={submitting} />
+        </Field>
+        <Field label="Fecha de Entrega">
+          <Input type="date" value={formData.fecha_entrega_aserradero} onChange={set('fecha_entrega_aserradero')} disabled={submitting} />
+        </Field>
+        <Field label="Precio por m³ (Bs)">
+          <Input type="number" value={formData.precio_unitario} onChange={set('precio_unitario')} placeholder="Ej: 850" min="0" step="50" disabled={submitting} />
+        </Field>
+        <Field label="Precio de Venta Total (Bs)">
+          <Input type="number" value={formData.precio_venta} onChange={set('precio_venta')} placeholder="Ej: 38000" min="0" step="100" disabled={submitting} />
+        </Field>
+        <Field label="Responsable de Recepción">
+          <Input value={formData.responsable_recepcion} onChange={set('responsable_recepcion')} placeholder="Nombre de quien recibe en el aserradero" disabled={submitting} />
+        </Field>
+        <Field label="Notas de Entrega" span={2}>
+          <Textarea value={formData.obs_entrega} onChange={set('obs_entrega')} placeholder="Observaciones del transporte, condición al llegar, conformidad..." disabled={submitting} rows={2} />
         </Field>
       </Section>
 

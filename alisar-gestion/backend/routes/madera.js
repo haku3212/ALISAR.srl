@@ -9,7 +9,14 @@ const CAMPOS = [
     'procedencia', 'destino', 'tipo_corte', 'largo', 'ancho', 'espesor', 'cantidad',
     'peso_estimado', 'grado_calidad', 'estado_conservacion', 'humedad', 'defectos',
     'fecha_aserrado', 'fecha_recepcion', 'precio_unitario', 'valor_total',
-    'ubicacion_campamento', 'ubicacion_campamento_coords', 'ubicacion_exacta', 'notas'
+    'ubicacion_campamento', 'ubicacion_exacta', 'notas',
+    'responsable', 'obra_asociada', 'permiso_forestal', 'fecha_vencimiento_permiso',
+    'comprador', 'precio_venta',
+    'nombre', 'contratante', 'segunda_parte', 'estado_contrato',
+    'ing_forestal', 'jefe_campamento', 'personal_asignado', 'maquinaria_asignada',
+    'obs_campamento', 'zona_extraccion', 'punto_medio', 'fecha_inicio_tumba',
+    'fecha_llegada_punto_medio', 'obs_extraccion', 'num_piezas', 'obs_clasificacion',
+    'aserradero_destino', 'fecha_entrega_aserradero', 'responsable_recepcion', 'obs_entrega'
 ];
 
 router.get('/', verifyToken, async (req, res) => {
