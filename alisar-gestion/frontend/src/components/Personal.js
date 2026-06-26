@@ -125,14 +125,16 @@ const Personal = () => {
 
     try {
       setSubmitting(true);
+      let ok;
       if (editingId) {
-        await update(editingId, formData);
+        ok = await update(editingId, formData);
       } else {
-        await create(formData);
+        ok = await create(formData);
       }
-      // Resetear el formulario a su estado vacío inicial
-      resetFormData();
-      setShowModal(false);
+      if (ok) {
+        resetFormData();
+        setShowModal(false);
+      }
     } finally {
       setSubmitting(false);
     }

@@ -4,6 +4,14 @@ const { getDB, logAudit } = require('../db/init');
 
 const router = express.Router();
 
+const CAMPOS = [
+    'especie', 'piezas', 'volumen', 'campamento', 'nombre_comun', 'nombre_cientifico',
+    'procedencia', 'destino', 'tipo_corte', 'largo', 'ancho', 'espesor', 'cantidad',
+    'peso_estimado', 'grado_calidad', 'estado_conservacion', 'humedad', 'defectos',
+    'fecha_aserrado', 'fecha_recepcion', 'precio_unitario', 'valor_total',
+    'ubicacion_campamento', 'ubicacion_campamento_coords', 'ubicacion_exacta', 'notas'
+];
+
 router.get('/', verifyToken, async (req, res) => {
     try {
         const rows = await getDB().all('SELECT * FROM madera');
@@ -15,19 +23,22 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 router.post('/', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
+    const { especie } = req.body;
+    const piezas = req.body.piezas;
 
-    // Verificar piezas con !== undefined para permitir el valor 0
-    if (!especie || piezas === undefined || piezas === null || !volumen || !campamento) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
+    if (!especie || piezas === undefined || piezas === null) {
+        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas' });
     }
 
     try {
+        const data = filtrar(req.body);
+        const cols = Object.keys(data).join(', ');
+        const placeholders = Object.keys(data).map(() => '?').join(', ');
         const result = await getDB().run(
-            'INSERT INTO madera (especie, piezas, volumen, campamento) VALUES (?, ?, ?, ?)',
-            [especie, piezas, volumen, campamento]
+            `INSERT INTO madera (${cols}) VALUES (${placeholders})`,
+            Object.values(data)
         );
-        await logAudit(req.user?.id, 'CREATE', 'madera', result.lastID, null, { especie, piezas, volumen, campamento });
+        await logAudit(req.user?.id, 'CREATE', 'madera', result.lastID, null, data);
         res.status(201).json({ status: 'Madera registrada con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -36,21 +47,24 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 router.put('/:id', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
+    const { especie } = req.body;
+    const piezas = req.body.piezas;
 
-    if (!especie || piezas === undefined || piezas === null || !volumen || !campamento) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
+    if (!especie || piezas === undefined || piezas === null) {
+        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas' });
     }
 
     try {
         const anterior = await getDB().get('SELECT * FROM madera WHERE id = ?', [req.params.id]);
         if (!anterior) return res.status(404).json({ msg: 'Registro de madera no encontrado' });
 
+        const data = filtrar(req.body);
+        const setCols = Object.keys(data).map(k => `${k} = ?`).join(', ');
         await getDB().run(
-            'UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ? WHERE id = ?',
-            [especie, piezas, volumen, campamento, req.params.id]
+            `UPDATE madera SET ${setCols} WHERE id = ?`,
+            [...Object.values(data), req.params.id]
         );
-        await logAudit(req.user?.id, 'UPDATE', 'madera', req.params.id, anterior, { especie, piezas, volumen, campamento });
+        await logAudit(req.user?.id, 'UPDATE', 'madera', req.params.id, anterior, data);
         res.json({ status: 'Madera actualizada con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -71,5 +85,13 @@ router.delete('/:id', verifyToken, async (req, res) => {
         res.status(500).json({ error: 'Error al procesar solicitud' });
     }
 });
+
+const filtrar = (body) => {
+    const result = {};
+    CAMPOS.forEach(campo => {
+        if (body[campo] !== undefined) result[campo] = body[campo];
+    });
+    return result;
+};
 
 module.exports = router;

@@ -147,13 +147,16 @@ const Madera = () => {
 
     try {
       setSubmitting(true);
+      let ok;
       if (editingId) {
-        await update(editingId, formData);
+        ok = await update(editingId, formData);
       } else {
-        await create(formData);
+        ok = await create(formData);
       }
-      resetFormData();
-      setShowModal(false);
+      if (ok) {
+        resetFormData();
+        setShowModal(false);
+      }
     } finally {
       setSubmitting(false);
     }

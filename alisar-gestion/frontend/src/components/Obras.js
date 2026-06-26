@@ -98,9 +98,12 @@ const Obras = () => {
    */
   const validate = () => {
     const errors = {};
-    if (!formData.nombre.trim()) errors.nombre = 'Nombre requerido';
-    if (!formData.presupuesto.toString().trim()) errors.presupuesto = 'Presupuesto requerido';
-    if (formData.avance === '' || formData.avance < 0 || formData.avance > 100) errors.avance = 'Avance debe ser 0-100';
+    if (!formData.nombre?.trim()) errors.nombre = 'Nombre requerido';
+    if (!formData.presupuesto?.toString().trim()) errors.presupuesto = 'Presupuesto requerido';
+    const av = Number(formData.avance);
+    if (formData.avance === '' || formData.avance === null || isNaN(av) || av < 0 || av > 100) {
+      errors.avance = 'El avance debe ser un número entre 0 y 100';
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -128,13 +131,17 @@ const Obras = () => {
 
     try {
       setSubmitting(true);
+      let ok;
       if (editingId) {
-        await update(editingId, formData);
+        ok = await update(editingId, formData);
       } else {
-        await create(formData);
+        ok = await create(formData);
       }
-      resetFormData();
-      setShowModal(false);
+      // Solo cierra el modal si la operación fue exitosa
+      if (ok) {
+        resetFormData();
+        setShowModal(false);
+      }
     } finally {
       setSubmitting(false);
     }

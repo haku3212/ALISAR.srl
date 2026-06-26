@@ -66,9 +66,107 @@ const initDB = async () => {
         );
     `);
 
+    await runMigrations();
     await seedData();
     console.log('✅ Base de Datos SQLite sincronizada correctamente.');
     return db;
+};
+
+// Agrega columna solo si no existe (seguro para BD ya creadas)
+const addCol = async (table, column, type = 'TEXT') => {
+    try {
+        await db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    } catch (_) {
+        // La columna ya existe, se ignora el error
+    }
+};
+
+const runMigrations = async () => {
+    // Columnas extra de obras
+    await addCol('obras', 'codigo');
+    await addCol('obras', 'descripcion');
+    await addCol('obras', 'tipo');
+    await addCol('obras', 'cliente');
+    await addCol('obras', 'provincia');
+    await addCol('obras', 'municipio');
+    await addCol('obras', 'localidad');
+    await addCol('obras', 'direccion_exacta');
+    await addCol('obras', 'ubicacion_obra');
+    await addCol('obras', 'ubicacion_obra_coords');
+    await addCol('obras', 'fase_actual');
+    await addCol('obras', 'responsable_tecnico');
+    await addCol('obras', 'supervisor');
+    await addCol('obras', 'contratista');
+    await addCol('obras', 'personal_asignado');
+    await addCol('obras', 'monto_ejecutado');
+    await addCol('obras', 'inicio_planeado');
+    await addCol('obras', 'fin_planeado');
+    await addCol('obras', 'inicio_real');
+    await addCol('obras', 'fin_real');
+    await addCol('obras', 'observaciones');
+
+    // Columnas extra de maquinaria
+    await addCol('maquinaria', 'modelo');
+    await addCol('maquinaria', 'anio');
+    await addCol('maquinaria', 'numero_serie');
+    await addCol('maquinaria', 'placa');
+    await addCol('maquinaria', 'potencia');
+    await addCol('maquinaria', 'capacidad_carga');
+    await addCol('maquinaria', 'consumo_combustible');
+    await addCol('maquinaria', 'tipo_combustible');
+    await addCol('maquinaria', 'ancho_trabajo');
+    await addCol('maquinaria', 'profundidad_maxima');
+    await addCol('maquinaria', 'horas_operacion');
+    await addCol('maquinaria', 'mantenimiento_proximo');
+    await addCol('maquinaria', 'costo_mantenimiento_anual');
+    await addCol('maquinaria', 'documento_adquisicion');
+    await addCol('maquinaria', 'fecha_vencimiento_garantia');
+    await addCol('maquinaria', 'numero_garantia');
+    await addCol('maquinaria', 'operador_asignado');
+    await addCol('maquinaria', 'ubicacion_equipo');
+    await addCol('maquinaria', 'ubicacion_coords');
+    await addCol('maquinaria', 'ultima_revision');
+    await addCol('maquinaria', 'notas');
+
+    // Columnas extra de personal
+    await addCol('personal', 'cedula');
+    await addCol('personal', 'email');
+    await addCol('personal', 'fecha_nacimiento');
+    await addCol('personal', 'genero');
+    await addCol('personal', 'departamento');
+    await addCol('personal', 'fecha_ingreso');
+    await addCol('personal', 'salario');
+    await addCol('personal', 'tipo_contrato');
+    await addCol('personal', 'contacto_emergencia_nombre');
+    await addCol('personal', 'contacto_emergencia_relacion');
+    await addCol('personal', 'contacto_emergencia_tel');
+    await addCol('personal', 'direccion');
+    await addCol('personal', 'ubicacion_coordenadas');
+    await addCol('personal', 'notas');
+
+    // Columnas extra de madera
+    await addCol('madera', 'nombre_comun');
+    await addCol('madera', 'nombre_cientifico');
+    await addCol('madera', 'procedencia');
+    await addCol('madera', 'destino');
+    await addCol('madera', 'tipo_corte');
+    await addCol('madera', 'largo');
+    await addCol('madera', 'ancho');
+    await addCol('madera', 'espesor');
+    await addCol('madera', 'cantidad');
+    await addCol('madera', 'peso_estimado');
+    await addCol('madera', 'grado_calidad');
+    await addCol('madera', 'estado_conservacion');
+    await addCol('madera', 'humedad');
+    await addCol('madera', 'defectos');
+    await addCol('madera', 'fecha_aserrado');
+    await addCol('madera', 'fecha_recepcion');
+    await addCol('madera', 'precio_unitario');
+    await addCol('madera', 'valor_total');
+    await addCol('madera', 'ubicacion_campamento');
+    await addCol('madera', 'ubicacion_campamento_coords');
+    await addCol('madera', 'ubicacion_exacta');
+    await addCol('madera', 'notas');
 };
 
 const seedData = async () => {
