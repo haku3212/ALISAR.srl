@@ -1,10 +1,20 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState } from 'react';
 import { authService } from '../services/api';
 
 export const AuthContext = createContext();
 
+// Restaura el usuario guardado en localStorage al recargar la página
+const getStoredUser = () => {
+  try {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(getStoredUser);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -14,10 +24,11 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authService.login(usuario, password);
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      setToken(token);
-      setUser(user);
+      const { token: newToken, user: newUser } = response.data;
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      setToken(newToken);
+      setUser(newUser);
       return true;
     } catch (err) {
       const errorMsg = err.response?.data?.msg || 'Error al iniciar sesión';
@@ -30,6 +41,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     authService.logout();
+    localStorage.removeItem('user');
     setUser(null);
     setToken(null);
     setError(null);
