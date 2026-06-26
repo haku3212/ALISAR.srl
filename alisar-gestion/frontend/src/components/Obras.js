@@ -62,7 +62,15 @@ const Obras = () => {
     fin_planeado: '',
     inicio_real: '',
     fin_real: '',
-    observaciones: ''
+    observaciones: '',
+    estado: '',
+
+    // Sección: Gastos por Categoría
+    gasto_diesel: '',
+    gasto_mantenimiento: '',
+    gasto_materiales: '',
+    gasto_mano_obra: '',
+    gasto_otros: ''
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -118,7 +126,8 @@ const Obras = () => {
       fase_actual: '', avance: 0,
       responsable_tecnico: '', supervisor: '', contratista: '', personal_asignado: '',
       presupuesto: '', monto_ejecutado: '', inicio_planeado: '', fin_planeado: '',
-      inicio_real: '', fin_real: '', observaciones: ''
+      inicio_real: '', fin_real: '', observaciones: '', estado: '',
+      gasto_diesel: '', gasto_mantenimiento: '', gasto_materiales: '', gasto_mano_obra: '', gasto_otros: ''
     });
   };
 

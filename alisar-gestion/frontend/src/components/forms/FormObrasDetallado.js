@@ -175,6 +175,41 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
               disabled={submitting}
               placeholder="Ej: Municipalidad de Riberalta"
             />
+
+            {/* Campo: Estado de la Obra */}
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#e7ebe5',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                Estado de la Obra
+              </label>
+              <select
+                value={formData.estado || ''}
+                onChange={(e) => handleChange('estado', e.target.value)}
+                disabled={submitting}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '1px solid #28342a',
+                  background: '#0d1410',
+                  color: '#e7ebe5',
+                  outline: 'none',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="">Seleccionar...</option>
+                <option value="Planificacion">En Planificación</option>
+                <option value="Ejecucion">En Ejecución</option>
+                <option value="Paralizada">Paralizada</option>
+                <option value="Terminada">Terminada</option>
+              </select>
+            </div>
           </div>
         )}
       </div>
@@ -425,7 +460,7 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
           <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {/* Campo: Presupuesto Total */}
             <FormInput
-              label="Presupuesto Total (Bs)"
+              label="Presupuesto Aprobado (Bs)"
               type="number"
               value={formData.presupuesto || ''}
               onChange={(e) => handleChange('presupuesto', e.target.value)}
@@ -515,6 +550,117 @@ const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = fals
                   resize: 'vertical'
                 }}
               />
+            </div>
+          </div>
+        )}
+      </div>
+      {/* ═════════════════════════════════════════════════════════════ */}
+      {/* SECCIÓN 5: GASTOS POR CATEGORÍA                              */}
+      {/* ═════════════════════════════════════════════════════════════ */}
+      <div style={{
+        background: '#182219',
+        border: '1px solid #28342a',
+        borderRadius: '14px',
+        overflow: 'hidden'
+      }}>
+        <div
+          onClick={() => setExpandedSection(expandedSection === 'gastos' ? null : 'gastos')}
+          style={{
+            padding: '14px 16px',
+            background: 'linear-gradient(135deg, rgba(52,211,153,.12), rgba(52,211,153,.04))',
+            borderBottom: expandedSection === 'gastos' ? '1px solid #28342a' : 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#34d399' }}>
+            ⛽ Gastos por Categoría
+          </h3>
+          <span style={{ color: '#9aa39a' }}>
+            {expandedSection === 'gastos' ? '▼' : '▶'}
+          </span>
+        </div>
+
+        {expandedSection === 'gastos' && (
+          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <FormInput
+              label="Gasto en Diesel (Bs)"
+              type="number"
+              value={formData.gasto_diesel || ''}
+              onChange={(e) => handleChange('gasto_diesel', e.target.value)}
+              disabled={submitting}
+              placeholder="Ej: 8500"
+              min="0"
+              step="100"
+            />
+
+            <FormInput
+              label="Gasto en Mantenimiento de Maquinaria (Bs)"
+              type="number"
+              value={formData.gasto_mantenimiento || ''}
+              onChange={(e) => handleChange('gasto_mantenimiento', e.target.value)}
+              disabled={submitting}
+              placeholder="Ej: 3200"
+              min="0"
+              step="100"
+            />
+
+            <FormInput
+              label="Gasto en Materiales (Bs)"
+              type="number"
+              value={formData.gasto_materiales || ''}
+              onChange={(e) => handleChange('gasto_materiales', e.target.value)}
+              disabled={submitting}
+              placeholder="Ej: 12000"
+              min="0"
+              step="100"
+            />
+
+            <FormInput
+              label="Gasto en Mano de Obra (Bs)"
+              type="number"
+              value={formData.gasto_mano_obra || ''}
+              onChange={(e) => handleChange('gasto_mano_obra', e.target.value)}
+              disabled={submitting}
+              placeholder="Ej: 15000"
+              min="0"
+              step="100"
+            />
+
+            <FormInput
+              label="Otros Gastos (Bs)"
+              type="number"
+              value={formData.gasto_otros || ''}
+              onChange={(e) => handleChange('gasto_otros', e.target.value)}
+              disabled={submitting}
+              placeholder="Ej: 500"
+              min="0"
+              step="100"
+            />
+
+            {/* Total calculado automáticamente */}
+            <div style={{
+              background: '#0d1410',
+              border: '1px solid #34d399',
+              borderRadius: '10px',
+              padding: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
+            }}>
+              <p style={{ margin: 0, color: '#9aa39a', fontSize: '12px' }}>TOTAL GASTOS (calculado)</p>
+              <p style={{ margin: '4px 0 0 0', color: '#34d399', fontSize: '20px', fontWeight: 'bold' }}>
+                Bs {(
+                  (Number(formData.gasto_diesel) || 0) +
+                  (Number(formData.gasto_mantenimiento) || 0) +
+                  (Number(formData.gasto_materiales) || 0) +
+                  (Number(formData.gasto_mano_obra) || 0) +
+                  (Number(formData.gasto_otros) || 0)
+                ).toLocaleString('es-BO')}
+              </p>
             </div>
           </div>
         )}

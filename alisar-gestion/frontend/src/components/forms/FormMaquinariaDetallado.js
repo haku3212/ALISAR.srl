@@ -123,12 +123,15 @@ const FormMaquinariaDetallado = ({ formData, onChange, errors = {}, submitting =
               >
                 <option value="">Seleccionar...</option>
                 <option value="motoniveladora">Motoniveladora</option>
+                <option value="topadora">Topadora / Bulldozer</option>
                 <option value="excavadora">Excavadora</option>
+                <option value="retroexcavadora">Retroexcavadora</option>
                 <option value="cargadora">Cargadora Frontal</option>
                 <option value="rodillo">Rodillo Compactador</option>
                 <option value="volquete">Volquete</option>
+                <option value="grua">Grúa</option>
                 <option value="hormigonera">Hormigonera</option>
-                <option value="aserrador">Aserrador</option>
+                <option value="aserrador">Aserrador / Sierra</option>
                 <option value="otra">Otra</option>
               </select>
             </div>
@@ -170,6 +173,24 @@ const FormMaquinariaDetallado = ({ formData, onChange, errors = {}, submitting =
               onChange={(e) => handleChange('placa', e.target.value)}
               disabled={submitting}
               placeholder="Ej: AB-12345"
+            />
+
+            {/* Campo: Obra Asignada actualmente */}
+            <FormInput
+              label="Obra Asignada Actualmente"
+              value={formData.obra_asignada || ''}
+              onChange={(e) => handleChange('obra_asignada', e.target.value)}
+              disabled={submitting}
+              placeholder="Ej: Tramo Vial Riberalta-Guayaramerín"
+            />
+
+            {/* Campo: Fecha de Traslado a esa obra */}
+            <FormInput
+              label="Fecha de Traslado a Obra"
+              type="date"
+              value={formData.fecha_traslado || ''}
+              onChange={(e) => handleChange('fecha_traslado', e.target.value)}
+              disabled={submitting}
             />
           </div>
         )}
@@ -422,6 +443,50 @@ const FormMaquinariaDetallado = ({ formData, onChange, errors = {}, submitting =
               min="0"
               step="100"
             />
+
+            {/* Campo: Litros de Diesel Cargados (total acumulado) */}
+            <FormInput
+              label="Litros de Diesel Cargados (total)"
+              type="number"
+              value={formData.litros_diesel_total || ''}
+              onChange={(e) => handleChange('litros_diesel_total', e.target.value)}
+              disabled={submitting}
+              placeholder="Ej: 1500"
+              min="0"
+              step="10"
+            />
+
+            {/* Campo: Historial de Fallas y Mantenimiento */}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#e7ebe5',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                Historial de Fallas / Reparaciones
+              </label>
+              <textarea
+                value={formData.historial_fallas || ''}
+                onChange={(e) => handleChange('historial_fallas', e.target.value)}
+                disabled={submitting}
+                placeholder="Ej: 15/03/2025 - Cambio de filtro de aceite. 02/05/2025 - Falla en sistema hidráulico, reparado en taller..."
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '1px solid #28342a',
+                  background: '#0d1410',
+                  color: '#e7ebe5',
+                  outline: 'none',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  minHeight: '120px',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
           </div>
         )}
       </div>

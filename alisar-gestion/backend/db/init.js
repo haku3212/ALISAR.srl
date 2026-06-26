@@ -167,6 +167,26 @@ const runMigrations = async () => {
     await addCol('madera', 'ubicacion_campamento_coords');
     await addCol('madera', 'ubicacion_exacta');
     await addCol('madera', 'notas');
+    await addCol('madera', 'responsable');
+    await addCol('madera', 'obra_asociada');
+    await addCol('madera', 'permiso_forestal');
+    await addCol('madera', 'fecha_vencimiento_permiso');
+    await addCol('madera', 'comprador');
+    await addCol('madera', 'precio_venta');
+
+    // Nuevos campos operativos de maquinaria
+    await addCol('maquinaria', 'obra_asignada');
+    await addCol('maquinaria', 'fecha_traslado');
+    await addCol('maquinaria', 'litros_diesel_total');
+    await addCol('maquinaria', 'historial_fallas');
+
+    // Nuevos campos de gastos y estado de obras
+    await addCol('obras', 'estado');
+    await addCol('obras', 'gasto_diesel', 'REAL');
+    await addCol('obras', 'gasto_mantenimiento', 'REAL');
+    await addCol('obras', 'gasto_materiales', 'REAL');
+    await addCol('obras', 'gasto_mano_obra', 'REAL');
+    await addCol('obras', 'gasto_otros', 'REAL');
 };
 
 const seedData = async () => {

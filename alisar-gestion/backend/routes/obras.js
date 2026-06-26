@@ -10,7 +10,9 @@ const CAMPOS = [
     'provincia', 'municipio', 'localidad', 'direccion_exacta', 'ubicacion_obra',
     'ubicacion_obra_coords', 'fase_actual', 'responsable_tecnico', 'supervisor',
     'contratista', 'personal_asignado', 'monto_ejecutado', 'inicio_planeado',
-    'fin_planeado', 'inicio_real', 'fin_real', 'observaciones'
+    'fin_planeado', 'inicio_real', 'fin_real', 'observaciones', 'estado',
+    // Gastos desglosados por categoría
+    'gasto_diesel', 'gasto_mantenimiento', 'gasto_materiales', 'gasto_mano_obra', 'gasto_otros'
 ];
 
 router.get('/', verifyToken, async (req, res) => {

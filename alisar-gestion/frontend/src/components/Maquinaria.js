@@ -63,7 +63,13 @@ const Maquinaria = () => {
     numero_garantia: '',
     fecha_vencimiento_garantia: '',
     documento_adquisicion: '',
-    notas: ''
+    notas: '',
+
+    // Campos operativos reales
+    obra_asignada: '',
+    fecha_traslado: '',
+    litros_diesel_total: '',
+    historial_fallas: ''
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -133,7 +139,8 @@ const Maquinaria = () => {
       ancho_trabajo: '', profundidad_maxima: '',
       estado: 'Operativo', horas_operacion: '', mantenimiento_proximo: '', ultima_revision: '',
       operador_asignado: '', costo_mantenimiento_anual: '',
-      numero_garantia: '', fecha_vencimiento_garantia: '', documento_adquisicion: '', notas: ''
+      numero_garantia: '', fecha_vencimiento_garantia: '', documento_adquisicion: '', notas: '',
+      obra_asignada: '', fecha_traslado: '', litros_diesel_total: '', historial_fallas: ''
     });
   };
 

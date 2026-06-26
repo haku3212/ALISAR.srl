@@ -10,7 +10,9 @@ const CAMPOS = [
     'ancho_trabajo', 'profundidad_maxima', 'horas_operacion', 'mantenimiento_proximo',
     'costo_mantenimiento_anual', 'documento_adquisicion', 'fecha_vencimiento_garantia',
     'numero_garantia', 'operador_asignado', 'ubicacion_equipo', 'ubicacion_coords',
-    'ultima_revision', 'notas'
+    'ultima_revision', 'notas',
+    // Campos operativos reales
+    'obra_asignada', 'fecha_traslado', 'litros_diesel_total', 'historial_fallas'
 ];
 
 router.get('/', verifyToken, async (req, res) => {
