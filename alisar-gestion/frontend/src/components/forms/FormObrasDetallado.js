@@ -1,670 +1,270 @@
-/**
- * FormObrasDetallado.js
- * Componente de formulario ampliado para gestión de obras/proyectos
- * Incluye validación, campos detallados, secciones expandibles y comentarios completos
- * Permite capturar información sobre ubicación, fases, personal responsable, presupuesto y cronograma
- */
+import React from 'react';
 
-import React, { useState } from 'react';
-import FormInput from '../common/FormInput';
-import GoogleMapsLocation from '../common/GoogleMapsLocation';
-import { validateRequired, validatePercentage, validatePositive } from '../../utils/validators';
+// ─── Paleta ───────────────────────────────────────────────────────────────────
+const C = {
+  bg: '#0a0c0a', surface: '#0f110f', card: '#131513',
+  border: '#1c221c', border2: '#232a23',
+  yellow: '#FFD700', blue: '#60a5fa', purple: '#a78bfa',
+  green: '#34d399', orange: '#f97316', red: '#f87171',
+  text: '#e2e8e2', muted: '#6b7a6b', subtle: '#2a352a',
+};
 
-/**
- * Componente FormObrasDetallado
- * Renderiza un formulario completo para crear/editar obras con campos extensos
- *
- * Estructura de secciones:
- * 1. Información General: Datos básicos del proyecto
- * 2. Ubicación y Fases: Localización geográfica y etapas del proyecto
- * 3. Personal y Responsables: Asignación de roles y responsabilidades
- * 4. Presupuesto y Cronograma: Información financiera y temporal
- *
- * @param {Object} props - Propiedades del componente
- * @param {Object} props.formData - Datos del formulario actual
- * @param {Function} props.onChange - Callback cuando cambian los datos
- * @param {Object} props.errors - Errores de validación
- * @param {boolean} props.submitting - Indica si se está enviando el formulario
- */
+// ─── Primitivos reutilizables ─────────────────────────────────────────────────
+const inputStyle = (err) => ({
+  width: '100%', padding: '10px 13px', borderRadius: '8px',
+  border: `1px solid ${err ? C.red : C.border2}`,
+  background: C.surface, color: C.text, outline: 'none',
+  fontSize: '13.5px', boxSizing: 'border-box', fontFamily: 'inherit',
+  transition: 'border-color 0.2s',
+});
+
+const Label = ({ children, required }) => (
+  <label style={{
+    display: 'block', marginBottom: '6px',
+    color: '#a0b0a0', fontSize: '11.5px', fontWeight: '600', letterSpacing: '0.6px'
+  }}>
+    {children}{required && <span style={{ color: C.red, marginLeft: '3px' }}>*</span>}
+  </label>
+);
+
+const Field = ({ label, required, error, children, span }) => (
+  <div style={{ gridColumn: span === 2 ? '1 / -1' : undefined }}>
+    <Label required={required}>{label}</Label>
+    {children}
+    {error && <p style={{ color: C.red, fontSize: '11px', margin: '4px 0 0 0' }}>{error}</p>}
+  </div>
+);
+
+const Input = ({ value, onChange, placeholder, type = 'text', min, max, step, disabled, error }) => (
+  <input
+    type={type} value={value || ''} onChange={onChange}
+    placeholder={placeholder} min={min} max={max} step={step} disabled={disabled}
+    style={inputStyle(error)}
+    onFocus={e => e.target.style.borderColor = C.yellow}
+    onBlur={e => e.target.style.borderColor = error ? C.red : C.border2}
+  />
+);
+
+const Select = ({ value, onChange, options, disabled }) => (
+  <select
+    value={value || ''} onChange={onChange} disabled={disabled}
+    style={{ ...inputStyle(), cursor: 'pointer', appearance: 'none' }}
+    onFocus={e => e.target.style.borderColor = C.yellow}
+    onBlur={e => e.target.style.borderColor = C.border2}
+  >
+    <option value="">Seleccionar...</option>
+    {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+  </select>
+);
+
+const Textarea = ({ value, onChange, placeholder, disabled, rows = 3 }) => (
+  <textarea
+    value={value || ''} onChange={onChange} placeholder={placeholder}
+    disabled={disabled} rows={rows}
+    style={{ ...inputStyle(), resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.5' }}
+    onFocus={e => e.target.style.borderColor = C.yellow}
+    onBlur={e => e.target.style.borderColor = C.border2}
+  />
+);
+
+// ─── Separador de sección ─────────────────────────────────────────────────────
+const Section = ({ icon, title, color = C.yellow, children }) => (
+  <div style={{ marginBottom: '4px' }}>
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '8px',
+      marginBottom: '14px', paddingBottom: '10px',
+      borderBottom: `1px solid ${C.border}`
+    }}>
+      <div style={{
+        width: '28px', height: '28px', borderRadius: '7px',
+        background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '14px', flexShrink: 0
+      }}>
+        {icon}
+      </div>
+      <h3 style={{ margin: 0, fontSize: '13px', fontWeight: '700', color, letterSpacing: '0.3px' }}>
+        {title}
+      </h3>
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+      {children}
+    </div>
+  </div>
+);
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 const FormObrasDetallado = ({ formData, onChange, errors = {}, submitting = false }) => {
-  /**
-   * Estado para controlar qué sección está expandida
-   */
-  const [expandedSection, setExpandedSection] = useState('general');
+  const set = (field) => (e) => onChange({ ...formData, [field]: e.target.value });
 
-  /**
-   * Manejador para cambios en los inputs
-   * @param {string} field - Nombre del campo que cambió
-   * @param {any} value - Nuevo valor del campo
-   */
-  const handleChange = (field, value) => {
-    onChange({
-      ...formData,
-      [field]: value
-    });
-  };
+  const gasTotal = (
+    (Number(formData.gasto_diesel)       || 0) +
+    (Number(formData.gasto_mantenimiento)|| 0) +
+    (Number(formData.gasto_materiales)   || 0) +
+    (Number(formData.gasto_mano_obra)    || 0) +
+    (Number(formData.gasto_otros)        || 0)
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 1: INFORMACIÓN GENERAL                               */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'general' ? null : 'general')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
-            borderBottom: expandedSection === 'general' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
-            📋 Información General
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'general' ? '▼' : '▶'}
-          </span>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-        {expandedSection === 'general' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Campo: Nombre de la Obra */}
-            <FormInput
-              label="Nombre de la Obra"
-              value={formData.nombre || ''}
-              onChange={(e) => handleChange('nombre', e.target.value)}
-              error={errors.nombre}
-              disabled={submitting}
-              required
-              placeholder="Ej: Pavimentación Calle Principal"
+      {/* ── 1. Identificación ─────────────────────────────────────── */}
+      <Section icon="📋" title="Identificación del Proyecto" color={C.yellow}>
+        <Field label="Nombre de la Obra" required error={errors.nombre} span={2}>
+          <Input value={formData.nombre} onChange={set('nombre')} placeholder="Ej: Pavimentación Av. Principal" disabled={submitting} error={errors.nombre} />
+        </Field>
+
+        <Field label="Código de Referencia">
+          <Input value={formData.codigo} onChange={set('codigo')} placeholder="Ej: OBR-2026-001" disabled={submitting} />
+        </Field>
+
+        <Field label="Tipo de Obra">
+          <Select value={formData.tipo} onChange={set('tipo')} disabled={submitting} options={[
+            { value: 'vial',          label: 'Vial / Camino' },
+            { value: 'edificacion',   label: 'Edificación' },
+            { value: 'saneamiento',   label: 'Saneamiento' },
+            { value: 'electrificacion', label: 'Electrificación' },
+            { value: 'forestal',      label: 'Forestal / Reforestación' },
+            { value: 'otra',          label: 'Otra' },
+          ]} />
+        </Field>
+
+        <Field label="Cliente / Solicitante">
+          <Input value={formData.cliente} onChange={set('cliente')} placeholder="Ej: Municipalidad de Riberalta" disabled={submitting} />
+        </Field>
+
+        <Field label="Estado de la Obra">
+          <Select value={formData.estado} onChange={set('estado')} disabled={submitting} options={[
+            { value: 'Planificacion', label: 'En Planificación' },
+            { value: 'Ejecucion',     label: 'En Ejecución' },
+            { value: 'Paralizada',    label: 'Paralizada' },
+            { value: 'Terminada',     label: 'Terminada' },
+          ]} />
+        </Field>
+
+        <Field label="Descripción" span={2}>
+          <Textarea value={formData.descripcion} onChange={set('descripcion')} placeholder="Descripción del alcance y objetivos del proyecto..." disabled={submitting} />
+        </Field>
+      </Section>
+
+      {/* ── 2. Ubicación ──────────────────────────────────────────── */}
+      <Section icon="📍" title="Ubicación" color={C.blue}>
+        <Field label="Provincia">
+          <Input value={formData.provincia} onChange={set('provincia')} placeholder="Ej: Beni" disabled={submitting} />
+        </Field>
+        <Field label="Municipio">
+          <Input value={formData.municipio} onChange={set('municipio')} placeholder="Ej: Riberalta" disabled={submitting} />
+        </Field>
+        <Field label="Comunidad / Localidad">
+          <Input value={formData.localidad} onChange={set('localidad')} placeholder="Ej: Comunidad San Miguel" disabled={submitting} />
+        </Field>
+        <Field label="Dirección / Referencia">
+          <Input value={formData.direccion_exacta} onChange={set('direccion_exacta')} placeholder="Ej: Av. Cívica km 3" disabled={submitting} />
+        </Field>
+      </Section>
+
+      {/* ── 3. Ejecución y Avance ────────────────────────────────── */}
+      <Section icon="⚙️" title="Ejecución y Avance" color={C.green}>
+        <Field label="Fase Actual">
+          <Select value={formData.fase_actual} onChange={set('fase_actual')} disabled={submitting} options={[
+            { value: 'planificacion', label: 'Planificación' },
+            { value: 'diseño',        label: 'Diseño / Proyecto' },
+            { value: 'preparacion',   label: 'Preparación del Terreno' },
+            { value: 'ejecucion',     label: 'Ejecución' },
+            { value: 'acabados',      label: 'Acabados' },
+            { value: 'cierre',        label: 'Cierre / Entrega' },
+            { value: 'terminada',     label: 'Terminada' },
+          ]} />
+        </Field>
+
+        <Field label="Avance (%)" required error={errors.avance}>
+          <div style={{ position: 'relative' }}>
+            <Input
+              type="number" value={formData.avance} onChange={set('avance')}
+              placeholder="0 – 100" min="0" max="100" step="5"
+              disabled={submitting} error={errors.avance}
             />
-
-            {/* Campo: Código/Referencia */}
-            <FormInput
-              label="Código de Referencia"
-              value={formData.codigo || ''}
-              onChange={(e) => handleChange('codigo', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: OBR-2024-001"
-            />
-
-            {/* Campo: Descripción del Proyecto */}
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Descripción del Proyecto
-              </label>
-              <textarea
-                value={formData.descripcion || ''}
-                onChange={(e) => handleChange('descripcion', e.target.value)}
-                disabled={submitting}
-                placeholder="Descripción detallada del proyecto..."
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  minHeight: '80px',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
-
-            {/* Campo: Tipo de Obra */}
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Tipo de Obra
-              </label>
-              <select
-                value={formData.tipo || ''}
-                onChange={(e) => handleChange('tipo', e.target.value)}
-                disabled={submitting}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="">Seleccionar...</option>
-                <option value="vial">Vial/Camino</option>
-                <option value="edificacion">Edificación</option>
-                <option value="saneamiento">Saneamiento</option>
-                <option value="electrificacion">Electrificación</option>
-                <option value="forestal">Forestal/Reforestación</option>
-                <option value="otra">Otra</option>
-              </select>
-            </div>
-
-            {/* Campo: Cliente/Solicitante */}
-            <FormInput
-              label="Cliente/Solicitante"
-              value={formData.cliente || ''}
-              onChange={(e) => handleChange('cliente', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Municipalidad de Riberalta"
-            />
-
-            {/* Campo: Estado de la Obra */}
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Estado de la Obra
-              </label>
-              <select
-                value={formData.estado || ''}
-                onChange={(e) => handleChange('estado', e.target.value)}
-                disabled={submitting}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="">Seleccionar...</option>
-                <option value="Planificacion">En Planificación</option>
-                <option value="Ejecucion">En Ejecución</option>
-                <option value="Paralizada">Paralizada</option>
-                <option value="Terminada">Terminada</option>
-              </select>
-            </div>
+            {/* Mini barra de avance */}
+            {Number(formData.avance) > 0 && (
+              <div style={{ marginTop: '6px', background: C.border, borderRadius: '4px', height: '4px' }}>
+                <div style={{
+                  width: `${Math.min(Number(formData.avance), 100)}%`,
+                  height: '100%', borderRadius: '4px',
+                  background: Number(formData.avance) >= 75 ? C.green : Number(formData.avance) >= 40 ? C.yellow : C.orange,
+                  transition: 'width 0.3s'
+                }} />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </Field>
 
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 2: UBICACIÓN Y FASES                                 */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'ubicacion' ? null : 'ubicacion')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(96,165,250,.12), rgba(96,165,250,.04))',
-            borderBottom: expandedSection === 'ubicacion' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#60a5fa' }}>
-            📍 Ubicación y Fases
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'ubicacion' ? '▼' : '▶'}
-          </span>
-        </div>
+        <Field label="Responsable Técnico">
+          <Input value={formData.responsable_tecnico} onChange={set('responsable_tecnico')} placeholder="Ing. Nombre Apellido" disabled={submitting} />
+        </Field>
+        <Field label="Supervisor de Obra">
+          <Input value={formData.supervisor} onChange={set('supervisor')} placeholder="Técnico Nombre Apellido" disabled={submitting} />
+        </Field>
+        <Field label="Contratista">
+          <Input value={formData.contratista} onChange={set('contratista')} placeholder="Ej: Constructora ABC S.R.L." disabled={submitting} />
+        </Field>
+        <Field label="Personal Asignado (cant.)">
+          <Input type="number" value={formData.personal_asignado} onChange={set('personal_asignado')} placeholder="Ej: 15" min="0" disabled={submitting} />
+        </Field>
+      </Section>
 
-        {expandedSection === 'ubicacion' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Campo: Provincia */}
-            <FormInput
-              label="Provincia"
-              value={formData.provincia || ''}
-              onChange={(e) => handleChange('provincia', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Beni"
-            />
+      {/* ── 4. Presupuesto y Fechas ──────────────────────────────── */}
+      <Section icon="💰" title="Presupuesto y Cronograma" color={C.orange}>
+        <Field label="Presupuesto Aprobado (Bs)" required error={errors.presupuesto}>
+          <Input type="number" value={formData.presupuesto} onChange={set('presupuesto')} placeholder="Ej: 500000" min="0" step="1000" disabled={submitting} error={errors.presupuesto} />
+        </Field>
+        <Field label="Monto Ejecutado (Bs)">
+          <Input type="number" value={formData.monto_ejecutado} onChange={set('monto_ejecutado')} placeholder="Ej: 225000" min="0" step="1000" disabled={submitting} />
+        </Field>
+        <Field label="Inicio Planeado">
+          <Input type="date" value={formData.inicio_planeado} onChange={set('inicio_planeado')} disabled={submitting} />
+        </Field>
+        <Field label="Fin Planeado">
+          <Input type="date" value={formData.fin_planeado} onChange={set('fin_planeado')} disabled={submitting} />
+        </Field>
+        <Field label="Inicio Real">
+          <Input type="date" value={formData.inicio_real} onChange={set('inicio_real')} disabled={submitting} />
+        </Field>
+        <Field label="Fin Real / Estimado">
+          <Input type="date" value={formData.fin_real} onChange={set('fin_real')} disabled={submitting} />
+        </Field>
+        <Field label="Observaciones" span={2}>
+          <Textarea value={formData.observaciones} onChange={set('observaciones')} placeholder="Problemas encontrados, cambios, retrasos..." disabled={submitting} />
+        </Field>
+      </Section>
 
-            {/* Campo: Municipio */}
-            <FormInput
-              label="Municipio"
-              value={formData.municipio || ''}
-              onChange={(e) => handleChange('municipio', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Riberalta"
-            />
+      {/* ── 5. Gastos por Categoría ──────────────────────────────── */}
+      <Section icon="⛽" title="Registro de Gastos por Categoría" color={C.purple}>
+        <Field label="Diesel / Combustible (Bs)">
+          <Input type="number" value={formData.gasto_diesel} onChange={set('gasto_diesel')} placeholder="Ej: 8500" min="0" step="100" disabled={submitting} />
+        </Field>
+        <Field label="Mantenimiento de Maquinaria (Bs)">
+          <Input type="number" value={formData.gasto_mantenimiento} onChange={set('gasto_mantenimiento')} placeholder="Ej: 3200" min="0" step="100" disabled={submitting} />
+        </Field>
+        <Field label="Materiales (Bs)">
+          <Input type="number" value={formData.gasto_materiales} onChange={set('gasto_materiales')} placeholder="Ej: 12000" min="0" step="100" disabled={submitting} />
+        </Field>
+        <Field label="Mano de Obra (Bs)">
+          <Input type="number" value={formData.gasto_mano_obra} onChange={set('gasto_mano_obra')} placeholder="Ej: 15000" min="0" step="100" disabled={submitting} />
+        </Field>
+        <Field label="Otros Gastos (Bs)">
+          <Input type="number" value={formData.gasto_otros} onChange={set('gasto_otros')} placeholder="Ej: 500" min="0" step="100" disabled={submitting} />
+        </Field>
 
-            {/* Campo: Comunidad/Localidad */}
-            <FormInput
-              label="Comunidad/Localidad"
-              value={formData.localidad || ''}
-              onChange={(e) => handleChange('localidad', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Comunidad San Miguel"
-            />
-
-            {/* Campo: Dirección Exacta */}
-            <FormInput
-              label="Dirección Exacta"
-              value={formData.direccion_exacta || ''}
-              onChange={(e) => handleChange('direccion_exacta', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Calle Principal km 5"
-            />
-
-            {/* Campo: Ubicación Exacta con Google Maps */}
-            <div style={{ gridColumn: '1 / -1' }}>
-              <GoogleMapsLocation
-                label="Ubicación Exacta de la Obra (GPS)"
-                address={formData.ubicacion_obra || ''}
-                coordinates={formData.ubicacion_obra_coords || { lat: null, lng: null }}
-                onLocationChange={(data) => {
-                  handleChange('ubicacion_obra', data.address);
-                  handleChange('ubicacion_obra_coords', data.coordinates);
-                }}
-                placeholder="Buscar ubicación exacta de la obra..."
-              />
-            </div>
-
-            {/* Campo: Fase Actual */}
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Fase Actual
-              </label>
-              <select
-                value={formData.fase_actual || ''}
-                onChange={(e) => handleChange('fase_actual', e.target.value)}
-                disabled={submitting}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="">Seleccionar...</option>
-                <option value="planificacion">Planificación</option>
-                <option value="diseño">Diseño/Proyecto</option>
-                <option value="preparacion">Preparación del Terreno</option>
-                <option value="ejecucion">Ejecución</option>
-                <option value="acabados">Acabados</option>
-                <option value="cierre">Cierre/Entrega</option>
-                <option value="terminada">Terminada</option>
-              </select>
-            </div>
-
-            {/* Campo: Porcentaje Avance */}
-            <FormInput
-              label="Porcentaje de Avance (%)"
-              type="number"
-              value={formData.avance || ''}
-              onChange={(e) => handleChange('avance', e.target.value)}
-              error={errors.avance}
-              disabled={submitting}
-              required
-              placeholder="Ej: 45"
-              min="0"
-              max="100"
-              step="5"
-            />
+        {/* Total calculado */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', background: `${C.purple}12`, border: `1px solid ${C.purple}30`, borderRadius: '8px' }}>
+          <div>
+            <p style={{ margin: 0, color: C.muted, fontSize: '11px', fontWeight: '600', letterSpacing: '0.6px' }}>TOTAL GASTOS</p>
+            <p style={{ margin: '4px 0 0 0', color: C.purple, fontSize: '22px', fontWeight: '800', lineHeight: 1 }}>
+              {gasTotal > 0 ? `Bs ${gasTotal.toLocaleString('es-BO')}` : '—'}
+            </p>
           </div>
-        )}
-      </div>
-
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 3: PERSONAL Y RESPONSABLES                           */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'personal' ? null : 'personal')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(251,191,36,.12), rgba(251,191,36,.04))',
-            borderBottom: expandedSection === 'personal' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fbbf24' }}>
-            👥 Personal y Responsables
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'personal' ? '▼' : '▶'}
-          </span>
         </div>
+      </Section>
 
-        {expandedSection === 'personal' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Campo: Responsable Técnico */}
-            <FormInput
-              label="Responsable Técnico"
-              value={formData.responsable_tecnico || ''}
-              onChange={(e) => handleChange('responsable_tecnico', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Ing. Carlos López"
-            />
-
-            {/* Campo: Supervisor */}
-            <FormInput
-              label="Supervisor de Obra"
-              value={formData.supervisor || ''}
-              onChange={(e) => handleChange('supervisor', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Técnico Juan Pérez"
-            />
-
-            {/* Campo: Contratista */}
-            <FormInput
-              label="Contratista"
-              value={formData.contratista || ''}
-              onChange={(e) => handleChange('contratista', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Constructora ABC SRL"
-            />
-
-            {/* Campo: Personal Asignado */}
-            <FormInput
-              label="Personal Asignado (cantidad)"
-              type="number"
-              value={formData.personal_asignado || ''}
-              onChange={(e) => handleChange('personal_asignado', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 15"
-              min="0"
-              step="1"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 4: PRESUPUESTO Y CRONOGRAMA                          */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'presupuesto' ? null : 'presupuesto')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(248,113,113,.12), rgba(248,113,113,.04))',
-            borderBottom: expandedSection === 'presupuesto' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#f87171' }}>
-            💰 Presupuesto y Cronograma
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'presupuesto' ? '▼' : '▶'}
-          </span>
-        </div>
-
-        {expandedSection === 'presupuesto' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Campo: Presupuesto Total */}
-            <FormInput
-              label="Presupuesto Aprobado (Bs)"
-              type="number"
-              value={formData.presupuesto || ''}
-              onChange={(e) => handleChange('presupuesto', e.target.value)}
-              error={errors.presupuesto}
-              disabled={submitting}
-              required
-              placeholder="Ej: 500000"
-              min="0"
-              step="1000"
-            />
-
-            {/* Campo: Monto Ejecutado */}
-            <FormInput
-              label="Monto Ejecutado (Bs)"
-              type="number"
-              value={formData.monto_ejecutado || ''}
-              onChange={(e) => handleChange('monto_ejecutado', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 225000"
-              min="0"
-              step="1000"
-            />
-
-            {/* Campo: Fecha Inicio Planeado */}
-            <FormInput
-              label="Fecha Inicio Planeado"
-              type="date"
-              value={formData.inicio_planeado || ''}
-              onChange={(e) => handleChange('inicio_planeado', e.target.value)}
-              disabled={submitting}
-            />
-
-            {/* Campo: Fecha Fin Planeado */}
-            <FormInput
-              label="Fecha Fin Planeado"
-              type="date"
-              value={formData.fin_planeado || ''}
-              onChange={(e) => handleChange('fin_planeado', e.target.value)}
-              disabled={submitting}
-            />
-
-            {/* Campo: Fecha Inicio Real */}
-            <FormInput
-              label="Fecha Inicio Real"
-              type="date"
-              value={formData.inicio_real || ''}
-              onChange={(e) => handleChange('inicio_real', e.target.value)}
-              disabled={submitting}
-            />
-
-            {/* Campo: Fecha Fin Real */}
-            <FormInput
-              label="Fecha Fin Real (Estimada)"
-              type="date"
-              value={formData.fin_real || ''}
-              onChange={(e) => handleChange('fin_real', e.target.value)}
-              disabled={submitting}
-            />
-
-            {/* Campo: Observaciones */}
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Observaciones y Notas
-              </label>
-              <textarea
-                value={formData.observaciones || ''}
-                onChange={(e) => handleChange('observaciones', e.target.value)}
-                disabled={submitting}
-                placeholder="Problemas encontrados, cambios, retrasos..."
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  minHeight: '100px',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 5: GASTOS POR CATEGORÍA                              */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'gastos' ? null : 'gastos')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(52,211,153,.12), rgba(52,211,153,.04))',
-            borderBottom: expandedSection === 'gastos' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#34d399' }}>
-            ⛽ Gastos por Categoría
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'gastos' ? '▼' : '▶'}
-          </span>
-        </div>
-
-        {expandedSection === 'gastos' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <FormInput
-              label="Gasto en Diesel (Bs)"
-              type="number"
-              value={formData.gasto_diesel || ''}
-              onChange={(e) => handleChange('gasto_diesel', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 8500"
-              min="0"
-              step="100"
-            />
-
-            <FormInput
-              label="Gasto en Mantenimiento de Maquinaria (Bs)"
-              type="number"
-              value={formData.gasto_mantenimiento || ''}
-              onChange={(e) => handleChange('gasto_mantenimiento', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 3200"
-              min="0"
-              step="100"
-            />
-
-            <FormInput
-              label="Gasto en Materiales (Bs)"
-              type="number"
-              value={formData.gasto_materiales || ''}
-              onChange={(e) => handleChange('gasto_materiales', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 12000"
-              min="0"
-              step="100"
-            />
-
-            <FormInput
-              label="Gasto en Mano de Obra (Bs)"
-              type="number"
-              value={formData.gasto_mano_obra || ''}
-              onChange={(e) => handleChange('gasto_mano_obra', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 15000"
-              min="0"
-              step="100"
-            />
-
-            <FormInput
-              label="Otros Gastos (Bs)"
-              type="number"
-              value={formData.gasto_otros || ''}
-              onChange={(e) => handleChange('gasto_otros', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 500"
-              min="0"
-              step="100"
-            />
-
-            {/* Total calculado automáticamente */}
-            <div style={{
-              background: '#0d1410',
-              border: '1px solid #34d399',
-              borderRadius: '10px',
-              padding: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
-            }}>
-              <p style={{ margin: 0, color: '#9aa39a', fontSize: '12px' }}>TOTAL GASTOS (calculado)</p>
-              <p style={{ margin: '4px 0 0 0', color: '#34d399', fontSize: '20px', fontWeight: 'bold' }}>
-                Bs {(
-                  (Number(formData.gasto_diesel) || 0) +
-                  (Number(formData.gasto_mantenimiento) || 0) +
-                  (Number(formData.gasto_materiales) || 0) +
-                  (Number(formData.gasto_mano_obra) || 0) +
-                  (Number(formData.gasto_otros) || 0)
-                ).toLocaleString('es-BO')}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
