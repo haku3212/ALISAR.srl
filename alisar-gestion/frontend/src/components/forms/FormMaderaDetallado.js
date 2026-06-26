@@ -76,7 +76,57 @@ const Section = ({ icon, title, color = C.yellow, children }) => (
   </div>
 );
 
-const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = false }) => {
+const PersonalSelector = ({ personalList = [], selectedIds = [], onChange, disabled }) => {
+  const toggle = (id) => {
+    const next = selectedIds.includes(id)
+      ? selectedIds.filter(x => x !== id)
+      : [...selectedIds, id];
+    onChange(next);
+  };
+
+  if (personalList.length === 0) {
+    return <p style={{ color: C.muted, fontSize: '12px', margin: 0 }}>No hay personal registrado en el sistema.</p>;
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {personalList.map(p => {
+        const selected = selectedIds.includes(p.id);
+        return (
+          <div
+            key={p.id}
+            onClick={() => !disabled && toggle(p.id)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '9px 12px', borderRadius: '8px', cursor: disabled ? 'default' : 'pointer',
+              border: `1px solid ${selected ? C.green + '60' : C.border2}`,
+              background: selected ? C.green + '10' : 'transparent',
+              transition: 'all 0.15s',
+            }}
+          >
+            <div style={{
+              width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
+              border: `2px solid ${selected ? C.green : C.border2}`,
+              background: selected ? C.green : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {selected && <span style={{ color: '#000', fontSize: '10px', fontWeight: '700', lineHeight: 1 }}>✓</span>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: '13px', color: selected ? C.text : '#b0c0b0', fontWeight: selected ? '600' : '400' }}>{p.nombre}</p>
+              {p.cargo && <p style={{ margin: 0, fontSize: '11px', color: C.muted }}>{p.cargo}</p>}
+            </div>
+            {selected && (
+              <span style={{ fontSize: '10px', color: C.green, fontWeight: '700', letterSpacing: '0.5px' }}>ASIGNADO</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = false, personalList = [], selectedPersonal = [], onPersonalChange }) => {
   const set = (field) => (e) => onChange({ ...formData, [field]: e.target.value });
 
   return (
@@ -134,8 +184,25 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
         </Field>
       </Section>
 
-      {/* ── 3. Extracción ────────────────────────────────────────── */}
-      <Section icon="🪓" title="Extracción — Monte al Punto Medio" color={C.green}>
+      {/* ── 3. Personal del Campamento ───────────────────────────── */}
+      <Section icon="👷" title="Personal en el Campamento" color={C.green}>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <PersonalSelector
+            personalList={personalList}
+            selectedIds={selectedPersonal}
+            onChange={onPersonalChange}
+            disabled={submitting}
+          />
+          {selectedPersonal.length > 0 && (
+            <p style={{ margin: '10px 0 0 0', color: C.green, fontSize: '12px', fontWeight: '600' }}>
+              {selectedPersonal.length} persona{selectedPersonal.length > 1 ? 's' : ''} asignada{selectedPersonal.length > 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+      </Section>
+
+      {/* ── 4. Extracción ────────────────────────────────────────── */}
+      <Section icon="🪓" title="Extracción — Monte al Punto Medio" color={C.orange}>
         <Field label="Zona de Extracción / Monte" span={2}>
           <Input value={formData.zona_extraccion} onChange={set('zona_extraccion')} placeholder="Ej: Zona norte sector B, comunidad Cachuela Esperanza" disabled={submitting} />
         </Field>

@@ -47,6 +47,12 @@ const initDB = async () => {
             volumen TEXT,
             campamento TEXT
         );
+        CREATE TABLE IF NOT EXISTS madera_personal (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            madera_id INTEGER NOT NULL,
+            personal_id INTEGER NOT NULL,
+            UNIQUE(madera_id, personal_id)
+        );
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario TEXT,

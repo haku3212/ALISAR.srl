@@ -22,6 +22,13 @@ const CAMPOS = [
 router.get('/', verifyToken, async (req, res) => {
     try {
         const rows = await getDB().all('SELECT * FROM madera');
+        // Attach assigned personal ids to each record
+        for (const row of rows) {
+            const asignados = await getDB().all(
+                'SELECT personal_id FROM madera_personal WHERE madera_id = ?', [row.id]
+            );
+            row.personal_ids = asignados.map(r => r.personal_id);
+        }
         res.json(rows);
     } catch (err) {
         console.error('Error:', err);
@@ -30,22 +37,20 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 router.post('/', verifyToken, async (req, res) => {
-    const { especie } = req.body;
-    const piezas = req.body.piezas;
-
-    if (!especie || piezas === undefined || piezas === null) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas' });
-    }
-
     try {
         const data = filtrar(req.body);
+        // Set default required fields to avoid NOT NULL issues
+        if (!data.especie) data.especie = '';
+        if (data.piezas === undefined) data.piezas = 0;
         const cols = Object.keys(data).join(', ');
         const placeholders = Object.keys(data).map(() => '?').join(', ');
         const result = await getDB().run(
             `INSERT INTO madera (${cols}) VALUES (${placeholders})`,
             Object.values(data)
         );
-        await logAudit(req.user?.id, 'CREATE', 'madera', result.lastID, null, data);
+        const maderaId = result.lastID;
+        await savePersonal(maderaId, req.body.personal_ids);
+        await logAudit(req.user?.id, 'CREATE', 'madera', maderaId, null, data);
         res.status(201).json({ status: 'Madera registrada con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -54,13 +59,6 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 router.put('/:id', verifyToken, async (req, res) => {
-    const { especie } = req.body;
-    const piezas = req.body.piezas;
-
-    if (!especie || piezas === undefined || piezas === null) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas' });
-    }
-
     try {
         const anterior = await getDB().get('SELECT * FROM madera WHERE id = ?', [req.params.id]);
         if (!anterior) return res.status(404).json({ msg: 'Registro de madera no encontrado' });
@@ -71,6 +69,7 @@ router.put('/:id', verifyToken, async (req, res) => {
             `UPDATE madera SET ${setCols} WHERE id = ?`,
             [...Object.values(data), req.params.id]
         );
+        await savePersonal(req.params.id, req.body.personal_ids);
         await logAudit(req.user?.id, 'UPDATE', 'madera', req.params.id, anterior, data);
         res.json({ status: 'Madera actualizada con éxito' });
     } catch (err) {
@@ -84,6 +83,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
         const anterior = await getDB().get('SELECT * FROM madera WHERE id = ?', [req.params.id]);
         if (!anterior) return res.status(404).json({ msg: 'Registro de madera no encontrado' });
 
+        await getDB().run('DELETE FROM madera_personal WHERE madera_id = ?', [req.params.id]);
         await getDB().run('DELETE FROM madera WHERE id = ?', [req.params.id]);
         await logAudit(req.user?.id, 'DELETE', 'madera', req.params.id, anterior, null);
         res.json({ status: 'Madera eliminada con éxito' });
@@ -92,6 +92,17 @@ router.delete('/:id', verifyToken, async (req, res) => {
         res.status(500).json({ error: 'Error al procesar solicitud' });
     }
 });
+
+const savePersonal = async (maderaId, personalIds) => {
+    await getDB().run('DELETE FROM madera_personal WHERE madera_id = ?', [maderaId]);
+    if (!Array.isArray(personalIds) || personalIds.length === 0) return;
+    for (const pid of personalIds) {
+        await getDB().run(
+            'INSERT INTO madera_personal (madera_id, personal_id) VALUES (?, ?)',
+            [maderaId, pid]
+        );
+    }
+};
 
 const filtrar = (body) => {
     const result = {};

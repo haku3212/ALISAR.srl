@@ -5,7 +5,7 @@
  * y exportación a PDF/Excel con formulario detallado
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trees, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
@@ -69,6 +69,12 @@ const Madera = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [personalList, setPersonalList] = useState([]);
+  const [selectedPersonal, setSelectedPersonal] = useState([]);
+
+  useEffect(() => {
+    dataService.getPersonal().then(res => setPersonalList(res.data || [])).catch(() => {});
+  }, []);
 
   // Obtener especies y campamentos únicos para filtros
   const uniqueEspecies = useMemo(() => {
@@ -118,9 +124,13 @@ const Madera = () => {
    */
   const validate = () => {
     const errors = {};
-    if (!formData.especie.trim()) errors.especie = 'Especie requerida';
-    if (!formData.volumen.toString().trim()) errors.volumen = 'Volumen requerido';
-    if (!formData.cantidad || formData.cantidad < 1) errors.cantidad = 'Cantidad debe ser mayor a 0';
+    if (!formData.nombre?.trim()) errors.nombre = 'Nombre requerido';
+    if (!formData.contratante?.trim()) errors.contratante = 'Contratante requerido';
+    if (!formData.permiso_forestal?.trim()) errors.permiso_forestal = 'Permiso forestal requerido';
+    if (!formData.ing_forestal?.trim()) errors.ing_forestal = 'Ingeniero forestal requerido';
+    if (!formData.especie) errors.especie = 'Especie requerida';
+    if (!formData.volumen) errors.volumen = 'Volumen requerido';
+    if (!formData.num_piezas) errors.num_piezas = 'N° de piezas requerido';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -130,12 +140,18 @@ const Madera = () => {
    */
   const resetFormData = () => {
     setFormData({
-      especie: '', nombre_comun: '', nombre_cientifico: '', procedencia: '', destino: '', tipo_corte: '',
-      largo: '', ancho: '', espesor: '', volumen: '', cantidad: '', peso_estimado: '',
-      grado_calidad: '', estado_conservacion: '', humedad: '', defectos: '',
-      campamento: '', ubicacion_exacta: '', fecha_recepcion: '', fecha_aserrado: '',
-      precio_unitario: '', valor_total: '', notas: ''
+      nombre: '', contratante: '', segunda_parte: '', estado_contrato: '',
+      permiso_forestal: '', fecha_vencimiento_permiso: '', fecha_recepcion: '',
+      ing_forestal: '', jefe_campamento: '', campamento: '', personal_asignado: '',
+      maquinaria_asignada: '', obs_campamento: '',
+      zona_extraccion: '', punto_medio: '', fecha_inicio_tumba: '',
+      fecha_llegada_punto_medio: '', obs_extraccion: '',
+      especie: '', nombre_comun: '', grado_calidad: '', tipo_corte: '',
+      volumen: '', num_piezas: '', nombre_cientifico: '', obs_clasificacion: '',
+      aserradero_destino: '', fecha_entrega_aserradero: '', precio_unitario: '',
+      precio_venta: '', responsable_recepcion: '', obs_entrega: '',
     });
+    setSelectedPersonal([]);
   };
 
   /**
@@ -148,10 +164,11 @@ const Madera = () => {
     try {
       setSubmitting(true);
       let ok;
+      const payload = { ...formData, personal_ids: selectedPersonal };
       if (editingId) {
-        ok = await update(editingId, formData);
+        ok = await update(editingId, payload);
       } else {
-        ok = await create(formData);
+        ok = await create(payload);
       }
       if (ok) {
         resetFormData();
@@ -167,6 +184,7 @@ const Madera = () => {
    */
   const handleEdit = (madera) => {
     setFormData(madera);
+    setSelectedPersonal(madera.personal_ids || []);
     setEditingId(madera.id);
     setShowModal(true);
   };
@@ -325,6 +343,9 @@ const Madera = () => {
             onChange={(updatedData) => setFormData(updatedData)}
             errors={formErrors}
             submitting={submitting}
+            personalList={personalList}
+            selectedPersonal={selectedPersonal}
+            onPersonalChange={setSelectedPersonal}
           />
 
           {/* Botón de envío */}
