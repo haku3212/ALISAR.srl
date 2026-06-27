@@ -72,6 +72,8 @@ const Madera = () => {
   const [confirmId, setConfirmId] = useState(null);
   const [personalList, setPersonalList] = useState([]);
   const [selectedPersonal, setSelectedPersonal] = useState([]);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     dataService.getPersonal().then(res => setPersonalList(res.data || [])).catch(() => {});
@@ -121,6 +123,9 @@ const Madera = () => {
 
     return result;
   }, [data, search, filters]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   /**
    * Valida los campos requeridos del formulario
@@ -226,7 +231,7 @@ const Madera = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
           <h1 style={{ color: '#fff', margin: '0 0 6px 0', fontSize: '22px', fontWeight: '700' }}>Control Forestal</h1>
-          <p style={{ color: C.muted, fontSize: '13px', margin: 0 }}>Rodeos y extracción de madera — {data.length} registros</p>
+          <p style={{ color: C.muted, fontSize: '13px', margin: 0 }}>Rodeos y extracción de madera — {filtered.length} de {data.length} registros</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => generateMaderaReport(data)} style={{ ...btnBase, background: C.card, color: C.text, border: `1px solid ${C.border2}` }}>
@@ -265,7 +270,7 @@ const Madera = () => {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {filtered.map(m => {
+          {paginated.map(m => {
             const estadoColors = {
               en_curso:  { bg: 'rgba(52,211,153,0.12)', color: C.green, label: 'En Curso' },
               entregado: { bg: 'rgba(96,165,250,0.12)', color: C.blue,  label: 'Entregado' },
@@ -355,6 +360,21 @@ const Madera = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Paginación ─────────────────────────────────────────────── */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '20px' }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            style={{ padding: '7px 14px', borderRadius: '7px', border: `1px solid ${C.border2}`, background: C.card, color: C.text, cursor: page === 1 ? 'default' : 'pointer', opacity: page === 1 ? 0.4 : 1, fontSize: '13px' }}>
+            ← Anterior
+          </button>
+          <span style={{ color: C.muted, fontSize: '13px' }}>Página {page} de {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+            style={{ padding: '7px 14px', borderRadius: '7px', border: `1px solid ${C.border2}`, background: C.card, color: C.text, cursor: page === totalPages ? 'default' : 'pointer', opacity: page === totalPages ? 0.4 : 1, fontSize: '13px' }}>
+            Siguiente →
+          </button>
         </div>
       )}
 

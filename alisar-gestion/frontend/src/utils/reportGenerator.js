@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { useToast } from '../context/ToastContext';
 
 // Colores ALISAR
 export const COLORS = {
@@ -32,8 +31,8 @@ export const generatePDFFromHTML = async (element, filename) => {
       format: 'a4'
     });
 
-    const imgWidth = 210; // A4 width in mm
-    const pageHeight = 295; // A4 height in mm
+    const imgWidth = 210;
+    const pageHeight = 295;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     let heightLeft = imgHeight;
     let position = 0;
@@ -55,407 +54,298 @@ export const generatePDFFromHTML = async (element, filename) => {
   }
 };
 
+const addHeader = (pdf, title, color) => {
+  const W = pdf.internal.pageSize.getWidth();
+  pdf.setFillColor(...color);
+  pdf.rect(0, 0, W, 28, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(20);
+  pdf.setFont(undefined, 'bold');
+  pdf.text(title, W / 2, 16, { align: 'center' });
+  pdf.setFontSize(9);
+  pdf.setFont(undefined, 'normal');
+  pdf.text(
+    `Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`,
+    W / 2, 24, { align: 'center' }
+  );
+};
+
+const addFooter = (pdf, count, label) => {
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
+  pdf.setFontSize(8);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text(`Total ${label}: ${count}`, 20, H - 10);
+  pdf.text('© 2026 ALISAR S.R.L. — Sistema de Gestión', W - 20, H - 10, { align: 'right' });
+};
+
+const addTableHeader = (pdf, yPos, cols, colX, pageWidth) => {
+  pdf.setFillColor(230, 230, 230);
+  pdf.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
+  pdf.setFont(undefined, 'bold');
+  pdf.setTextColor(40, 40, 40);
+  cols.forEach((h, i) => pdf.text(h, colX[i], yPos));
+  return yPos + 14;
+};
+
 /**
- * Genera un PDF con formato profesional para reportes de Obras
+ * Reporte de Obras
  */
 export const generateObrasReport = (obras) => {
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  let yPos = 20;
+  addHeader(pdf, 'REPORTE DE OBRAS — ALISAR S.R.L.', [74, 222, 128]);
 
-  // Header
-  pdf.setFillColor(74, 222, 128);
-  pdf.rect(0, 0, pageWidth, 25, 'F');
+  let y = 40;
+  const colX = [15, 70, 115, 145, 175, 225];
+  const headers = ['Obra', 'Responsable', 'Presupuesto', 'Avance', 'Estado', 'Observaciones'];
 
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(24);
-  pdf.text('REPORTE DE OBRAS', pageWidth / 2, 12, { align: 'center' });
-
-  // Fecha
   pdf.setFontSize(10);
-  pdf.setTextColor(200, 200, 200);
-  pdf.text(`Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 20, { align: 'center' });
-
-  // Contenido
-  pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(11);
-  pdf.setFont(undefined, 'bold');
-
-  yPos = 40;
-  const colX = [20, 70, 120, 170];
-  const headers = ['Obra', 'Presupuesto', 'Avance', 'Estado'];
-
-  // Encabezados
-  pdf.setFillColor(230, 230, 230);
-  pdf.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-  pdf.setFont(undefined, 'bold');
-  headers.forEach((header, i) => {
-    pdf.text(header, colX[i], yPos);
-  });
-
-  yPos += 15;
-  pdf.setFont(undefined, 'normal');
-  pdf.setFontSize(10);
-
-  // Datos
-  obras.forEach((obra) => {
-    if (yPos > pageHeight - 30) {
-      pdf.addPage();
-      yPos = 20;
-    }
-
-    pdf.text(obra.nombre, colX[0], yPos);
-    pdf.text(obra.presupuesto, colX[1], yPos);
-    pdf.text(`${obra.avance}%`, colX[2], yPos);
-
-    // Color de estado según avance
-    if (obra.avance >= 75) {
-      pdf.setTextColor(74, 222, 128); // Verde
-    } else if (obra.avance >= 50) {
-      pdf.setTextColor(96, 165, 250); // Azul
-    } else {
-      pdf.setTextColor(249, 115, 22); // Naranja
-    }
-    pdf.text('Activa', colX[3], yPos);
-    pdf.setTextColor(0, 0, 0);
-
-    yPos += 10;
-  });
-
-  // Footer
-  pdf.setFontSize(8);
-  pdf.setTextColor(150, 150, 150);
-  pdf.text(`Total de obras: ${obras.length}`, 20, pageHeight - 10);
-  pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth - 60, pageHeight - 10);
-
-  pdf.save(`Reporte_Obras_${new Date().getTime()}.pdf`);
-};
-
-/**
- * Genera un PDF con formato profesional para reportes de Personal
- */
-export const generatePersonalReport = (personal) => {
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  let yPos = 20;
-
-  // Header
-  pdf.setFillColor(167, 139, 250);
-  pdf.rect(0, 0, pageWidth, 25, 'F');
-
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(24);
-  pdf.text('REPORTE DE PERSONAL', pageWidth / 2, 12, { align: 'center' });
-
-  // Fecha
-  pdf.setFontSize(10);
-  pdf.setTextColor(200, 200, 200);
-  pdf.text(`Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 20, { align: 'center' });
-
-  // Contenido
-  pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(11);
-
-  yPos = 40;
-  const colX = [20, 80, 140];
-  const headers = ['Nombre', 'Cargo', 'Celular'];
-
-  // Encabezados
-  pdf.setFillColor(230, 230, 230);
-  pdf.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-  pdf.setFont(undefined, 'bold');
-  headers.forEach((header, i) => {
-    pdf.text(header, colX[i], yPos);
-  });
-
-  yPos += 15;
-  pdf.setFont(undefined, 'normal');
-  pdf.setFontSize(10);
-
-  // Datos
-  personal.forEach((person) => {
-    if (yPos > pageHeight - 30) {
-      pdf.addPage();
-      yPos = 20;
-    }
-
-    pdf.text(person.nombre || '', colX[0], yPos);
-    pdf.text(person.cargo || '', colX[1], yPos);
-    pdf.text(person.celular || '', colX[2], yPos);
-
-    yPos += 10;
-  });
-
-  // Footer
-  pdf.setFontSize(8);
-  pdf.setTextColor(150, 150, 150);
-  pdf.text(`Total de personal: ${personal.length}`, 20, pageHeight - 10);
-  pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth - 60, pageHeight - 10);
-
-  pdf.save(`Reporte_Personal_${new Date().getTime()}.pdf`);
-};
-
-/**
- * Genera un PDF con formato profesional para reportes de Maquinaria
- */
-export const generateMaquinariaReport = (maquinaria) => {
-  const pdf = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  let yPos = 20;
-
-  // Header
-  pdf.setFillColor(96, 165, 250);
-  pdf.rect(0, 0, pageWidth, 25, 'F');
-
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(24);
-  pdf.text('REPORTE DE MAQUINARIA', pageWidth / 2, 12, { align: 'center' });
-
-  // Fecha
-  pdf.setFontSize(10);
-  pdf.setTextColor(200, 200, 200);
-  pdf.text(`Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 20, { align: 'center' });
-
-  // Contenido
-  pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(11);
-
-  yPos = 40;
-  const colX = [20, 100, 160, 220, 270];
-  const headers = ['Equipo', 'Tipo', 'Estado', 'Última Revisión', 'Próx. Mant.'];
-
-  // Encabezados
-  pdf.setFillColor(230, 230, 230);
-  pdf.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-  pdf.setFont(undefined, 'bold');
-  headers.forEach((header, i) => {
-    pdf.text(header, colX[i], yPos);
-  });
-
-  yPos += 15;
+  y = addTableHeader(pdf, y, headers, colX, W);
   pdf.setFont(undefined, 'normal');
   pdf.setFontSize(9);
 
-  // Datos
-  maquinaria.forEach((maq) => {
-    if (yPos > pageHeight - 30) {
-      pdf.addPage();
-      yPos = 20;
-    }
+  obras.forEach(obra => {
+    if (y > H - 20) { pdf.addPage(); y = 20; }
+    pdf.setTextColor(0, 0, 0);
+    pdf.text((obra.nombre || '').slice(0, 22), colX[0], y);
+    pdf.text((obra.responsable_tecnico || '—').slice(0, 20), colX[1], y);
+    pdf.text(String(obra.presupuesto || '—').slice(0, 14), colX[2], y);
 
-    pdf.text(maq.nombre || '', colX[0], yPos);
-    pdf.text(maq.tipo || '', colX[1], yPos);
-
-    // Color de estado
-    if (maq.estado === 'Operativo') {
-      pdf.setTextColor(74, 222, 128);
-    } else if (maq.estado === 'Mantenimiento') {
-      pdf.setTextColor(249, 115, 22);
-    } else {
-      pdf.setTextColor(248, 113, 113);
-    }
-    pdf.text(maq.estado || '', colX[2], yPos);
+    const av = Number(obra.avance) || 0;
+    if (av >= 75) pdf.setTextColor(74, 222, 128);
+    else if (av >= 40) pdf.setTextColor(250, 204, 21);
+    else pdf.setTextColor(249, 115, 22);
+    pdf.text(`${av}%`, colX[3], y);
     pdf.setTextColor(0, 0, 0);
 
-    pdf.text(maq.ultimaRevision || 'N/A', colX[3], yPos);
-
-    // Calcular próximo mantenimiento
-    if (maq.ultimaRevision) {
-      const lastDate = new Date(maq.ultimaRevision);
-      const nextDate = new Date(lastDate.getTime() + 90 * 24 * 60 * 60 * 1000);
-      pdf.text(nextDate.toLocaleDateString('es-ES'), colX[4], yPos);
-    } else {
-      pdf.text('Pendiente', colX[4], yPos);
-    }
-
-    yPos += 10;
+    const estado = obra.estado || (av >= 100 ? 'Terminado' : 'En Ejecución');
+    pdf.text(estado.slice(0, 18), colX[4], y);
+    pdf.text((obra.observaciones || '').slice(0, 30), colX[5], y);
+    y += 10;
   });
 
-  // Footer
-  pdf.setFontSize(8);
-  pdf.setTextColor(150, 150, 150);
-  pdf.text(`Total de equipos: ${maquinaria.length}`, 20, pageHeight - 10);
-  pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth - 60, pageHeight - 10);
-
-  pdf.save(`Reporte_Maquinaria_${new Date().getTime()}.pdf`);
+  addFooter(pdf, obras.length, 'obras');
+  pdf.save(`Reporte_Obras_${Date.now()}.pdf`);
 };
 
 /**
- * Genera un PDF con formato profesional para reportes de Rodeos
+ * Reporte de Personal
  */
-export const generateRodeoReport = (rodeos) => {
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
+export const generatePersonalReport = (personal) => {
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
+
+  addHeader(pdf, 'REPORTE DE PERSONAL — ALISAR S.R.L.', [167, 139, 250]);
+
+  let y = 40;
+  const colX = [15, 65, 110, 150, 185, 225, 260];
+  const headers = ['Nombre', 'Cargo', 'Departamento', 'Celular', 'Estado', 'Salario', 'Email'];
+
+  pdf.setFontSize(10);
+  y = addTableHeader(pdf, y, headers, colX, W);
+  pdf.setFont(undefined, 'normal');
+  pdf.setFontSize(9);
+
+  personal.forEach(p => {
+    if (y > H - 20) { pdf.addPage(); y = 20; }
+    pdf.setTextColor(0, 0, 0);
+    pdf.text((p.nombre || '').slice(0, 20), colX[0], y);
+    pdf.text((p.cargo || '—').slice(0, 18), colX[1], y);
+    pdf.text((p.departamento || '—').slice(0, 18), colX[2], y);
+    pdf.text((p.celular || '—').slice(0, 14), colX[3], y);
+
+    const estado = p.estado || 'Activo';
+    if (estado === 'Activo') pdf.setTextColor(74, 222, 128);
+    else if (estado === 'Licencia') pdf.setTextColor(249, 115, 22);
+    else pdf.setTextColor(150, 150, 150);
+    pdf.text(estado, colX[4], y);
+    pdf.setTextColor(0, 0, 0);
+
+    pdf.text(p.salario ? `Bs ${Number(p.salario).toLocaleString('es-BO')}` : '—', colX[5], y);
+    pdf.text((p.email || '').slice(0, 28), colX[6], y);
+    y += 10;
   });
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  let yPos = 20;
+  const activos = personal.filter(p => (p.estado || 'Activo') === 'Activo').length;
+  addFooter(pdf, personal.length, 'empleados');
+  const H2 = pdf.internal.pageSize.getHeight();
+  pdf.setTextColor(150, 150, 150);
+  pdf.setFontSize(8);
+  pdf.text(`Activos: ${activos}  |  Inactivos: ${personal.length - activos}`, W / 2, H2 - 10, { align: 'center' });
+  pdf.save(`Reporte_Personal_${Date.now()}.pdf`);
+};
 
-  // Header
-  pdf.setFillColor(255, 215, 0);
-  pdf.rect(0, 0, pageWidth, 25, 'F');
+/**
+ * Reporte de Maquinaria
+ */
+export const generateMaquinariaReport = (maquinaria) => {
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
 
-  pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(24);
-  pdf.text('REPORTE DE RODEOS FORESTALES', pageWidth / 2, 12, { align: 'center' });
+  addHeader(pdf, 'REPORTE DE MAQUINARIA — ALISAR S.R.L.', [96, 165, 250]);
 
-  // Fecha
+  let y = 40;
+  const colX = [15, 65, 100, 130, 165, 200, 240];
+  const headers = ['Equipo', 'Tipo', 'Placa', 'Estado', 'Obra Asignada', 'Últ. Revisión', 'Próx. Mant.'];
+
   pdf.setFontSize(10);
-  pdf.setTextColor(100, 100, 100);
-  pdf.text(`Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 20, { align: 'center' });
+  y = addTableHeader(pdf, y, headers, colX, W);
+  pdf.setFont(undefined, 'normal');
+  pdf.setFontSize(9);
 
-  // Contenido
+  maquinaria.forEach(maq => {
+    if (y > H - 20) { pdf.addPage(); y = 20; }
+    pdf.setTextColor(0, 0, 0);
+    pdf.text((maq.nombre || '').slice(0, 20), colX[0], y);
+    pdf.text((maq.tipo || '—').slice(0, 16), colX[1], y);
+    pdf.text((maq.placa || '—').slice(0, 12), colX[2], y);
+
+    const estado = maq.estado || '—';
+    if (estado === 'Operativo') pdf.setTextColor(74, 222, 128);
+    else if (estado === 'Mantenimiento') pdf.setTextColor(249, 115, 22);
+    else if (estado === 'Reparacion') pdf.setTextColor(248, 113, 113);
+    else pdf.setTextColor(150, 150, 150);
+    pdf.text(estado, colX[3], y);
+    pdf.setTextColor(0, 0, 0);
+
+    pdf.text((maq.obra_asignada || '—').slice(0, 22), colX[4], y);
+
+    const ultimaRev = maq.ultima_revision || maq.ultimaRevision || '';
+    pdf.text(ultimaRev ? new Date(ultimaRev).toLocaleDateString('es-ES') : 'N/A', colX[5], y);
+
+    // Use stored field if available, else calculate +90 days from last revision
+    if (maq.mantenimiento_proximo) {
+      const proxDate = new Date(maq.mantenimiento_proximo);
+      const hoy = new Date();
+      const dias = Math.ceil((proxDate - hoy) / 86400000);
+      if (dias <= 14) pdf.setTextColor(248, 113, 113);
+      else if (dias <= 30) pdf.setTextColor(249, 115, 22);
+      pdf.text(proxDate.toLocaleDateString('es-ES'), colX[6], y);
+      pdf.setTextColor(0, 0, 0);
+    } else if (ultimaRev) {
+      const next = new Date(new Date(ultimaRev).getTime() + 90 * 86400000);
+      pdf.text(next.toLocaleDateString('es-ES'), colX[6], y);
+    } else {
+      pdf.text('Pendiente', colX[6], y);
+    }
+    y += 10;
+  });
+
+  const operativos = maquinaria.filter(m => m.estado === 'Operativo').length;
+  addFooter(pdf, maquinaria.length, 'equipos');
+  const H2 = pdf.internal.pageSize.getHeight();
+  pdf.setFontSize(8);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text(`Operativos: ${operativos}  |  En mantenimiento/reparación: ${maquinaria.length - operativos}`, W / 2, H2 - 10, { align: 'center' });
+  pdf.save(`Reporte_Maquinaria_${Date.now()}.pdf`);
+};
+
+/**
+ * Reporte de Madera / Trabajos Forestales
+ */
+export const generateMaderaReport = (madera) => {
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
+
+  addHeader(pdf, 'REPORTE DE TRABAJOS FORESTALES — ALISAR S.R.L.', [249, 115, 22]);
+
+  let y = 40;
+  const colX = [15, 65, 110, 150, 185, 215, 250];
+  const headers = ['Contrato', 'Contratante', 'Ing. Forestal', 'Campamento', 'Estado', 'Volumen m³', 'Piezas'];
+
+  pdf.setFontSize(10);
+  y = addTableHeader(pdf, y, headers, colX, W);
+  pdf.setFont(undefined, 'normal');
+  pdf.setFontSize(9);
+
+  let totalVolumen = 0;
+  let totalPiezas = 0;
+
+  madera.forEach(item => {
+    if (y > H - 20) { pdf.addPage(); y = 20; }
+    pdf.setTextColor(0, 0, 0);
+    pdf.text((item.nombre || item.especie || '—').slice(0, 22), colX[0], y);
+    pdf.text((item.contratante || '—').slice(0, 22), colX[1], y);
+    pdf.text((item.ing_forestal || '—').slice(0, 20), colX[2], y);
+    pdf.text((item.campamento || '—').slice(0, 18), colX[3], y);
+
+    const estado = item.estado_contrato || '—';
+    if (estado === 'Activo') pdf.setTextColor(74, 222, 128);
+    else if (estado === 'En Negociación') pdf.setTextColor(250, 204, 21);
+    else if (estado === 'Finalizado') pdf.setTextColor(150, 150, 150);
+    else pdf.setTextColor(0, 0, 0);
+    pdf.text(estado.slice(0, 16), colX[4], y);
+    pdf.setTextColor(0, 0, 0);
+
+    const vol = parseFloat(item.volumen) || 0;
+    const piezas = parseInt(item.num_piezas || item.piezas) || 0;
+    pdf.text(vol > 0 ? vol.toFixed(2) : '—', colX[5], y);
+    pdf.text(piezas > 0 ? String(piezas) : '—', colX[6], y);
+
+    totalVolumen += vol;
+    totalPiezas += piezas;
+    y += 10;
+  });
+
+  // Totals row
+  y += 4;
+  pdf.setFont(undefined, 'bold');
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(11);
+  pdf.text('TOTALES', colX[0], y);
+  pdf.text(totalVolumen.toFixed(2), colX[5], y);
+  pdf.text(String(totalPiezas), colX[6], y);
 
-  yPos = 40;
+  addFooter(pdf, madera.length, 'trabajos forestales');
+  pdf.save(`Reporte_Madera_${Date.now()}.pdf`);
+};
+
+/**
+ * Reporte de Rodeos (legacy — kept for compatibility)
+ */
+export const generateRodeoReport = (rodeos) => {
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
+
+  addHeader(pdf, 'REPORTE DE RODEOS FORESTALES', [255, 215, 0]);
+  pdf.setTextColor(0, 0, 0); // override white on yellow
+
+  let y = 40;
   const colX = [20, 55, 85, 120, 155];
   const headers = ['Fecha', 'Volumen (m³)', 'Especie', 'Procedencia', 'Responsable'];
 
-  // Encabezados
-  pdf.setFillColor(240, 240, 240);
-  pdf.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-  pdf.setFont(undefined, 'bold');
-  headers.forEach((header, i) => {
-    pdf.text(header, colX[i], yPos);
-  });
-
-  yPos += 15;
+  pdf.setFontSize(10);
+  y = addTableHeader(pdf, y, headers, colX, W);
   pdf.setFont(undefined, 'normal');
   pdf.setFontSize(9);
 
   let totalVolumen = 0;
 
-  // Datos
-  rodeos.forEach((item) => {
-    if (yPos > pageHeight - 30) {
-      pdf.addPage();
-      yPos = 20;
-    }
-
+  rodeos.forEach(item => {
+    if (y > H - 30) { pdf.addPage(); y = 20; }
+    pdf.setTextColor(0, 0, 0);
     const fecha = item.fecha_rodeo ? new Date(item.fecha_rodeo).toLocaleDateString('es-ES') : '';
-    pdf.text(fecha, colX[0], yPos);
-    pdf.text((item.volumen_total || 0).toString(), colX[1], yPos);
-    pdf.text(item.especie_principal || '', colX[2], yPos);
-    pdf.text(item.procedencia || '', colX[3], yPos);
-    pdf.text(item.responsable_rodeo || '', colX[4], yPos);
-
+    pdf.text(fecha, colX[0], y);
+    pdf.text((item.volumen_total || 0).toString(), colX[1], y);
+    pdf.text(item.especie_principal || '', colX[2], y);
+    pdf.text(item.procedencia || '', colX[3], y);
+    pdf.text(item.responsable_rodeo || '', colX[4], y);
     totalVolumen += parseFloat(item.volumen_total) || 0;
-    yPos += 10;
+    y += 10;
   });
 
-  // Resumen
-  yPos += 10;
+  y += 10;
   pdf.setFont(undefined, 'bold');
-  pdf.text(`Volumen Total Extraído: ${totalVolumen.toFixed(2)} m³`, 20, yPos);
+  pdf.text(`Volumen Total Extraído: ${totalVolumen.toFixed(2)} m³`, 20, y);
 
-  // Footer
-  pdf.setFontSize(8);
-  pdf.setTextColor(150, 150, 150);
-  pdf.text(`Total de rodeos: ${rodeos.length}`, 20, pageHeight - 10);
-  pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth - 60, pageHeight - 10);
-
-  pdf.save(`Reporte_Rodeos_${new Date().getTime()}.pdf`);
-};
-
-/**
- * Genera un PDF con formato profesional para reportes de Madera
- */
-export const generateMaderaReport = (madera) => {
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  let yPos = 20;
-
-  // Header
-  pdf.setFillColor(249, 115, 22);
-  pdf.rect(0, 0, pageWidth, 25, 'F');
-
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(24);
-  pdf.text('REPORTE DE MADERA / RODEOS', pageWidth / 2, 12, { align: 'center' });
-
-  // Fecha
-  pdf.setFontSize(10);
-  pdf.setTextColor(200, 200, 200);
-  pdf.text(`Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 20, { align: 'center' });
-
-  // Contenido
-  pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(11);
-
-  yPos = 40;
-  const colX = [20, 80, 130, 170];
-  const headers = ['Especie', 'Piezas', 'Volumen', 'Campamento'];
-
-  // Encabezados
-  pdf.setFillColor(230, 230, 230);
-  pdf.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-  pdf.setFont(undefined, 'bold');
-  headers.forEach((header, i) => {
-    pdf.text(header, colX[i], yPos);
-  });
-
-  yPos += 15;
-  pdf.setFont(undefined, 'normal');
-  pdf.setFontSize(10);
-
-  let totalPiezas = 0;
-
-  // Datos
-  madera.forEach((item) => {
-    if (yPos > pageHeight - 30) {
-      pdf.addPage();
-      yPos = 20;
-    }
-
-    pdf.text(item.especie || '', colX[0], yPos);
-    pdf.text((item.piezas || 0).toString(), colX[1], yPos);
-    pdf.text(item.volumen || '', colX[2], yPos);
-    pdf.text(item.campamento || '', colX[3], yPos);
-
-    totalPiezas += item.piezas || 0;
-    yPos += 10;
-  });
-
-  // Resumen
-  yPos += 10;
-  pdf.setFont(undefined, 'bold');
-  pdf.text(`Total de piezas: ${totalPiezas}`, 20, yPos);
-
-  // Footer
-  pdf.setFontSize(8);
-  pdf.setTextColor(150, 150, 150);
-  pdf.text(`Total de rodeos: ${madera.length}`, 20, pageHeight - 10);
-  pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth - 60, pageHeight - 10);
-
-  pdf.save(`Reporte_Madera_${new Date().getTime()}.pdf`);
+  addFooter(pdf, rodeos.length, 'rodeos');
+  pdf.save(`Reporte_Rodeos_${Date.now()}.pdf`);
 };
 
 /**
@@ -465,7 +355,6 @@ export const generateExcelReport = async (data, columns, filename) => {
   try {
     const XLSX = await import('xlsx');
 
-    // Preparar datos
     const rows = data.map(item => {
       const row = {};
       columns.forEach(col => {
@@ -474,16 +363,13 @@ export const generateExcelReport = async (data, columns, filename) => {
       return row;
     });
 
-    // Crear workbook
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Datos');
 
-    // Estilos básicos
     ws['!cols'] = columns.map(col => ({ wch: col.width || 20 }));
 
-    // Guardar
-    XLSX.writeFile(wb, `${filename}_${new Date().getTime()}.xlsx`);
+    XLSX.writeFile(wb, `${filename}_${Date.now()}.xlsx`);
   } catch (error) {
     console.error('Error generando Excel:', error);
     throw error;

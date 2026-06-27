@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { initDB } = require('./db/init');
 
 const app = express();
@@ -26,6 +27,16 @@ initDB().then(() => {
     app.use('/api/madera',     require('./routes/madera'));
     app.use('/api/audit',      require('./routes/audit'));
     app.use('/api/config',     require('./routes/config'));
+
+    // Backup: descarga directa del archivo SQLite
+    const { verifyToken } = require('./middleware/auth');
+    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
+    app.get('/api/backup', verifyToken, (req, res) => {
+        const filename = `backup_alisar_${new Date().toISOString().slice(0, 10)}.db`;
+        res.download(dbPath, filename, err => {
+            if (err) { console.error('Error en backup:', err); res.status(500).end(); }
+        });
+    });
 
     const PORT = process.env.PORT || process.env.BACKEND_PORT || 4000;
     app.listen(PORT, () => console.log(`🚀 API activa en http://localhost:${PORT}`));

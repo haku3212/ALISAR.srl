@@ -125,12 +125,13 @@ const Dashboard = ({ content }) => {
   const location    = useLocation();
   const { logout, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [stats,      setStats]      = useState({ obras: 0, maquinaria: 0, personal: 0, madera: 0 });
+  const [stats,      setStats]      = useState({ obras: 0, maquinaria: 0, personal: 0, maderaContratos: 0, maderaVolumen: 0 });
   const [lastObras,  setLastObras]  = useState([]);
   const [alertas,    setAlertas]    = useState([]);
   const [maqPie,    setMaqPie]    = useState([]);
   const [obrasBars, setObrasBars]  = useState([]);
   const [personalByRole, setPersonalByRole] = useState([]);
+  const [maderaByEstado, setMaderaByEstado] = useState([]);
   const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
@@ -148,28 +149,46 @@ const Dashboard = ({ content }) => {
         const personal   = pR.data  || [];
         const madera     = maR.data || [];
 
+        const maderaVolumen = madera.reduce((s, m) => s + (parseFloat(m.volumen) || 0), 0);
         setStats({
-          obras:     obras.length,
-          maquinaria: maquinaria.length,
-          personal:  personal.length,
-          madera:    madera.reduce((s, m) => s + (m.piezas || 0), 0)
+          obras:           obras.length,
+          maquinaria:      maquinaria.length,
+          personal:        personal.length,
+          maderaContratos: madera.length,
+          maderaVolumen:   maderaVolumen
         });
 
         setLastObras(obras.slice(-5).reverse());
 
-        // Alertas de mantenimiento real
+        // Alertas de mantenimiento — equipos con servicio próximo (≤14 días) o vencido
         const hoy = new Date();
-        const maqAlerta = maquinaria.filter(m => {
-          if (m.mantenimiento_proximo) {
-            const dias = (new Date(m.mantenimiento_proximo) - hoy) / 86400000;
-            return dias <= 30;
-          }
-          if (m.ultimaRevision) {
-            return (hoy - new Date(m.ultimaRevision)) / 86400000 > 90;
-          }
-          return false;
+        const maqAlerta = maquinaria
+          .map(m => {
+            let diasRestantes = null;
+            if (m.mantenimiento_proximo) {
+              diasRestantes = Math.ceil((new Date(m.mantenimiento_proximo) - hoy) / 86400000);
+            } else if (m.ultima_revision || m.ultimaRevision) {
+              const base = new Date(m.ultima_revision || m.ultimaRevision);
+              diasRestantes = Math.ceil((new Date(base.getTime() + 90 * 86400000) - hoy) / 86400000);
+            }
+            return { ...m, diasRestantes };
+          })
+          .filter(m => m.diasRestantes !== null && m.diasRestantes <= 14)
+          .sort((a, b) => a.diasRestantes - b.diasRestantes);
+        setAlertas(maqAlerta.slice(0, 5));
+
+        // Madera por estado de contrato
+        const estadoMadMap = {};
+        madera.forEach(m => {
+          const k = m.estado_contrato || 'Sin estado';
+          estadoMadMap[k] = (estadoMadMap[k] || 0) + 1;
         });
-        setAlertas(maqAlerta.slice(0, 4));
+        const MAD_COLORS = [C.green, C.yellow, C.blue, C.orange, C.muted];
+        setMaderaByEstado(
+          Object.entries(estadoMadMap).map(([name, value], i) => ({
+            name, value, fill: MAD_COLORS[i % MAD_COLORS.length]
+          }))
+        );
 
         // Pie de maquinaria por estado real
         const estadoMap = {};
@@ -230,7 +249,7 @@ const Dashboard = ({ content }) => {
       `Obras Activas: ${stats.obras}`,
       `Equipos de Maquinaria: ${stats.maquinaria}`,
       `Personal Total: ${stats.personal}`,
-      `Piezas de Madera: ${stats.madera}`
+      `Trabajos Forestales: ${stats.maderaContratos} (${stats.maderaVolumen.toFixed(1)} m³ totales)`
     ].forEach(t => { pdf.text(`• ${t}`, 26, y); y += 7; });
     pdf.setFontSize(8);
     pdf.setTextColor(150);
@@ -285,11 +304,12 @@ const Dashboard = ({ content }) => {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
-        <StatCard icon={HardHat} label="Obras Activas"   value={stats.obras}     color={C.yellow} subtitle="Proyectos en curso" />
-        <StatCard icon={Drill}   label="Maquinaria"      value={stats.maquinaria} color={C.blue}   subtitle="Equipos registrados" />
-        <StatCard icon={Users}   label="Personal"        value={stats.personal}  color={C.purple} subtitle="Empleados activos" />
-        <StatCard icon={Trees}   label="Piezas de Madera" value={stats.madera}   color={C.green}  subtitle="Total en inventario" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+        <StatCard icon={HardHat} label="Obras Activas"      value={stats.obras}                          color={C.yellow} subtitle="Proyectos en curso" />
+        <StatCard icon={Drill}   label="Maquinaria"         value={stats.maquinaria}                     color={C.blue}   subtitle="Equipos registrados" />
+        <StatCard icon={Users}   label="Personal"           value={stats.personal}                       color={C.purple} subtitle="Empleados activos" />
+        <StatCard icon={Trees}   label="Contratos Madera"   value={stats.maderaContratos}                color={C.green}  subtitle="Trabajos forestales" />
+        <StatCard icon={Trees}   label="Volumen Forestal"   value={`${stats.maderaVolumen.toFixed(1)} m³`} color={C.orange} subtitle="Total acumulado" />
       </div>
 
       {/* Alertas de mantenimiento */}
@@ -310,18 +330,23 @@ const Dashboard = ({ content }) => {
               {alertas.length} equipo(s) requieren atención de mantenimiento
             </p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {alertas.map(m => (
-                <span key={m.id} style={{
-                  background: 'rgba(249,115,22,0.15)',
-                  color: C.orange,
-                  padding: '5px 12px',
-                  borderRadius: '20px',
-                  fontSize: '12px',
-                  fontWeight: '500'
-                }}>
-                  {m.nombre}
-                </span>
-              ))}
+              {alertas.map(m => {
+                const vencido = m.diasRestantes <= 0;
+                const color = vencido ? C.red : C.orange;
+                return (
+                  <span key={m.id} style={{
+                    background: vencido ? 'rgba(248,113,113,0.15)' : 'rgba(249,115,22,0.15)',
+                    color,
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    border: `1px solid ${color}44`
+                  }}>
+                    {m.nombre} {vencido ? '• VENCIDO' : `• ${m.diasRestantes}d`}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -388,7 +413,7 @@ const Dashboard = ({ content }) => {
       </div>
 
       {/* Fila 2 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
         {/* Últimas Obras */}
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -439,11 +464,42 @@ const Dashboard = ({ content }) => {
               <BarChart data={personalByRole} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false} />
                 <XAxis type="number" stroke={C.muted} tick={{ fontSize: 11 }} />
-                <YAxis type="category" dataKey="name" stroke={C.muted} tick={{ fontSize: 11 }} width={120} />
+                <YAxis type="category" dataKey="name" stroke={C.muted} tick={{ fontSize: 11 }} width={100} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="cantidad" name="Personas" fill={C.purple} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Contratos Forestales por Estado */}
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <Trees size={16} color={C.green} />
+            <h3 style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: '600' }}>Contratos Forestales</h3>
+          </div>
+          {maderaByEstado.length === 0 ? (
+            <p style={{ color: C.muted, textAlign: 'center', padding: '32px 0', margin: 0 }}>Sin trabajos registrados</p>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <ResponsiveContainer width={120} height={120}>
+                <PieChart>
+                  <Pie data={maderaByEstado} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" paddingAngle={3}>
+                    {maderaByEstado.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                {maderaByEstado.map((e, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: e.fill, flexShrink: 0 }} />
+                    <span style={{ color: C.muted, fontSize: '12px', flex: 1 }}>{e.name}</span>
+                    <span style={{ color: e.fill, fontWeight: '700', fontSize: '15px' }}>{e.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
