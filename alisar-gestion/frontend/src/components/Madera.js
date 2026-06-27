@@ -104,9 +104,11 @@ const Madera = () => {
 
   const filtered = useMemo(() => {
     let result = data.filter(m =>
-      m.especie.toLowerCase().includes(search.toLowerCase()) ||
-      m.campamento.toLowerCase().includes(search.toLowerCase()) ||
-      m.volumen.toLowerCase().includes(search.toLowerCase())
+      (m.especie    || '').toLowerCase().includes(search.toLowerCase()) ||
+      (m.campamento || '').toLowerCase().includes(search.toLowerCase()) ||
+      (m.volumen    || '').toString().toLowerCase().includes(search.toLowerCase()) ||
+      (m.nombre     || '').toLowerCase().includes(search.toLowerCase()) ||
+      (m.contratante|| '').toLowerCase().includes(search.toLowerCase())
     );
 
     // Aplicar filtros

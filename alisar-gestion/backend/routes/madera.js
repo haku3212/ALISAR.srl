@@ -39,9 +39,8 @@ router.get('/', verifyToken, async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
     try {
         const data = filtrar(req.body);
-        // Set default required fields to avoid NOT NULL issues
         if (!data.especie) data.especie = '';
-        if (data.piezas === undefined) data.piezas = 0;
+        if (data.piezas === undefined) data.piezas = data.num_piezas || 0;
         const cols = Object.keys(data).join(', ');
         const placeholders = Object.keys(data).map(() => '?').join(', ');
         const result = await getDB().run(
