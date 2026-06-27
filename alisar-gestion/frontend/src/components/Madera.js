@@ -127,18 +127,9 @@ const Madera = () => {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  /**
-   * Valida los campos requeridos del formulario
-   */
   const validate = () => {
     const errors = {};
-    if (!formData.nombre?.trim()) errors.nombre = 'Nombre requerido';
-    if (!formData.contratante?.trim()) errors.contratante = 'Contratante requerido';
-    if (!formData.permiso_forestal?.trim()) errors.permiso_forestal = 'Permiso forestal requerido';
-    if (!formData.ing_forestal?.trim()) errors.ing_forestal = 'Ingeniero forestal requerido';
-    if (!formData.especie) errors.especie = 'Especie requerida';
-    if (!formData.volumen) errors.volumen = 'Volumen requerido';
-    if (!formData.num_piezas) errors.num_piezas = 'N° de piezas requerido';
+    if (!formData.nombre?.trim()) errors.nombre = 'El nombre del contrato es requerido';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -515,6 +506,18 @@ const Madera = () => {
         }
       >
         <form id="form-madera" onSubmit={handleSubmit}>
+          {Object.keys(formErrors).length > 0 && (
+            <div style={{
+              background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.4)',
+              borderRadius: '8px', padding: '12px 16px', margin: '0 0 16px 0',
+              color: '#f87171', fontSize: '13px',
+            }}>
+              <strong>Corrige los siguientes errores:</strong>
+              <ul style={{ margin: '6px 0 0 0', paddingLeft: '18px' }}>
+                {Object.values(formErrors).map((msg, i) => <li key={i}>{msg}</li>)}
+              </ul>
+            </div>
+          )}
           <FormMaderaDetallado
             formData={formData}
             onChange={setFormData}
