@@ -132,6 +132,7 @@ const Dashboard = ({ content }) => {
   const [obrasBars, setObrasBars]  = useState([]);
   const [personalByRole, setPersonalByRole] = useState([]);
   const [maderaByEstado, setMaderaByEstado] = useState([]);
+  const [volumenMensual, setVolumenMensual] = useState([]);
   const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
@@ -189,6 +190,23 @@ const Dashboard = ({ content }) => {
             name, value, fill: MAD_COLORS[i % MAD_COLORS.length]
           }))
         );
+
+        // Volumen mensual — últimos 8 meses
+        const mesMap = {};
+        madera.forEach(m => {
+          const fechaStr = m.fecha_inicio_tumba || m.fecha_recepcion || m.fecha_entrega_aserradero;
+          if (!fechaStr || !m.volumen) return;
+          const d = new Date(fechaStr);
+          if (isNaN(d)) return;
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          mesMap[key] = (mesMap[key] || 0) + (parseFloat(m.volumen) || 0);
+        });
+        const meses = Object.keys(mesMap).sort().slice(-8);
+        const MESES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        setVolumenMensual(meses.map(k => {
+          const [y, mo] = k.split('-');
+          return { mes: `${MESES_ES[parseInt(mo) - 1]} ${y.slice(2)}`, volumen: parseFloat(mesMap[k].toFixed(2)) };
+        }));
 
         // Pie de maquinaria por estado real
         const estadoMap = {};
@@ -502,6 +520,41 @@ const Dashboard = ({ content }) => {
             </div>
           )}
         </div>
+      </div>
+      {/* Fila 3 — Volumen Forestal Mensual */}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+          <Trees size={16} color={C.green} />
+          <h3 style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: '600' }}>
+            Volumen Forestal Mensual (m³)
+          </h3>
+          {volumenMensual.length === 0 && (
+            <span style={{ color: C.subtle, fontSize: '12px', marginLeft: '8px' }}>
+              — requiere fecha_inicio_tumba en los registros
+            </span>
+          )}
+        </div>
+        {volumenMensual.length === 0 ? (
+          <p style={{ color: C.muted, textAlign: 'center', padding: '50px 0', margin: 0 }}>
+            Sin datos de extracción con fechas registradas
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={volumenMensual}>
+              <defs>
+                <linearGradient id="gradVol" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor={C.green} stopOpacity={0.25} />
+                  <stop offset="95%" stopColor={C.green} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+              <XAxis dataKey="mes" stroke={C.muted} tick={{ fontSize: 11 }} />
+              <YAxis stroke={C.muted} tick={{ fontSize: 11 }} unit=" m³" />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="volumen" name="Volumen m³" stroke={C.green} strokeWidth={2} fill="url(#gradVol)" dot={{ r: 4, fill: C.green }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

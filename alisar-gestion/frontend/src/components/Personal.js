@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, UserPlus, Phone, Mail, Pencil, Trash2, Download, FileText, Briefcase, AlertTriangle } from 'lucide-react';
+import { Users, UserPlus, Phone, Mail, Pencil, Trash2, Download, FileText, Briefcase, AlertTriangle, Printer } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -7,7 +7,7 @@ import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
 import FormPersonalDetallado from './forms/FormPersonalDetallado';
 import SearchBar from './common/SearchBar';
-import { generatePersonalReport, generateExcelReport } from '../utils/reportGenerator';
+import { generatePersonalReport, generateExcelReport, generateFichaIndividual } from '../utils/reportGenerator';
 
 const C = {
   bg: '#080a08', surface: '#0f110f', card: '#131513', border: '#1c221c',
@@ -156,8 +156,19 @@ const Personal = () => {
             <FileText size={14} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
-            { label: 'Nombre', key: 'nombre' }, { label: 'Cargo', key: 'cargo' },
-            { label: 'Celular', key: 'celular' }, { label: 'Estado', key: 'estado' },
+            { label: 'Nombre', key: 'nombre', width: 28 },
+            { label: 'Cédula', key: 'cedula', width: 14 },
+            { label: 'Cargo', key: 'cargo', width: 22 },
+            { label: 'Departamento', key: 'departamento', width: 20 },
+            { label: 'Estado', key: 'estado', width: 14 },
+            { label: 'Tipo Contrato', key: 'tipo_contrato', width: 18 },
+            { label: 'Fecha Ingreso', key: 'fecha_ingreso', width: 16 },
+            { label: 'Salario (Bs)', key: 'salario', width: 14 },
+            { label: 'Celular', key: 'celular', width: 16 },
+            { label: 'Email', key: 'email', width: 26 },
+            { label: 'Contacto Emergencia', key: 'contacto_emergencia_nombre', width: 24 },
+            { label: 'Tel. Emergencia', key: 'contacto_emergencia_tel', width: 16 },
+            { label: 'Dirección', key: 'direccion', width: 28 },
           ], 'Personal')} style={{ ...btnBase, background: C.card, color: C.blue, border: `1px solid ${C.border2}` }}>
             <Download size={14} /> Excel
           </button>
@@ -175,6 +186,33 @@ const Personal = () => {
         onFilterChange={setFilters}
         filters={filterConfigs}
       />
+
+      {/* ── Totales ────────────────────────────────────────────────── */}
+      {filtered.length > 0 && (() => {
+        const activos    = filtered.filter(p => (p.estado || 'Activo') === 'Activo').length;
+        const totalSal   = filtered.reduce((s, p) => s + (Number(p.salario) || 0), 0);
+        const enLicencia = filtered.filter(p => p.estado === 'Licencia' || p.estado === 'Vacaciones').length;
+        return (
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '10px', marginBottom: '16px',
+            padding: '14px 18px', background: C.card,
+            border: `1px solid ${C.border}`, borderRadius: '10px',
+          }}>
+            {[
+              { label: 'Total Registros', value: filtered.length, color: C.text },
+              { label: 'Activos',         value: activos,          color: C.green },
+              { label: 'En Licencia/Vac', value: enLicencia,       color: C.orange },
+              { label: 'Planilla Total',  value: `Bs ${totalSal.toLocaleString('es-BO')}`, color: C.yellow },
+            ].map(({ label, value, color }) => (
+              <div key={label}>
+                <p style={{ margin: '0 0 2px 0', color: C.muted, fontSize: '10px', fontWeight: '600', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{label}</p>
+                <p style={{ margin: 0, color, fontSize: '18px', fontWeight: '700' }}>{value}</p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* ── Lista ──────────────────────────────────────────────────── */}
       {filtered.length === 0 ? (
@@ -253,6 +291,13 @@ const Personal = () => {
 
                 {/* Acciones */}
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <button onClick={() => generateFichaIndividual('personal', p)} title="Ficha PDF" style={{
+                    background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)',
+                    color: C.orange, cursor: 'pointer', borderRadius: '8px',
+                    padding: '7px 10px', display: 'flex', alignItems: 'center',
+                  }}>
+                    <Printer size={13} />
+                  </button>
                   <button onClick={() => handleEdit(p)} style={{
                     background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.25)',
                     color: C.blue, cursor: 'pointer', borderRadius: '8px',

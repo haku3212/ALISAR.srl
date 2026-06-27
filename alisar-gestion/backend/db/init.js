@@ -249,12 +249,21 @@ const seedData = async () => {
 
     const checkConfig = await db.get('SELECT COUNT(*) as total FROM config');
     if (checkConfig.total === 0) {
-        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_nombre', 'ALISAR SRL', 'string')");
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_nombre', 'ALISAR S.R.L.', 'string')");
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_nit', '', 'string')");
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_telefono', '', 'string')");
+        await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_email', '', 'string')");
         await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_ubicacion', 'Riberalta, Beni, Bolivia', 'string')");
         await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_moneda', 'Bs', 'string')");
         await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('empresa_idioma', 'es', 'string')");
         await db.run("INSERT INTO config (clave, valor, tipo) VALUES ('tema_modo', 'oscuro', 'string')");
         console.log('🌱 Configuración inicializada.');
+    } else {
+        // Migración: agregar nuevas claves si no existen
+        for (const [clave, valor] of [['empresa_nit',''],['empresa_telefono',''],['empresa_email','']]) {
+            const existe = await db.get('SELECT 1 FROM config WHERE clave = ?', [clave]);
+            if (!existe) await db.run("INSERT INTO config (clave, valor, tipo) VALUES (?, ?, 'string')", [clave, valor]);
+        }
     }
 };
 

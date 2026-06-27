@@ -349,6 +349,116 @@ export const generateRodeoReport = (rodeos) => {
 };
 
 /**
+ * Genera una ficha PDF individual para un registro
+ */
+export const generateFichaIndividual = (tipo, registro) => {
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
+
+  const colorMap = { obra: [74, 222, 128], personal: [167, 139, 250], madera: [249, 115, 22], maquinaria: [96, 165, 250] };
+  const col = colorMap[tipo] || [255, 215, 0];
+
+  // Header
+  pdf.setFillColor(...col);
+  pdf.rect(0, 0, W, 32, 'F');
+  pdf.setTextColor(tipo === 'madera' || tipo === 'obra' ? 255 : 255, 255, 255);
+  pdf.setFontSize(9);
+  pdf.setFont(undefined, 'normal');
+  pdf.text('ALISAR S.R.L. — FICHA INDIVIDUAL', W / 2, 10, { align: 'center' });
+  pdf.setFontSize(18);
+  pdf.setFont(undefined, 'bold');
+  const tituloMap = { obra: 'FICHA DE OBRA', personal: 'FICHA DE PERSONAL', madera: 'FICHA FORESTAL', maquinaria: 'FICHA DE EQUIPO' };
+  pdf.text(tituloMap[tipo] || 'FICHA', W / 2, 22, { align: 'center' });
+  pdf.setFontSize(8);
+  pdf.setFont(undefined, 'normal');
+  pdf.text(`Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, W / 2, 29, { align: 'center' });
+
+  // Determinar campos a mostrar según tipo
+  const camposMap = {
+    obra: [
+      ['Nombre', 'nombre'], ['Código', 'codigo'], ['Cliente', 'cliente'], ['Tipo', 'tipo'],
+      ['Estado', 'estado'], ['Fase Actual', 'fase_actual'], ['Avance (%)', 'avance'],
+      ['Responsable Técnico', 'responsable_tecnico'], ['Supervisor', 'supervisor'],
+      ['Contratista', 'contratista'], ['Presupuesto', 'presupuesto'],
+      ['Monto Ejecutado', 'monto_ejecutado'], ['Inicio Planeado', 'inicio_planeado'],
+      ['Fin Planeado', 'fin_planeado'], ['Inicio Real', 'inicio_real'], ['Fin Real', 'fin_real'],
+      ['Provincia', 'provincia'], ['Municipio', 'municipio'], ['Localidad', 'localidad'],
+      ['Dirección', 'direccion_exacta'], ['Personal Asignado', 'personal_asignado'],
+      ['Gasto Diesel', 'gasto_diesel'], ['Gasto Materiales', 'gasto_materiales'],
+      ['Gasto Mano Obra', 'gasto_mano_obra'], ['Observaciones', 'observaciones'],
+    ],
+    personal: [
+      ['Nombre', 'nombre'], ['Cédula', 'cedula'], ['Cargo', 'cargo'], ['Departamento', 'departamento'],
+      ['Estado', 'estado'], ['Tipo Contrato', 'tipo_contrato'], ['Fecha Ingreso', 'fecha_ingreso'],
+      ['Salario', 'salario'], ['Celular', 'celular'], ['Email', 'email'],
+      ['Fecha Nacimiento', 'fecha_nacimiento'], ['Género', 'genero'], ['Dirección', 'direccion'],
+      ['Contacto Emergencia', 'contacto_emergencia_nombre'], ['Tel. Emergencia', 'contacto_emergencia_tel'],
+      ['Relación', 'contacto_emergencia_relacion'], ['Notas', 'notas'],
+    ],
+    madera: [
+      ['Nombre Contrato', 'nombre'], ['Contratante', 'contratante'], ['Segunda Parte', 'segunda_parte'],
+      ['Estado Contrato', 'estado_contrato'], ['Permiso Forestal', 'permiso_forestal'],
+      ['Venc. Permiso', 'fecha_vencimiento_permiso'], ['Ing. Forestal', 'ing_forestal'],
+      ['Jefe Campamento', 'jefe_campamento'], ['Campamento', 'campamento'],
+      ['Zona Extracción', 'zona_extraccion'], ['Punto Medio', 'punto_medio'],
+      ['Fecha Inicio Tumba', 'fecha_inicio_tumba'], ['Fecha Llegada P.M.', 'fecha_llegada_punto_medio'],
+      ['Especie', 'especie'], ['Nombre Común', 'nombre_comun'], ['Tipo Corte', 'tipo_corte'],
+      ['Grado Calidad', 'grado_calidad'], ['Volumen (m³)', 'volumen'], ['N° Piezas', 'num_piezas'],
+      ['Aserradero Destino', 'aserradero_destino'], ['Fecha Entrega', 'fecha_entrega_aserradero'],
+      ['Responsable Recepción', 'responsable_recepcion'], ['Precio Unitario', 'precio_unitario'],
+      ['Precio Venta', 'precio_venta'],
+    ],
+    maquinaria: [
+      ['Nombre', 'nombre'], ['Tipo', 'tipo'], ['Marca', 'marca'], ['Modelo', 'modelo'],
+      ['Placa', 'placa'], ['Año', 'anio'], ['Estado', 'estado'],
+      ['Obra Asignada', 'obra_asignada'], ['Operador', 'operador'],
+      ['Horas Operación', 'horas_operacion'], ['Litros Diesel Total', 'litros_diesel_total'],
+      ['Última Revisión', 'ultima_revision'], ['Próx. Mantenimiento', 'mantenimiento_proximo'],
+      ['Observaciones', 'observaciones'],
+    ],
+  };
+
+  const campos = camposMap[tipo] || [];
+  let y = 44;
+  const col1x = 20, col2x = 80;
+
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(9);
+
+  campos.forEach(([ label, key ], idx) => {
+    const val = registro[key];
+    if (!val && val !== 0) return;
+    if (y > H - 20) { pdf.addPage(); y = 20; }
+
+    // Fila zebra
+    if (idx % 2 === 0) {
+      pdf.setFillColor(245, 247, 245);
+      pdf.rect(15, y - 4, W - 30, 9, 'F');
+    }
+
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(80, 80, 80);
+    pdf.text(label, col1x, y);
+    pdf.setFont(undefined, 'normal');
+    pdf.setTextColor(0, 0, 0);
+
+    const strVal = String(val);
+    const lines = pdf.splitTextToSize(strVal, W - col2x - 15);
+    pdf.text(lines, col2x, y);
+    y += Math.max(9, lines.length * 5 + 2);
+  });
+
+  // Footer
+  pdf.setFontSize(7);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text('© 2026 ALISAR S.R.L. — Sistema de Gestión', W / 2, H - 8, { align: 'center' });
+
+  const nombre = registro.nombre || registro.especie || `id_${registro.id}`;
+  pdf.save(`Ficha_${tipo}_${nombre.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
+};
+
+/**
  * Genera un Excel profesional para una tabla genérica
  */
 export const generateExcelReport = async (data, columns, filename) => {

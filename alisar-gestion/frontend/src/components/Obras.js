@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { HardHat, MapPin, Plus, Pencil, Trash2, Download, FileText, TrendingUp, Calendar, User, DollarSign, Fuel, AlertTriangle } from 'lucide-react';
+import { HardHat, MapPin, Plus, Pencil, Trash2, Download, FileText, TrendingUp, Calendar, User, DollarSign, Fuel, AlertTriangle, Printer } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -7,7 +7,7 @@ import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
 import FormObrasDetallado from './forms/FormObrasDetallado';
 import SearchBar from './common/SearchBar';
-import { generateObrasReport, generateExcelReport } from '../utils/reportGenerator';
+import { generateObrasReport, generateExcelReport, generateFichaIndividual } from '../utils/reportGenerator';
 
 // ─── Paleta consistente con el Dashboard ──────────────────────────────────────
 const C = {
@@ -171,8 +171,21 @@ const Obras = () => {
             <FileText size={14} /> PDF
           </button>
           <button onClick={() => generateExcelReport(data, [
-            { label: 'Nombre', key: 'nombre' }, { label: 'Presupuesto', key: 'presupuesto' },
-            { label: 'Avance', key: 'avance' }, { label: 'Cliente', key: 'cliente' }
+            { label: 'Nombre', key: 'nombre', width: 28 },
+            { label: 'Código', key: 'codigo', width: 14 },
+            { label: 'Cliente', key: 'cliente', width: 22 },
+            { label: 'Tipo', key: 'tipo', width: 16 },
+            { label: 'Estado', key: 'estado', width: 16 },
+            { label: 'Fase Actual', key: 'fase_actual', width: 16 },
+            { label: 'Avance (%)', key: 'avance', width: 12 },
+            { label: 'Responsable', key: 'responsable_tecnico', width: 22 },
+            { label: 'Presupuesto', key: 'presupuesto', width: 16 },
+            { label: 'Monto Ejecutado', key: 'monto_ejecutado', width: 18 },
+            { label: 'Inicio Planeado', key: 'inicio_planeado', width: 16 },
+            { label: 'Fin Planeado', key: 'fin_planeado', width: 16 },
+            { label: 'Provincia', key: 'provincia', width: 16 },
+            { label: 'Municipio', key: 'municipio', width: 16 },
+            { label: 'Observaciones', key: 'observaciones', width: 32 },
           ], 'Obras')} style={{ ...btnBase, background: C.card, color: C.blue, border: `1px solid ${C.border2}` }}>
             <Download size={14} /> Excel
           </button>
@@ -190,6 +203,37 @@ const Obras = () => {
         onFilterChange={setFilters}
         filters={filterConfigs}
       />
+
+      {/* ── Totales ─────────────────────────────────────────────────── */}
+      {filtered.length > 0 && (() => {
+        const parseMonto = v => parseFloat(String(v || '').replace(/[^0-9.]/g, '')) || 0;
+        const totalPresup = filtered.reduce((s, o) => s + parseMonto(o.presupuesto), 0);
+        const totalEjec   = filtered.reduce((s, o) => s + parseMonto(o.monto_ejecutado), 0);
+        const totalGastos = filtered.reduce((s, o) =>
+          s + (Number(o.gasto_diesel)||0) + (Number(o.gasto_mantenimiento)||0) +
+              (Number(o.gasto_materiales)||0) + (Number(o.gasto_mano_obra)||0) + (Number(o.gasto_otros)||0), 0);
+        const avanceProm  = filtered.length ? (filtered.reduce((s, o) => s + (Number(o.avance)||0), 0) / filtered.length).toFixed(1) : 0;
+        return (
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '10px', marginBottom: '16px',
+            padding: '14px 18px', background: C.card,
+            border: `1px solid ${C.border}`, borderRadius: '10px',
+          }}>
+            {[
+              { label: 'Presupuesto Total', value: `${totalPresup.toLocaleString('es-BO')} Bs`, color: C.text },
+              { label: 'Ejecutado Total',   value: `${totalEjec.toLocaleString('es-BO')} Bs`,   color: C.blue },
+              { label: 'Gastos Totales',    value: `${totalGastos.toLocaleString('es-BO')} Bs`,  color: C.orange },
+              { label: 'Avance Promedio',   value: `${avanceProm}%`,                              color: avanceProm >= 75 ? C.green : avanceProm >= 40 ? C.yellow : C.orange },
+            ].map(({ label, value, color }) => (
+              <div key={label}>
+                <p style={{ margin: '0 0 2px 0', color: C.muted, fontSize: '10px', fontWeight: '600', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{label}</p>
+                <p style={{ margin: 0, color, fontSize: '16px', fontWeight: '700' }}>{value}</p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* ── Lista de Obras ───────────────────────────────────────────── */}
       {filtered.length === 0 ? (
@@ -274,6 +318,13 @@ const Obras = () => {
 
                   {/* Botones acción */}
                   <div style={{ display: 'flex', gap: '6px', marginLeft: '16px', flexShrink: 0 }}>
+                    <button onClick={() => generateFichaIndividual('obra', obra)} title="Ficha PDF" style={{
+                      background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)',
+                      color: C.orange, cursor: 'pointer', borderRadius: '8px',
+                      padding: '7px 10px', display: 'flex', alignItems: 'center',
+                    }}>
+                      <Printer size={13} />
+                    </button>
                     <button onClick={() => handleEdit(obra)} style={{
                       background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.25)',
                       color: C.blue, cursor: 'pointer', borderRadius: '8px',
