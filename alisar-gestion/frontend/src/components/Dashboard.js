@@ -1,551 +1,701 @@
-/**
- * Dashboard.js - VERSIÓN CON COLORES CORPORATIVOS
- * Panel de control principal de ALISAR
- * ✨ Actualizado con colores corporativos: Amarillo (#FFD700) y Negro (#000000)
- * Incluye estadísticas, gráficos, alertas y navegación
- */
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X, AlertCircle, CheckCircle, Clock, History, Settings as SettingsIcon } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import {
+  LayoutDashboard, HardHat, Drill, Users, Trees, LogOut,
+  Menu, X, AlertCircle, Clock, History, Settings as SettingsIcon,
+  TrendingUp, ChevronRight, Fuel, Wrench
+} from 'lucide-react';
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell
+} from 'recharts';
 import { dataService } from '../services/api';
 import LoadingSpinner from './common/LoadingSpinner';
 import { FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
 
+// ─── Paleta y constantes ──────────────────────────────────────────────────────
+const C = {
+  bg:       '#080a08',
+  surface:  '#0f110f',
+  card:     '#131513',
+  border:   '#1c221c',
+  border2:  '#232a23',
+  yellow:   '#FFD700',
+  yellowDim:'rgba(255,215,0,0.08)',
+  blue:     '#60a5fa',
+  purple:   '#a78bfa',
+  green:    '#34d399',
+  orange:   '#f97316',
+  red:      '#f87171',
+  text:     '#e2e8e2',
+  muted:    '#6b7a6b',
+  subtle:   '#3a4a3a',
+};
+
+// ─── Componente NavItem ───────────────────────────────────────────────────────
+const NavItem = ({ icon: Icon, label, path, active, onClick }) => (
+  <div
+    onClick={onClick}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      padding: '10px 14px',
+      borderRadius: '8px',
+      marginBottom: '2px',
+      cursor: 'pointer',
+      fontSize: '13.5px',
+      fontWeight: active ? '600' : '400',
+      color: active ? C.yellow : C.muted,
+      background: active ? C.yellowDim : 'transparent',
+      borderLeft: active ? `3px solid ${C.yellow}` : '3px solid transparent',
+      transition: 'all 0.15s',
+      userSelect: 'none'
+    }}
+  >
+    <Icon size={16} style={{ flexShrink: 0 }} />
+    {label}
+  </div>
+);
+
+// ─── Componente StatCard ──────────────────────────────────────────────────────
+const StatCard = ({ icon: Icon, label, value, color, subtitle }) => (
+  <div style={{
+    background: C.card,
+    border: `1px solid ${C.border}`,
+    borderTop: `3px solid ${color}`,
+    borderRadius: '12px',
+    padding: '20px 24px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px'
+  }}>
+    <div style={{
+      width: '48px',
+      height: '48px',
+      borderRadius: '12px',
+      background: `${color}18`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0
+    }}>
+      <Icon size={22} color={color} />
+    </div>
+    <div style={{ minWidth: 0 }}>
+      <p style={{ color: C.muted, fontSize: '11px', fontWeight: '600', letterSpacing: '1px', margin: '0 0 4px 0', textTransform: 'uppercase' }}>
+        {label}
+      </p>
+      <p style={{ color: color, fontSize: '28px', fontWeight: '700', margin: 0, lineHeight: 1 }}>
+        {value}
+      </p>
+      {subtitle && (
+        <p style={{ color: C.subtle, fontSize: '11px', margin: '4px 0 0 0' }}>{subtitle}</p>
+      )}
+    </div>
+  </div>
+);
+
+// ─── Tooltip personalizado ────────────────────────────────────────────────────
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{
+      background: '#1a1d1a',
+      border: `1px solid ${C.border2}`,
+      borderRadius: '8px',
+      padding: '10px 14px',
+      fontSize: '13px'
+    }}>
+      <p style={{ color: C.muted, margin: '0 0 6px 0', fontWeight: '600' }}>{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color, margin: '2px 0', fontWeight: '500' }}>
+          {p.name}: <strong>{typeof p.value === 'number' ? p.value.toLocaleString('es-BO') : p.value}</strong>
+        </p>
+      ))}
+    </div>
+  );
+};
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 const Dashboard = ({ content }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate    = useNavigate();
+  const location    = useLocation();
   const { logout, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [stats, setStats] = useState({ obras: 0, maquinaria: 0, personal: 0, madera: 0 });
-  const [lastObras, setLastObras] = useState([]);
-  const [maintenanceNeeded, setMaintenanceNeeded] = useState([]);
+  const [stats,      setStats]      = useState({ obras: 0, maquinaria: 0, personal: 0, maderaContratos: 0, maderaVolumen: 0 });
+  const [lastObras,  setLastObras]  = useState([]);
+  const [alertas,    setAlertas]    = useState([]);
+  const [maqPie,    setMaqPie]    = useState([]);
+  const [obrasBars, setObrasBars]  = useState([]);
   const [personalByRole, setPersonalByRole] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [maderaByEstado, setMaderaByEstado] = useState([]);
+  const [volumenMensual, setVolumenMensual] = useState([]);
+  const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchAll = async () => {
       try {
         setLoading(true);
-        const [obraRes, maquinariaRes, personalRes, maderaRes] = await Promise.all([
+        const [oR, mR, pR, maR] = await Promise.all([
           dataService.getObras(),
           dataService.getMaquinaria(),
           dataService.getPersonal(),
           dataService.getMadera()
         ]);
+        const obras      = oR.data  || [];
+        const maquinaria = mR.data  || [];
+        const personal   = pR.data  || [];
+        const madera     = maR.data || [];
 
-        const obras = obraRes.data || [];
-        const maquinaria = maquinariaRes.data || [];
-        const personal = personalRes.data || [];
-        const madera = maderaRes.data || [];
-
-        // Actualizar estadísticas
+        const maderaVolumen = madera.reduce((s, m) => s + (parseFloat(m.volumen) || 0), 0);
         setStats({
-          obras: obras.length,
-          maquinaria: maquinaria.length,
-          personal: personal.length,
-          madera: madera.reduce((sum, m) => sum + (m.piezas || 0), 0)
+          obras:           obras.length,
+          maquinaria:      maquinaria.length,
+          personal:        personal.length,
+          maderaContratos: madera.length,
+          maderaVolumen:   maderaVolumen
         });
 
-        // Últimas 5 obras
         setLastObras(obras.slice(-5).reverse());
 
-        // Máquinas que necesitan mantenimiento (avance próximo)
-        const maintenance = maquinaria
-          .filter(m => {
-            if (!m.ultimaRevision) return true;
-            const lastReview = new Date(m.ultimaRevision);
-            const now = new Date();
-            const daysAgo = (now - lastReview) / (1000 * 60 * 60 * 24);
-            return daysAgo > 90;
+        // Alertas de mantenimiento — equipos con servicio próximo (≤14 días) o vencido
+        const hoy = new Date();
+        const maqAlerta = maquinaria
+          .map(m => {
+            let diasRestantes = null;
+            if (m.mantenimiento_proximo) {
+              diasRestantes = Math.ceil((new Date(m.mantenimiento_proximo) - hoy) / 86400000);
+            } else if (m.ultima_revision || m.ultimaRevision) {
+              const base = new Date(m.ultima_revision || m.ultimaRevision);
+              diasRestantes = Math.ceil((new Date(base.getTime() + 90 * 86400000) - hoy) / 86400000);
+            }
+            return { ...m, diasRestantes };
           })
-          .slice(0, 3);
-        setMaintenanceNeeded(maintenance);
+          .filter(m => m.diasRestantes !== null && m.diasRestantes <= 14)
+          .sort((a, b) => a.diasRestantes - b.diasRestantes);
+        setAlertas(maqAlerta.slice(0, 5));
 
-        // Personal por cargo (para BarChart)
-        const roleMap = {};
-        personal.forEach(p => {
-          roleMap[p.cargo] = (roleMap[p.cargo] || 0) + 1;
+        // Madera por estado de contrato
+        const estadoMadMap = {};
+        madera.forEach(m => {
+          const k = m.estado_contrato || 'Sin estado';
+          estadoMadMap[k] = (estadoMadMap[k] || 0) + 1;
         });
-        const roleData = Object.entries(roleMap).map(([cargo, count]) => ({
-          name: cargo,
-          personal: count
+        const MAD_COLORS = [C.green, C.yellow, C.blue, C.orange, C.muted];
+        setMaderaByEstado(
+          Object.entries(estadoMadMap).map(([name, value], i) => ({
+            name, value, fill: MAD_COLORS[i % MAD_COLORS.length]
+          }))
+        );
+
+        // Volumen mensual — últimos 8 meses
+        const mesMap = {};
+        madera.forEach(m => {
+          const fechaStr = m.fecha_inicio_tumba || m.fecha_recepcion || m.fecha_entrega_aserradero;
+          if (!fechaStr || !m.volumen) return;
+          const d = new Date(fechaStr);
+          if (isNaN(d)) return;
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          mesMap[key] = (mesMap[key] || 0) + (parseFloat(m.volumen) || 0);
+        });
+        const meses = Object.keys(mesMap).sort().slice(-8);
+        const MESES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        setVolumenMensual(meses.map(k => {
+          const [y, mo] = k.split('-');
+          return { mes: `${MESES_ES[parseInt(mo) - 1]} ${y.slice(2)}`, volumen: parseFloat(mesMap[k].toFixed(2)) };
         }));
-        setPersonalByRole(roleData);
+
+        // Pie de maquinaria por estado real
+        const estadoMap = {};
+        maquinaria.forEach(m => {
+          const est = m.estado || 'Sin estado';
+          estadoMap[est] = (estadoMap[est] || 0) + 1;
+        });
+        const PIE_COLORS = [C.yellow, C.orange, C.red, C.blue, C.purple];
+        setMaqPie(
+          Object.entries(estadoMap).map(([name, value], i) => ({
+            name, value, fill: PIE_COLORS[i % PIE_COLORS.length]
+          }))
+        );
+
+        // Barras de obras — presupuesto vs ejecutado (últimas 6)
+        setObrasBars(
+          obras.slice(-6).map(o => ({
+            name: o.nombre.length > 18 ? o.nombre.slice(0, 16) + '…' : o.nombre,
+            presupuesto: parseFloat(String(o.presupuesto).replace(/[^0-9.]/g, '')) || 0,
+            ejecutado:   parseFloat(String(o.monto_ejecutado).replace(/[^0-9.]/g, '')) || 0
+          }))
+        );
+
+        // Personal por cargo
+        const roleMap = {};
+        personal.forEach(p => { roleMap[p.cargo] = (roleMap[p.cargo] || 0) + 1; });
+        setPersonalByRole(Object.entries(roleMap).map(([name, cnt]) => ({ name, cantidad: cnt })));
+
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
+        console.error('Error dashboard:', err);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchDashboardData();
+    fetchAll();
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
-  const generateDashboardReport = () => {
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    let yPos = 20;
-
-    // Header - Amarillo corporativo
+  const generatePDF = () => {
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = pdf.internal.pageSize.getWidth();
     pdf.setFillColor(255, 215, 0);
-    pdf.rect(0, 0, pageWidth, 30, 'F');
-
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(28);
-    pdf.text('REPORTE GENERAL - ALISAR', pageWidth / 2, 15, { align: 'center' });
-
-    pdf.setFontSize(10);
-    pdf.text(`Fecha: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 25, { align: 'center' });
-
-    // Contenido
+    pdf.rect(0, 0, W, 28, 'F');
     pdf.setTextColor(0, 0, 0);
-    yPos = 45;
-
-    // Estadísticas
-    pdf.setFontSize(14);
+    pdf.setFontSize(20);
     pdf.setFont(undefined, 'bold');
-    pdf.text('RESUMEN ESTADÍSTICO', 20, yPos);
-    yPos += 15;
-
+    pdf.text('REPORTE GENERAL — ALISAR S.R.L.', W / 2, 16, { align: 'center' });
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`Fecha: ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`, W / 2, 24, { align: 'center' });
+    let y = 42;
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(13);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('RESUMEN ESTADÍSTICO', 20, y); y += 12;
     pdf.setFontSize(11);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`• Obras Activas: ${stats.obras}`, 25, yPos);
-    yPos += 7;
-    pdf.text(`• Equipos de Maquinaria: ${stats.maquinaria}`, 25, yPos);
-    yPos += 7;
-    pdf.text(`• Personal Total: ${stats.personal}`, 25, yPos);
-    yPos += 7;
-    pdf.text(`• Piezas de Madera: ${stats.madera}`, 25, yPos);
-    yPos += 15;
-
-    // Últimas obras
-    if (lastObras.length > 0) {
-      pdf.setFontSize(14);
-      pdf.setFont(undefined, 'bold');
-      pdf.text('ÚLTIMAS OBRAS', 20, yPos);
-      yPos += 10;
-
-      pdf.setFontSize(9);
-      pdf.setFont(undefined, 'normal');
-      lastObras.slice(0, 5).forEach((obra) => {
-        if (yPos > pageHeight - 30) {
-          pdf.addPage();
-          yPos = 20;
-        }
-        pdf.text(`${obra.nombre} - Avance: ${obra.avance}% - Presupuesto: ${obra.presupuesto}`, 25, yPos);
-        yPos += 6;
-      });
-      yPos += 10;
-    }
-
-    // Equipos en mantenimiento
-    if (maintenanceNeeded.length > 0) {
-      pdf.setFontSize(14);
-      pdf.setFont(undefined, 'bold');
-      pdf.text('EQUIPOS CON MANTENIMIENTO PRÓXIMO', 20, yPos);
-      yPos += 10;
-
-      pdf.setFontSize(9);
-      pdf.setFont(undefined, 'normal');
-      maintenanceNeeded.forEach((maq) => {
-        if (yPos > pageHeight - 30) {
-          pdf.addPage();
-          yPos = 20;
-        }
-        pdf.text(`• ${maq.nombre} (${maq.tipo})`, 25, yPos);
-        yPos += 6;
-      });
-    }
-
-    // Footer
+    [
+      `Obras Activas: ${stats.obras}`,
+      `Equipos de Maquinaria: ${stats.maquinaria}`,
+      `Personal Total: ${stats.personal}`,
+      `Trabajos Forestales: ${stats.maderaContratos} (${stats.maderaVolumen.toFixed(1)} m³ totales)`
+    ].forEach(t => { pdf.text(`• ${t}`, 26, y); y += 7; });
     pdf.setFontSize(8);
-    pdf.setTextColor(150, 150, 150);
-    pdf.text(`© 2026 ALISAR - Sistema de Gestión`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-
-    pdf.save(`Reporte_Dashboard_${new Date().getTime()}.pdf`);
+    pdf.setTextColor(150);
+    pdf.text('© 2026 ALISAR S.R.L.', W / 2, 285, { align: 'center' });
+    pdf.save(`Reporte_ALISAR_${Date.now()}.pdf`);
   };
 
-  // Datos para gráficos del dashboard
-  const chartData = [
-    { name: 'Ene', presupuesto: 40000, ejecutado: 24000 },
-    { name: 'Feb', presupuesto: 30000, ejecutado: 13000 },
-    { name: 'Mar', presupuesto: 20000, ejecutado: 9800 },
-    { name: 'Abr', presupuesto: 27000, ejecutado: 15500 },
-    { name: 'May', presupuesto: 45000, ejecutado: 32200 }
-  ];
+  const isActive = path => location.pathname === path;
+  const now = new Date();
+  const fechaHoy = now.toLocaleDateString('es-BO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const initials = user?.nombre ? user.nombre.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : 'U';
 
-  const pieData = [
-    { name: 'Operativo', value: 65, fill: '#FFD700' },
-    { name: 'Mantenimiento', value: 25, fill: '#f97316' },
-    { name: 'Inactivo', value: 10, fill: '#f87171' }
-  ];
-
-  const isActive = (path) => location.pathname === path;
-
-  const styles = {
-    container: {
-      display: 'flex',
-      height: '100vh',
-      background: '#0a0c0a',
-      color: '#e0e0e0',
-      fontFamily: 'Inter, sans-serif'
-    },
-    sidebar: {
-      width: sidebarOpen ? '260px' : '0',
-      background: '#111411',
-      borderRight: '1px solid #1f241f',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: sidebarOpen ? '24px 16px' : '0',
-      transition: 'width 0.3s, padding 0.3s',
-      overflow: 'hidden'
-    },
-    navItem: (path) => ({
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      padding: '12px 16px',
-      borderRadius: '10px',
-      color: isActive(path) ? '#FFD700' : '#8a8a8a',
-      cursor: 'pointer',
-      marginBottom: '4px',
-      fontSize: '14px',
-      background: isActive(path) ? '#1a221a' : 'transparent',
-      transition: 'all 0.2s',
-      fontWeight: isActive(path) ? '600' : '400'
-    }),
-    main: {
-      flex: 1,
-      overflowY: 'auto',
-      background: '#0d0f0d',
-      padding: sidebarOpen ? '0' : '16px'
-    },
-    header: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '16px',
-      padding: '16px 24px',
-      borderBottom: '1px solid #1f241f',
-      background: '#111411'
-    },
-    menuBtn: {
-      background: 'transparent',
-      border: 'none',
-      color: '#FFD700',
-      cursor: 'pointer',
-      fontSize: '20px'
-    }
+  // Nombre del módulo activo
+  const moduleNames = {
+    '/dashboard': 'Panel de Control',
+    '/obras': 'Gestión de Obras',
+    '/maquinaria': 'Maquinaria',
+    '/personal': 'Recursos Humanos',
+    '/madera': 'Control de Madera',
+    '/historial': 'Historial de Cambios',
+    '/configuracion': 'Configuración'
   };
+  const currentModule = moduleNames[location.pathname] || 'Panel de Control';
 
   if (loading) return <LoadingSpinner />;
 
   const home = (
-    <div style={{ padding: '32px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '32px' }}>
+    <div style={{ padding: '28px 32px' }}>
+      {/* Encabezado de sección */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
         <div>
-          <h1 style={{ color: '#fff', marginBottom: '8px' }}>Panel de Control ALISAR</h1>
-          <p style={{ color: '#666', marginBottom: '0' }}>Resumen operativo - Riberalta 2026</p>
+          <h1 style={{ color: '#fff', margin: '0 0 6px 0', fontSize: '22px', fontWeight: '700' }}>
+            Bienvenido, {user?.nombre?.split(' ')[0] || 'Usuario'}
+          </h1>
+          <p style={{ color: C.muted, margin: 0, fontSize: '13px', textTransform: 'capitalize' }}>{fechaHoy}</p>
         </div>
-        <button onClick={generateDashboardReport} style={{
-          background: '#f97316',
-          color: '#fff',
-          border: 'none',
-          padding: '10px 20px',
+        <button onClick={generatePDF} style={{
+          background: C.card,
+          color: C.text,
+          border: `1px solid ${C.border2}`,
+          padding: '10px 18px',
           borderRadius: '8px',
-          fontWeight: 'bold',
+          fontWeight: '600',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
           cursor: 'pointer',
-          fontSize: '14px'
+          fontSize: '13px'
         }}>
-          <FileText size={18} /> Generar Reporte
+          <FileText size={15} /> Exportar Reporte
         </button>
       </div>
 
-      {/* Tarjetas de estadísticas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        {[
-          { label: 'Obras Activas', value: stats.obras, icon: '🔨', color: '#FFD700' },
-          { label: 'Maquinaria', value: stats.maquinaria, icon: '⚙️', color: '#60a5fa' },
-          { label: 'Personal', value: stats.personal, icon: '👥', color: '#a78bfa' },
-          { label: 'Piezas Madera', value: stats.madera, icon: '📦', color: '#f97316' }
-        ].map((stat, i) => (
-          <div key={i} style={{
-            background: '#111411',
-            padding: '24px',
-            borderRadius: '12px',
-            border: '1px solid #1f241f',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <div style={{ fontSize: '32px' }}>{stat.icon}</div>
-            <div>
-              <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>{stat.label}</p>
-              <h3 style={{ color: stat.color, fontSize: '24px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{stat.value}</h3>
-            </div>
-          </div>
-        ))}
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+        <StatCard icon={HardHat} label="Obras Activas"      value={stats.obras}                          color={C.yellow} subtitle="Proyectos en curso" />
+        <StatCard icon={Drill}   label="Maquinaria"         value={stats.maquinaria}                     color={C.blue}   subtitle="Equipos registrados" />
+        <StatCard icon={Users}   label="Personal"           value={stats.personal}                       color={C.purple} subtitle="Empleados activos" />
+        <StatCard icon={Trees}   label="Contratos Madera"   value={stats.maderaContratos}                color={C.green}  subtitle="Trabajos forestales" />
+        <StatCard icon={Trees}   label="Volumen Forestal"   value={`${stats.maderaVolumen.toFixed(1)} m³`} color={C.orange} subtitle="Total acumulado" />
       </div>
 
-      {/* Alertas y Warnings */}
-      {maintenanceNeeded.length > 0 && (
-        <div style={{ background: '#1a1a1a', border: '1px solid #f97316', borderRadius: '12px', padding: '16px', marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'start' }}>
-          <AlertCircle size={24} color="#f97316" style={{ flexShrink: 0, marginTop: '4px' }} />
-          <div>
-            <h3 style={{ color: '#f97316', margin: '0 0 8px 0', fontSize: '16px' }}>Equipos con Mantenimiento Próximo</h3>
-            <p style={{ color: '#999', margin: '0 0 12px 0', fontSize: '14px' }}>Los siguientes equipos necesitan revisión en breve:</p>
+      {/* Alertas de mantenimiento */}
+      {alertas.length > 0 && (
+        <div style={{
+          background: `rgba(249,115,22,0.08)`,
+          border: `1px solid rgba(249,115,22,0.3)`,
+          borderRadius: '10px',
+          padding: '16px 20px',
+          marginBottom: '28px',
+          display: 'flex',
+          gap: '14px',
+          alignItems: 'flex-start'
+        }}>
+          <AlertCircle size={20} color={C.orange} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ flex: 1 }}>
+            <p style={{ color: C.orange, fontWeight: '600', margin: '0 0 10px 0', fontSize: '14px' }}>
+              {alertas.length} equipo(s) requieren atención de mantenimiento
+            </p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {maintenanceNeeded.map(m => (
-                <span key={m.id} style={{
-                  background: '#1f241f',
-                  color: '#f97316',
-                  padding: '6px 12px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  border: '1px solid #f97316'
-                }}>
-                  {m.nombre}
-                </span>
-              ))}
+              {alertas.map(m => {
+                const vencido = m.diasRestantes <= 0;
+                const color = vencido ? C.red : C.orange;
+                return (
+                  <span key={m.id} style={{
+                    background: vencido ? 'rgba(248,113,113,0.15)' : 'rgba(249,115,22,0.15)',
+                    color,
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    border: `1px solid ${color}44`
+                  }}>
+                    {m.nombre} {vencido ? '• VENCIDO' : `• ${m.diasRestantes}d`}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>
       )}
 
-      {/* Gráficos principales */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        {/* Evolución de Presupuesto */}
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
-          <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Evolución Presupuesto (Bs)</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f241f" />
-              <XAxis dataKey="name" stroke="#666" />
-              <YAxis stroke="#666" />
-              <Tooltip
-                contentStyle={{
-                  background: '#1a1d1a',
-                  border: '1px solid #1f241f',
-                  borderRadius: '8px',
-                  color: '#e0e0e0'
-                }}
-              />
-              <Legend />
-              <Area type="monotone" dataKey="presupuesto" stroke="#60a5fa" fill="#1a221a" fillOpacity={0.3} />
-              <Area type="monotone" dataKey="ejecutado" stroke="#FFD700" fill="#1a221a" fillOpacity={0.3} />
-            </AreaChart>
-          </ResponsiveContainer>
+      {/* Gráficos — fila 1 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+        {/* Obras — Presupuesto vs Ejecutado */}
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+            <TrendingUp size={16} color={C.blue} />
+            <h3 style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: '600' }}>
+              Presupuesto vs Ejecutado (Bs)
+            </h3>
+          </div>
+          {obrasBars.length === 0 ? (
+            <p style={{ color: C.muted, textAlign: 'center', padding: '60px 0', margin: 0 }}>Sin datos de obras</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={obrasBars} barCategoryGap="30%">
+                <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                <XAxis dataKey="name" stroke={C.muted} tick={{ fontSize: 11 }} />
+                <YAxis stroke={C.muted} tick={{ fontSize: 11 }} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="presupuesto" name="Presupuesto" fill={C.blue}   radius={[4, 4, 0, 0]} />
+                <Bar dataKey="ejecutado"   name="Ejecutado"   fill={C.yellow} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* Estado de Maquinaria */}
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
-          <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Estado de Maquinaria</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name} ${value}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+            <Wrench size={16} color={C.orange} />
+            <h3 style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: '600' }}>
+              Estado de Maquinaria
+            </h3>
+          </div>
+          {maqPie.length === 0 ? (
+            <p style={{ color: C.muted, textAlign: 'center', padding: '60px 0', margin: 0 }}>Sin maquinaria registrada</p>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+              <ResponsiveContainer width={160} height={160}>
+                <PieChart>
+                  <Pie data={maqPie} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value" paddingAngle={3}>
+                    {maqPie.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+                {maqPie.map((e, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: e.fill, flexShrink: 0 }} />
+                    <span style={{ color: C.muted, fontSize: '13px', flex: 1 }}>{e.name}</span>
+                    <span style={{ color: e.fill, fontWeight: '700', fontSize: '16px' }}>{e.value}</span>
+                  </div>
                 ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  background: '#1a1d1a',
-                  border: '1px solid #1f241f',
-                  borderRadius: '8px',
-                  color: '#e0e0e0'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Personal por Cargo */}
-      {personalByRole.length > 0 && (
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f', marginBottom: '32px' }}>
-          <h3 style={{ margin: '0 0 16px 0', color: '#fff' }}>Distribución de Personal por Cargo</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={personalByRole}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f241f" />
-              <XAxis dataKey="name" stroke="#666" angle={-45} textAnchor="end" height={80} />
-              <YAxis stroke="#666" />
-              <Tooltip
-                contentStyle={{
-                  background: '#1a1d1a',
-                  border: '1px solid #1f241f',
-                  borderRadius: '8px',
-                  color: '#e0e0e0'
-                }}
-              />
-              <Bar dataKey="personal" fill="#a78bfa" radius={[8, 8, 0, 0]} />
-            </BarChart>
+      {/* Fila 2 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+        {/* Últimas Obras */}
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HardHat size={16} color={C.yellow} />
+              <h3 style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: '600' }}>Últimas Obras</h3>
+            </div>
+            <button
+              onClick={() => navigate('/obras')}
+              style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}
+            >
+              Ver todas <ChevronRight size={14} />
+            </button>
+          </div>
+          {lastObras.length === 0 ? (
+            <p style={{ color: C.muted, textAlign: 'center', padding: '32px 0', margin: 0 }}>Sin obras registradas</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {lastObras.slice(0, 4).map(obra => {
+                const av = Number(obra.avance) || 0;
+                const barColor = av >= 75 ? C.green : av >= 40 ? C.yellow : C.orange;
+                return (
+                  <div key={obra.id}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                      <span style={{ color: C.text, fontSize: '13px', fontWeight: '500' }}>{obra.nombre}</span>
+                      <span style={{ color: barColor, fontSize: '12px', fontWeight: '700' }}>{av}%</span>
+                    </div>
+                    <div style={{ background: C.border, borderRadius: '4px', height: '5px', overflow: 'hidden' }}>
+                      <div style={{ background: barColor, width: `${av}%`, height: '100%', borderRadius: '4px', transition: 'width 0.4s' }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Personal por Cargo */}
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <Users size={16} color={C.purple} />
+            <h3 style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: '600' }}>Personal por Cargo</h3>
+          </div>
+          {personalByRole.length === 0 ? (
+            <p style={{ color: C.muted, textAlign: 'center', padding: '32px 0', margin: 0 }}>Sin personal registrado</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={personalByRole} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false} />
+                <XAxis type="number" stroke={C.muted} tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" stroke={C.muted} tick={{ fontSize: 11 }} width={100} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="cantidad" name="Personas" fill={C.purple} radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Contratos Forestales por Estado */}
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <Trees size={16} color={C.green} />
+            <h3 style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: '600' }}>Contratos Forestales</h3>
+          </div>
+          {maderaByEstado.length === 0 ? (
+            <p style={{ color: C.muted, textAlign: 'center', padding: '32px 0', margin: 0 }}>Sin trabajos registrados</p>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <ResponsiveContainer width={120} height={120}>
+                <PieChart>
+                  <Pie data={maderaByEstado} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" paddingAngle={3}>
+                    {maderaByEstado.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                {maderaByEstado.map((e, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: e.fill, flexShrink: 0 }} />
+                    <span style={{ color: C.muted, fontSize: '12px', flex: 1 }}>{e.name}</span>
+                    <span style={{ color: e.fill, fontWeight: '700', fontSize: '15px' }}>{e.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Fila 3 — Volumen Forestal Mensual */}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+          <Trees size={16} color={C.green} />
+          <h3 style={{ margin: 0, color: C.text, fontSize: '14px', fontWeight: '600' }}>
+            Volumen Forestal Mensual (m³)
+          </h3>
+          {volumenMensual.length === 0 && (
+            <span style={{ color: C.subtle, fontSize: '12px', marginLeft: '8px' }}>
+              — requiere fecha_inicio_tumba en los registros
+            </span>
+          )}
+        </div>
+        {volumenMensual.length === 0 ? (
+          <p style={{ color: C.muted, textAlign: 'center', padding: '50px 0', margin: 0 }}>
+            Sin datos de extracción con fechas registradas
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={volumenMensual}>
+              <defs>
+                <linearGradient id="gradVol" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor={C.green} stopOpacity={0.25} />
+                  <stop offset="95%" stopColor={C.green} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+              <XAxis dataKey="mes" stroke={C.muted} tick={{ fontSize: 11 }} />
+              <YAxis stroke={C.muted} tick={{ fontSize: 11 }} unit=" m³" />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="volumen" name="Volumen m³" stroke={C.green} strokeWidth={2} fill="url(#gradVol)" dot={{ r: 4, fill: C.green }} />
+            </AreaChart>
           </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* Últimas Obras */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
-          <h3 style={{ margin: '0 0 16px 0', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <HardHat size={20} color="#FFD700" /> Últimas 5 Obras
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {lastObras.length === 0 ? (
-              <p style={{ color: '#666', margin: 0 }}>No hay obras registradas</p>
-            ) : (
-              lastObras.map(obra => (
-                <div key={obra.id} style={{
-                  background: '#1a1d1a',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: '1px solid #1f241f'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
-                    <h4 style={{ margin: 0, color: '#e0e0e0', fontSize: '14px' }}>{obra.nombre}</h4>
-                    <span style={{
-                      background: obra.avance >= 75 ? '#1a221a' : obra.avance >= 50 ? '#1a1f22' : '#221a1a',
-                      color: obra.avance >= 75 ? '#FFD700' : obra.avance >= 50 ? '#60a5fa' : '#f87171',
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: '600'
-                    }}>
-                      {obra.avance}%
-                    </span>
-                  </div>
-                  <div style={{ background: '#0d0f0d', height: '4px', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{
-                      background: obra.avance >= 75 ? '#FFD700' : obra.avance >= 50 ? '#60a5fa' : '#f97316',
-                      width: `${obra.avance}%`,
-                      height: '100%',
-                      transition: 'width 0.3s'
-                    }} />
-                  </div>
-                  <p style={{ color: '#666', fontSize: '12px', margin: '8px 0 0 0' }}>{obra.presupuesto}</p>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Próximos Eventos */}
-        <div style={{ background: '#111411', padding: '24px', borderRadius: '12px', border: '1px solid #1f241f' }}>
-          <h3 style={{ margin: '0 0 16px 0', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Clock size={20} color="#f97316" /> Próximos Eventos
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{
-              background: '#1a1d1a',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #1f241f',
-              borderLeft: '4px solid #f97316'
-            }}>
-              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Mantenimiento Maquinaria</p>
-              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Próximos 30 días</p>
-            </div>
-            <div style={{
-              background: '#1a1d1a',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #1f241f',
-              borderLeft: '4px solid #a78bfa'
-            }}>
-              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Revisión de Personal</p>
-              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Evaluaciones programadas</p>
-            </div>
-            <div style={{
-              background: '#1a1d1a',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #1f241f',
-              borderLeft: '4px solid #60a5fa'
-            }}>
-              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Control de Madera</p>
-              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Inventario a finales de mes</p>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 
   return (
-    <div style={styles.container}>
-      <div style={styles.sidebar}>
-        <div style={{ color: '#FFD700', fontWeight: 'bold', fontSize: '18px', marginBottom: '32px' }}>ALISAR</div>
-        <nav style={{ flex: 1 }}>
-          <div style={styles.navItem('/dashboard')} onClick={() => navigate('/dashboard')}>
-            <LayoutDashboard size={18} /> Dashboard
+    <div style={{
+      display: 'flex',
+      height: '100vh',
+      background: C.bg,
+      color: C.text,
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      overflow: 'hidden'
+    }}>
+      {/* ── Sidebar ─────────────────────────────────────────────────── */}
+      <div style={{
+        width: sidebarOpen ? '240px' : '0',
+        minWidth: sidebarOpen ? '240px' : '0',
+        background: C.surface,
+        borderRight: `1px solid ${C.border}`,
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'width 0.25s, min-width 0.25s',
+        overflow: 'hidden'
+      }}>
+        {/* Logo */}
+        <div style={{ padding: '20px 16px 16px', borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '34px', height: '34px',
+              background: C.yellow,
+              borderRadius: '8px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <span style={{ fontWeight: '900', fontSize: '16px', color: '#000' }}>A</span>
+            </div>
+            <div>
+              <p style={{ margin: 0, fontWeight: '700', fontSize: '15px', color: '#fff', lineHeight: 1 }}>ALISAR</p>
+              <p style={{ margin: '3px 0 0 0', fontSize: '10px', color: C.muted, letterSpacing: '1px' }}>S.R.L.</p>
+            </div>
           </div>
-          <div style={styles.navItem('/obras')} onClick={() => navigate('/obras')}>
-            <HardHat size={18} /> Obras
-          </div>
-          <div style={styles.navItem('/maquinaria')} onClick={() => navigate('/maquinaria')}>
-            <Drill size={18} /> Maquinaria
-          </div>
-          <div style={styles.navItem('/personal')} onClick={() => navigate('/personal')}>
-            <Users size={18} /> Personal
-          </div>
-          <div style={styles.navItem('/madera')} onClick={() => navigate('/madera')}>
-            <Trees size={18} /> Madera
-          </div>
-          <div style={styles.navItem('/rodeos')} onClick={() => navigate('/rodeos')}>
-            <Trees size={18} /> Rodeos
-          </div>
-          <div style={styles.navItem('/documentos')} onClick={() => navigate('/documentos')}>
-            <FileText size={18} /> Documentos
-          </div>
+        </div>
 
-          {/* Separador */}
-          <div style={{ height: '1px', background: '#1f241f', margin: '16px 0' }} />
+        {/* Navegación */}
+        <nav style={{ flex: 1, padding: '16px 10px', overflowY: 'auto' }}>
+          {/* Principal */}
+          <p style={{ color: C.subtle, fontSize: '10px', fontWeight: '700', letterSpacing: '1.5px', padding: '0 6px', margin: '0 0 6px 0' }}>
+            PRINCIPAL
+          </p>
+          <NavItem icon={LayoutDashboard} label="Dashboard"    path="/dashboard"    active={isActive('/dashboard')}    onClick={() => navigate('/dashboard')} />
 
-          <div style={styles.navItem('/historial')} onClick={() => navigate('/historial')}>
-            <History size={18} /> Historial
-          </div>
-          <div style={styles.navItem('/configuracion')} onClick={() => navigate('/configuracion')}>
-            <SettingsIcon size={18} /> Configuración
-          </div>
+          <p style={{ color: C.subtle, fontSize: '10px', fontWeight: '700', letterSpacing: '1.5px', padding: '0 6px', margin: '16px 0 6px 0' }}>
+            GESTIÓN
+          </p>
+          <NavItem icon={HardHat} label="Obras"       path="/obras"        active={isActive('/obras')}        onClick={() => navigate('/obras')} />
+          <NavItem icon={Drill}   label="Maquinaria"  path="/maquinaria"   active={isActive('/maquinaria')}   onClick={() => navigate('/maquinaria')} />
+          <NavItem icon={Users}   label="Personal"    path="/personal"     active={isActive('/personal')}     onClick={() => navigate('/personal')} />
+          <NavItem icon={Trees}   label="Madera"      path="/madera"       active={isActive('/madera')}       onClick={() => navigate('/madera')} />
+
+          <p style={{ color: C.subtle, fontSize: '10px', fontWeight: '700', letterSpacing: '1.5px', padding: '0 6px', margin: '16px 0 6px 0' }}>
+            SISTEMA
+          </p>
+          <NavItem icon={History}       label="Historial"      path="/historial"     active={isActive('/historial')}     onClick={() => navigate('/historial')} />
+          <NavItem icon={SettingsIcon}  label="Configuración"  path="/configuracion" active={isActive('/configuracion')} onClick={() => navigate('/configuracion')} />
         </nav>
-        <div style={{ ...styles.navItem('/logout'), color: '#f87171', marginTop: 'auto' }} onClick={handleLogout}>
-          <LogOut size={18} /> Salir
+
+        {/* Usuario + Salir */}
+        <div style={{ padding: '12px 10px', borderTop: `1px solid ${C.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: C.card, borderRadius: '8px', marginBottom: '6px' }}>
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: `${C.yellow}22`, border: `1px solid ${C.yellow}44`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: C.yellow }}>{initials}</span>
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user?.nombre || 'Usuario'}
+              </p>
+              <p style={{ margin: 0, fontSize: '11px', color: C.muted }}>{user?.rol || 'admin'}</p>
+            </div>
+          </div>
+          <div
+            onClick={() => { logout(); navigate('/'); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '8px 12px', borderRadius: '8px', cursor: 'pointer',
+              color: C.red, fontSize: '13px', fontWeight: '500',
+              transition: 'background 0.15s'
+            }}
+          >
+            <LogOut size={15} /> Cerrar Sesión
+          </div>
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={styles.header}>
-          <button style={styles.menuBtn} onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-          {user && <span style={{ fontSize: '14px', color: '#999' }}>Bienvenido, {user.nombre}</span>}
+      {/* ── Área principal ───────────────────────────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          height: '56px',
+          minHeight: '56px',
+          borderBottom: `1px solid ${C.border}`,
+          background: C.surface
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: '4px', display: 'flex' }}
+            >
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+              <span style={{ color: C.muted }}>ALISAR</span>
+              <ChevronRight size={14} color={C.subtle} />
+              <span style={{ color: C.text, fontWeight: '600' }}>{currentModule}</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Clock size={13} color={C.muted} />
+              <span style={{ color: C.muted, fontSize: '12px' }}>{new Date().toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+            </div>
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: `${C.yellow}22`, border: `1px solid ${C.yellow}44`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: C.yellow }}>{initials}</span>
+            </div>
+          </div>
         </div>
-        <div style={styles.main}>
+
+        {/* Contenido */}
+        <div style={{ flex: 1, overflowY: 'auto', background: C.bg }}>
           {content || home}
         </div>
       </div>

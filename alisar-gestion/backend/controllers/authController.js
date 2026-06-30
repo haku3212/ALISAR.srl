@@ -1,4 +1,4 @@
-﻿const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.createLoginController = (db) => {
@@ -12,13 +12,14 @@ exports.createLoginController = (db) => {
     try {
       const user = await db.get('SELECT * FROM users WHERE usuario = ?', [usuario]);
 
+      // Mensaje genérico para no revelar si el usuario existe o no
       if (!user) {
-        return res.status(400).json({ msg: 'Usuario no encontrado' });
+        return res.status(401).json({ msg: 'Credenciales inválidas' });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ msg: 'Contraseña incorrecta' });
+        return res.status(401).json({ msg: 'Credenciales inválidas' });
       }
 
       const payload = { user: { id: user.id, rol: user.rol } };
@@ -27,6 +28,7 @@ exports.createLoginController = (db) => {
           console.error('Error al firmar JWT:', err);
           return res.status(500).json({ error: 'Error al generar token' });
         }
+        // Solo devuelve nombre y rol, nunca la contraseña
         res.json({ token, user: { nombre: user.nombre, rol: user.rol } });
       });
     } catch (err) {

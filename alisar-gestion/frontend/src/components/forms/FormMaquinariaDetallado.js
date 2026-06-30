@@ -1,539 +1,208 @@
-/**
- * FormMaquinariaDetallado.js
- * Componente de formulario ampliado para gestión de maquinaria
- * Incluye validación, campos detallados, secciones expandibles y comentarios completos
- * Permite capturar información técnica, operativa y de mantenimiento de equipos
- */
+import React from 'react';
 
-import React, { useState } from 'react';
-import FormInput from '../common/FormInput';
-import GoogleMapsLocation from '../common/GoogleMapsLocation';
-import { validateRequired, validatePositive, validateNonNegative } from '../../utils/validators';
+const C = {
+  bg: '#0a0c0a', surface: '#0f110f', card: '#131513',
+  border: '#1c221c', border2: '#232a23',
+  yellow: '#FFD700', blue: '#60a5fa', purple: '#a78bfa',
+  green: '#34d399', orange: '#f97316', red: '#f87171',
+  text: '#e2e8e2', muted: '#6b7a6b',
+};
 
-/**
- * Componente FormMaquinariaDetallado
- * Renderiza un formulario completo para crear/editar maquinaria con campos extensos
- *
- * Estructura de secciones:
- * 1. Información Básica: Datos identificadores del equipo
- * 2. Especificaciones Técnicas: Características técnicas y de rendimiento
- * 3. Operación y Mantenimiento: Información de uso y mantenimiento
- * 4. Documentación: Referencias a documentos y garantías
- *
- * @param {Object} props - Propiedades del componente
- * @param {Object} props.formData - Datos del formulario actual
- * @param {Function} props.onChange - Callback cuando cambian los datos
- * @param {Object} props.errors - Errores de validación
- * @param {boolean} props.submitting - Indica si se está enviando el formulario
- */
+const inputStyle = (err) => ({
+  width: '100%', padding: '10px 13px', borderRadius: '8px',
+  border: `1px solid ${err ? C.red : C.border2}`,
+  background: C.surface, color: C.text, outline: 'none',
+  fontSize: '13.5px', boxSizing: 'border-box', fontFamily: 'inherit',
+  transition: 'border-color 0.2s',
+});
+
+const Label = ({ children, required }) => (
+  <label style={{ display: 'block', marginBottom: '6px', color: '#a0b0a0', fontSize: '11.5px', fontWeight: '600', letterSpacing: '0.6px' }}>
+    {children}{required && <span style={{ color: C.red, marginLeft: '3px' }}>*</span>}
+  </label>
+);
+
+const Field = ({ label, required, error, children, span }) => (
+  <div style={{ gridColumn: span === 2 ? '1 / -1' : undefined }}>
+    <Label required={required}>{label}</Label>
+    {children}
+    {error && <p style={{ color: C.red, fontSize: '11px', margin: '4px 0 0 0' }}>{error}</p>}
+  </div>
+);
+
+const Input = ({ value, onChange, placeholder, type = 'text', min, max, step, disabled, error }) => (
+  <input
+    type={type} value={value || ''} onChange={onChange}
+    placeholder={placeholder} min={min} max={max} step={step} disabled={disabled}
+    style={inputStyle(error)}
+    onFocus={e => e.target.style.borderColor = C.yellow}
+    onBlur={e => e.target.style.borderColor = error ? C.red : C.border2}
+  />
+);
+
+const Select = ({ value, onChange, options, disabled }) => (
+  <select
+    value={value || ''} onChange={onChange} disabled={disabled}
+    style={{ ...inputStyle(), cursor: 'pointer' }}
+    onFocus={e => e.target.style.borderColor = C.yellow}
+    onBlur={e => e.target.style.borderColor = C.border2}
+  >
+    <option value="">Seleccionar...</option>
+    {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+  </select>
+);
+
+const Textarea = ({ value, onChange, placeholder, disabled, rows = 4 }) => (
+  <textarea
+    value={value || ''} onChange={onChange} placeholder={placeholder}
+    disabled={disabled} rows={rows}
+    style={{ ...inputStyle(), resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.5' }}
+    onFocus={e => e.target.style.borderColor = C.yellow}
+    onBlur={e => e.target.style.borderColor = C.border2}
+  />
+);
+
+const Section = ({ icon, title, color = C.yellow, children }) => (
+  <div style={{ marginBottom: '4px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '10px', borderBottom: `1px solid ${C.border}` }}>
+      <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>
+        {icon}
+      </div>
+      <h3 style={{ margin: 0, fontSize: '13px', fontWeight: '700', color, letterSpacing: '0.3px' }}>{title}</h3>
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+      {children}
+    </div>
+  </div>
+);
+
 const FormMaquinariaDetallado = ({ formData, onChange, errors = {}, submitting = false }) => {
-  /**
-   * Estado para controlar qué sección está expandida
-   * Solo una sección puede estar expandida al mismo tiempo
-   */
-  const [expandedSection, setExpandedSection] = useState('basico');
-
-  /**
-   * Manejador para cambios en los inputs
-   * Actualiza el estado del formulario y notifica al padre
-   * @param {string} field - Nombre del campo que cambió
-   * @param {any} value - Nuevo valor del campo
-   */
-  const handleChange = (field, value) => {
-    onChange({
-      ...formData,
-      [field]: value
-    });
-  };
+  const set = (field) => (e) => onChange({ ...formData, [field]: e.target.value });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 1: INFORMACIÓN BÁSICA                                */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        {/* Encabezado de la sección - Clickeable para expandir/contraer */}
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'basico' ? null : 'basico')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(255,215,0,.12), rgba(255,215,0,.04))',
-            borderBottom: expandedSection === 'basico' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#FFD700' }}>
-            🏗️ Información Básica
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'basico' ? '▼' : '▶'}
-          </span>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-        {/* Contenido de la sección - Se muestra/oculta según expandedSection */}
-        {expandedSection === 'basico' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Campo: Nombre/Descripción del equipo */}
-            <FormInput
-              label="Nombre/Descripción"
-              value={formData.nombre || ''}
-              onChange={(e) => handleChange('nombre', e.target.value)}
-              error={errors.nombre}
-              disabled={submitting}
-              required
-              placeholder="Ej: Motoniveladora CAT 12G"
-            />
+      {/* ── 1. Identificación ──────────────────────────────────────── */}
+      <Section icon="🏗️" title="Identificación del Equipo" color={C.yellow}>
+        <Field label="Nombre / Descripción" required error={errors.nombre} span={2}>
+          <Input value={formData.nombre} onChange={set('nombre')} placeholder="Ej: Motoniveladora CAT 140H" disabled={submitting} error={errors.nombre} />
+        </Field>
+        <Field label="Tipo de Maquinaria" required error={errors.tipo}>
+          <Select value={formData.tipo} onChange={set('tipo')} disabled={submitting} options={[
+            { value: 'motoniveladora',  label: 'Motoniveladora' },
+            { value: 'topadora',        label: 'Topadora / Bulldozer' },
+            { value: 'excavadora',      label: 'Excavadora' },
+            { value: 'retroexcavadora', label: 'Retroexcavadora' },
+            { value: 'cargadora',       label: 'Cargadora Frontal' },
+            { value: 'rodillo',         label: 'Rodillo Compactador' },
+            { value: 'volquete',        label: 'Volquete' },
+            { value: 'grua',            label: 'Grúa' },
+            { value: 'hormigonera',     label: 'Hormigonera' },
+            { value: 'aserrador',       label: 'Aserrador / Sierra' },
+            { value: 'otra',            label: 'Otra' },
+          ]} />
+        </Field>
+        <Field label="Estado Actual">
+          <Select value={formData.estado} onChange={set('estado')} disabled={submitting} options={[
+            { value: 'Operativo',     label: 'Operativo' },
+            { value: 'Mantenimiento', label: 'En Mantenimiento' },
+            { value: 'Reparacion',    label: 'En Reparación' },
+            { value: 'Inactivo',      label: 'Inactivo' },
+            { value: 'Desmantelado',  label: 'Desmantelado' },
+          ]} />
+        </Field>
+        <Field label="Modelo">
+          <Input value={formData.modelo} onChange={set('modelo')} placeholder="Ej: CAT 140H, JCB 3CX" disabled={submitting} />
+        </Field>
+        <Field label="Año de Fabricación">
+          <Input type="number" value={formData.anio} onChange={set('anio')} placeholder="Ej: 2018" min="1950" max={new Date().getFullYear()} disabled={submitting} />
+        </Field>
+        <Field label="N° de Serie">
+          <Input value={formData.numero_serie} onChange={set('numero_serie')} placeholder="Ej: SN-12345-AB" disabled={submitting} />
+        </Field>
+        <Field label="Placa de Registro">
+          <Input value={formData.placa} onChange={set('placa')} placeholder="Ej: 1234-BEN" disabled={submitting} />
+        </Field>
+      </Section>
 
-            {/* Campo: Tipo de Maquinaria */}
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Tipo de Maquinaria
-              </label>
-              <select
-                value={formData.tipo || ''}
-                onChange={(e) => handleChange('tipo', e.target.value)}
-                disabled={submitting}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: errors.tipo ? '1px solid #f87171' : '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'border-color 0.2s'
-                }}
-              >
-                <option value="">Seleccionar...</option>
-                <option value="motoniveladora">Motoniveladora</option>
-                <option value="excavadora">Excavadora</option>
-                <option value="cargadora">Cargadora Frontal</option>
-                <option value="rodillo">Rodillo Compactador</option>
-                <option value="volquete">Volquete</option>
-                <option value="hormigonera">Hormigonera</option>
-                <option value="aserrador">Aserrador</option>
-                <option value="otra">Otra</option>
-              </select>
-            </div>
+      {/* ── 2. Asignación Operativa ────────────────────────────────── */}
+      <Section icon="📍" title="Asignación Operativa" color={C.blue}>
+        <Field label="Obra Asignada Actualmente" span={2}>
+          <Input value={formData.obra_asignada} onChange={set('obra_asignada')} placeholder="Ej: Tramo Vial Riberalta–Guayaramerín" disabled={submitting} />
+        </Field>
+        <Field label="Fecha de Traslado a Obra">
+          <Input type="date" value={formData.fecha_traslado} onChange={set('fecha_traslado')} disabled={submitting} />
+        </Field>
+        <Field label="Operador Asignado">
+          <Input value={formData.operador_asignado} onChange={set('operador_asignado')} placeholder="Nombre del operador" disabled={submitting} />
+        </Field>
+        <Field label="Horas de Operación Totales">
+          <Input type="number" value={formData.horas_operacion} onChange={set('horas_operacion')} placeholder="Ej: 5000" min="0" step="50" disabled={submitting} />
+        </Field>
+        <Field label="Litros de Diesel Cargados (total)">
+          <Input type="number" value={formData.litros_diesel_total} onChange={set('litros_diesel_total')} placeholder="Ej: 1500" min="0" step="10" disabled={submitting} />
+        </Field>
+      </Section>
 
-            {/* Campo: Modelo */}
-            <FormInput
-              label="Modelo"
-              value={formData.modelo || ''}
-              onChange={(e) => handleChange('modelo', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: CAT 120M, JCB 3CX"
-            />
+      {/* ── 3. Especificaciones Técnicas ───────────────────────────── */}
+      <Section icon="⚙️" title="Especificaciones Técnicas" color={C.green}>
+        <Field label="Potencia (HP)">
+          <Input type="number" value={formData.potencia} onChange={set('potencia')} placeholder="Ej: 150" min="0" step="10" disabled={submitting} />
+        </Field>
+        <Field label="Capacidad de Carga (ton)">
+          <Input type="number" value={formData.capacidad_carga} onChange={set('capacidad_carga')} placeholder="Ej: 5" min="0" step="0.5" disabled={submitting} />
+        </Field>
+        <Field label="Consumo de Combustible (L/h)">
+          <Input type="number" value={formData.consumo_combustible} onChange={set('consumo_combustible')} placeholder="Ej: 25.5" min="0" step="0.5" disabled={submitting} />
+        </Field>
+        <Field label="Tipo de Combustible">
+          <Select value={formData.tipo_combustible} onChange={set('tipo_combustible')} disabled={submitting} options={[
+            { value: 'diesel',   label: 'Diesel' },
+            { value: 'gasolina', label: 'Gasolina' },
+            { value: 'gas',      label: 'Gas' },
+            { value: 'electrico',label: 'Eléctrico' },
+          ]} />
+        </Field>
+        <Field label="Ancho de Trabajo (m)">
+          <Input type="number" value={formData.ancho_trabajo} onChange={set('ancho_trabajo')} placeholder="Ej: 3.5" min="0" step="0.1" disabled={submitting} />
+        </Field>
+        <Field label="Profundidad Máxima (m)">
+          <Input type="number" value={formData.profundidad_maxima} onChange={set('profundidad_maxima')} placeholder="Ej: 2.5" min="0" step="0.1" disabled={submitting} />
+        </Field>
+      </Section>
 
-            {/* Campo: Año de Fabricación */}
-            <FormInput
-              label="Año de Fabricación"
-              type="number"
-              value={formData.anio || ''}
-              onChange={(e) => handleChange('anio', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 2018"
-              min="1950"
-              max={new Date().getFullYear()}
-            />
+      {/* ── 4. Mantenimiento ──────────────────────────────────────── */}
+      <Section icon="🔧" title="Mantenimiento" color={C.orange}>
+        <Field label="Última Revisión Técnica">
+          <Input type="date" value={formData.ultima_revision} onChange={set('ultima_revision')} disabled={submitting} />
+        </Field>
+        <Field label="Próximo Mantenimiento">
+          <Input type="date" value={formData.mantenimiento_proximo} onChange={set('mantenimiento_proximo')} disabled={submitting} />
+        </Field>
+        <Field label="Costo Mantenimiento Anual (Bs)">
+          <Input type="number" value={formData.costo_mantenimiento_anual} onChange={set('costo_mantenimiento_anual')} placeholder="Ej: 5000" min="0" step="100" disabled={submitting} />
+        </Field>
+        <Field label="N° de Garantía">
+          <Input value={formData.numero_garantia} onChange={set('numero_garantia')} placeholder="Ej: GAR-2024-12345" disabled={submitting} />
+        </Field>
+        <Field label="Vencimiento de Garantía">
+          <Input type="date" value={formData.fecha_vencimiento_garantia} onChange={set('fecha_vencimiento_garantia')} disabled={submitting} />
+        </Field>
+        <Field label="Documento de Adquisición">
+          <Input value={formData.documento_adquisicion} onChange={set('documento_adquisicion')} placeholder="Ej: Factura #001234" disabled={submitting} />
+        </Field>
+        <Field label="Historial de Fallas / Reparaciones" span={2}>
+          <Textarea
+            value={formData.historial_fallas} onChange={set('historial_fallas')} disabled={submitting}
+            placeholder="Ej: 15/03/2025 — Cambio filtro de aceite. 02/05/2025 — Falla sistema hidráulico, reparado en taller..."
+            rows={5}
+          />
+        </Field>
+        <Field label="Notas / Observaciones" span={2}>
+          <Textarea value={formData.notas} onChange={set('notas')} placeholder="Información adicional relevante..." disabled={submitting} />
+        </Field>
+      </Section>
 
-            {/* Campo: Número de Serie */}
-            <FormInput
-              label="Número de Serie"
-              value={formData.numero_serie || ''}
-              onChange={(e) => handleChange('numero_serie', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: SN-12345-AB"
-            />
-
-            {/* Campo: Placa de Registro */}
-            <FormInput
-              label="Placa de Registro"
-              value={formData.placa || ''}
-              onChange={(e) => handleChange('placa', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: AB-12345"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 2: ESPECIFICACIONES TÉCNICAS                         */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'tecnico' ? null : 'tecnico')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(96,165,250,.12), rgba(96,165,250,.04))',
-            borderBottom: expandedSection === 'tecnico' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#60a5fa' }}>
-            ⚙️ Especificaciones Técnicas
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'tecnico' ? '▼' : '▶'}
-          </span>
-        </div>
-
-        {expandedSection === 'tecnico' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Campo: Potencia (HP) */}
-            <FormInput
-              label="Potencia (HP)"
-              type="number"
-              value={formData.potencia || ''}
-              onChange={(e) => handleChange('potencia', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 150"
-              min="0"
-              step="10"
-            />
-
-            {/* Campo: Capacidad de Carga */}
-            <FormInput
-              label="Capacidad de Carga (Toneladas)"
-              type="number"
-              value={formData.capacidad_carga || ''}
-              onChange={(e) => handleChange('capacidad_carga', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 5"
-              min="0"
-              step="0.5"
-            />
-
-            {/* Campo: Consumo de Combustible */}
-            <FormInput
-              label="Consumo de Combustible (L/h)"
-              type="number"
-              value={formData.consumo_combustible || ''}
-              onChange={(e) => handleChange('consumo_combustible', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 25.5"
-              min="0"
-              step="0.5"
-            />
-
-            {/* Campo: Tipo de Combustible */}
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Tipo de Combustible
-              </label>
-              <select
-                value={formData.tipo_combustible || ''}
-                onChange={(e) => handleChange('tipo_combustible', e.target.value)}
-                disabled={submitting}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="">Seleccionar...</option>
-                <option value="diesel">Diesel</option>
-                <option value="gasolina">Gasolina</option>
-                <option value="gas">Gas</option>
-                <option value="electrico">Eléctrico</option>
-              </select>
-            </div>
-
-            {/* Campo: Ancho de Trabajo */}
-            <FormInput
-              label="Ancho de Trabajo (metros)"
-              type="number"
-              value={formData.ancho_trabajo || ''}
-              onChange={(e) => handleChange('ancho_trabajo', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 3.5"
-              min="0"
-              step="0.1"
-            />
-
-            {/* Campo: Profundidad Máxima */}
-            <FormInput
-              label="Profundidad Máxima (metros)"
-              type="number"
-              value={formData.profundidad_maxima || ''}
-              onChange={(e) => handleChange('profundidad_maxima', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 2.5"
-              min="0"
-              step="0.1"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 3: OPERACIÓN Y MANTENIMIENTO                         */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'operacion' ? null : 'operacion')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(251,191,36,.12), rgba(251,191,36,.04))',
-            borderBottom: expandedSection === 'operacion' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fbbf24' }}>
-            🔧 Operación y Mantenimiento
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'operacion' ? '▼' : '▶'}
-          </span>
-        </div>
-
-        {expandedSection === 'operacion' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Campo: Estado Actual */}
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Estado Actual
-              </label>
-              <select
-                value={formData.estado || 'Operativo'}
-                onChange={(e) => handleChange('estado', e.target.value)}
-                disabled={submitting}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="Operativo">Operativo</option>
-                <option value="Mantenimiento">En Mantenimiento</option>
-                <option value="Reparacion">En Reparación</option>
-                <option value="Inactivo">Inactivo</option>
-                <option value="Desmantelado">Desmantelado</option>
-              </select>
-            </div>
-
-            {/* Campo: Horas de Operación */}
-            <FormInput
-              label="Horas de Operación Totales"
-              type="number"
-              value={formData.horas_operacion || ''}
-              onChange={(e) => handleChange('horas_operacion', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 5000"
-              min="0"
-              step="100"
-            />
-
-            {/* Campo: Próximo Mantenimiento */}
-            <FormInput
-              label="Próximo Mantenimiento"
-              type="date"
-              value={formData.mantenimiento_proximo || ''}
-              onChange={(e) => handleChange('mantenimiento_proximo', e.target.value)}
-              disabled={submitting}
-            />
-
-            {/* Campo: Última Revisión */}
-            <FormInput
-              label="Última Revisión Técnica"
-              type="date"
-              value={formData.ultima_revision || ''}
-              onChange={(e) => handleChange('ultima_revision', e.target.value)}
-              disabled={submitting}
-            />
-
-            {/* Campo: Operador Asignado */}
-            <FormInput
-              label="Operador Asignado"
-              value={formData.operador_asignado || ''}
-              onChange={(e) => handleChange('operador_asignado', e.target.value)}
-              disabled={submitting}
-              placeholder="Nombre del operador"
-            />
-
-            {/* Campo: Costo de Mantenimiento Anual */}
-            <FormInput
-              label="Costo Mantenimiento Anual (Bs)"
-              type="number"
-              value={formData.costo_mantenimiento_anual || ''}
-              onChange={(e) => handleChange('costo_mantenimiento_anual', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: 5000"
-              min="0"
-              step="100"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ═════════════════════════════════════════════════════════════ */}
-      {/* SECCIÓN 4: DOCUMENTACIÓN Y REFERENCIAS                       */}
-      {/* ═════════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: '#182219',
-        border: '1px solid #28342a',
-        borderRadius: '14px',
-        overflow: 'hidden'
-      }}>
-        <div
-          onClick={() => setExpandedSection(expandedSection === 'documentacion' ? null : 'documentacion')}
-          style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, rgba(248,113,113,.12), rgba(248,113,113,.04))',
-            borderBottom: expandedSection === 'documentacion' ? '1px solid #28342a' : 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#f87171' }}>
-            📄 Documentación
-          </h3>
-          <span style={{ color: '#9aa39a' }}>
-            {expandedSection === 'documentacion' ? '▼' : '▶'}
-          </span>
-        </div>
-
-        {expandedSection === 'documentacion' && (
-          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
-            {/* Campo: Número de Garantía */}
-            <FormInput
-              label="Número de Garantía"
-              value={formData.numero_garantia || ''}
-              onChange={(e) => handleChange('numero_garantia', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: GAR-2024-12345"
-            />
-
-            {/* Campo: Fecha de Vencimiento de Garantía */}
-            <FormInput
-              label="Vencimiento de Garantía"
-              type="date"
-              value={formData.fecha_vencimiento_garantia || ''}
-              onChange={(e) => handleChange('fecha_vencimiento_garantia', e.target.value)}
-              disabled={submitting}
-            />
-
-            {/* Campo: Documento de Adquisición */}
-            <FormInput
-              label="Documento de Adquisición"
-              value={formData.documento_adquisicion || ''}
-              onChange={(e) => handleChange('documento_adquisicion', e.target.value)}
-              disabled={submitting}
-              placeholder="Ej: Factura #001234"
-            />
-
-            {/* Campo: Ubicación del Equipo con Google Maps */}
-            <div style={{ gridColumn: '1 / -1' }}>
-              <GoogleMapsLocation
-                label="Ubicación del Equipo (GPS)"
-                address={formData.ubicacion_equipo || ''}
-                coordinates={formData.ubicacion_coords || { lat: null, lng: null }}
-                onLocationChange={(data) => {
-                  handleChange('ubicacion_equipo', data.address);
-                  handleChange('ubicacion_coords', data.coordinates);
-                }}
-                placeholder="Buscar ubicación del equipo..."
-              />
-            </div>
-
-            {/* Campo: Notas/Observaciones */}
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                color: '#e7ebe5',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}>
-                Notas/Observaciones
-              </label>
-              <textarea
-                value={formData.notas || ''}
-                onChange={(e) => handleChange('notas', e.target.value)}
-                disabled={submitting}
-                placeholder="Información adicional relevante..."
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid #28342a',
-                  background: '#0d1410',
-                  color: '#e7ebe5',
-                  outline: 'none',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  minHeight: '100px',
-                  resize: 'vertical',
-                  transition: 'border-color 0.2s'
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
