@@ -30,7 +30,7 @@ router.put('/:clave', verifyToken, async (req, res) => {
             'INSERT INTO config (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizado = CURRENT_TIMESTAMP',
             [clave, valor]
         );
-        await logAudit(req.user?.id, 'UPDATE', 'config', null, { clave }, { clave, valor });
+        await logAudit(req.user?.user?.id, 'UPDATE', 'config', null, { clave }, { clave, valor });
         res.json({ status: 'Configuración actualizada con éxito' });
     } catch (err) {
         console.error('Error:', err);

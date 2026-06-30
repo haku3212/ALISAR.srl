@@ -82,8 +82,9 @@ const initDB = async () => {
 const addCol = async (table, column, type = 'TEXT') => {
     try {
         await db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
-    } catch (_) {
-        // La columna ya existe, se ignora el error
+    } catch (err) {
+        // SQLite lanza "duplicate column name" cuando la columna ya existe — ignorar solo ese caso
+        if (!err.message || !err.message.includes('duplicate column name')) throw err;
     }
 };
 

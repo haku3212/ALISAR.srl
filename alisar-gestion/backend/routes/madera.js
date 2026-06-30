@@ -49,7 +49,7 @@ router.post('/', verifyToken, async (req, res) => {
         );
         const maderaId = result.lastID;
         await savePersonal(maderaId, req.body.personal_ids);
-        await logAudit(req.user?.id, 'CREATE', 'madera', maderaId, null, data);
+        await logAudit(req.user?.user?.id, 'CREATE', 'madera', maderaId, null, data);
         res.status(201).json({ status: 'Madera registrada con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -69,7 +69,7 @@ router.put('/:id', verifyToken, async (req, res) => {
             [...Object.values(data), req.params.id]
         );
         await savePersonal(req.params.id, req.body.personal_ids);
-        await logAudit(req.user?.id, 'UPDATE', 'madera', req.params.id, anterior, data);
+        await logAudit(req.user?.user?.id, 'UPDATE', 'madera', req.params.id, anterior, data);
         res.json({ status: 'Madera actualizada con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -84,7 +84,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
 
         await getDB().run('DELETE FROM madera_personal WHERE madera_id = ?', [req.params.id]);
         await getDB().run('DELETE FROM madera WHERE id = ?', [req.params.id]);
-        await logAudit(req.user?.id, 'DELETE', 'madera', req.params.id, anterior, null);
+        await logAudit(req.user?.user?.id, 'DELETE', 'madera', req.params.id, anterior, null);
         res.json({ status: 'Madera eliminada con éxito' });
     } catch (err) {
         console.error('Error:', err);

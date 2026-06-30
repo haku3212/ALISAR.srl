@@ -40,7 +40,7 @@ router.post('/', verifyToken, async (req, res) => {
             `INSERT INTO maquinaria (${cols}) VALUES (${placeholders})`,
             Object.values(data)
         );
-        await logAudit(req.user?.id, 'CREATE', 'maquinaria', result.lastID, null, data);
+        await logAudit(req.user?.user?.id, 'CREATE', 'maquinaria', result.lastID, null, data);
         res.status(201).json({ status: 'Maquinaria registrada con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -65,7 +65,7 @@ router.put('/:id', verifyToken, async (req, res) => {
             `UPDATE maquinaria SET ${setCols} WHERE id = ?`,
             [...Object.values(data), req.params.id]
         );
-        await logAudit(req.user?.id, 'UPDATE', 'maquinaria', req.params.id, anterior, data);
+        await logAudit(req.user?.user?.id, 'UPDATE', 'maquinaria', req.params.id, anterior, data);
         res.json({ status: 'Maquinaria actualizada con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -79,7 +79,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
         if (!anterior) return res.status(404).json({ msg: 'Maquinaria no encontrada' });
 
         await getDB().run('DELETE FROM maquinaria WHERE id = ?', [req.params.id]);
-        await logAudit(req.user?.id, 'DELETE', 'maquinaria', req.params.id, anterior, null);
+        await logAudit(req.user?.user?.id, 'DELETE', 'maquinaria', req.params.id, anterior, null);
         res.json({ status: 'Maquinaria eliminada con éxito' });
     } catch (err) {
         console.error('Error:', err);

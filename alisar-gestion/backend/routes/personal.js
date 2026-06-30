@@ -36,7 +36,7 @@ router.post('/', verifyToken, async (req, res) => {
             `INSERT INTO personal (${cols}) VALUES (${placeholders})`,
             Object.values(data)
         );
-        await logAudit(req.user?.id, 'CREATE', 'personal', result.lastID, null, data);
+        await logAudit(req.user?.user?.id, 'CREATE', 'personal', result.lastID, null, data);
         res.status(201).json({ status: 'Personal registrado con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -61,7 +61,7 @@ router.put('/:id', verifyToken, async (req, res) => {
             `UPDATE personal SET ${setCols} WHERE id = ?`,
             [...Object.values(data), req.params.id]
         );
-        await logAudit(req.user?.id, 'UPDATE', 'personal', req.params.id, anterior, data);
+        await logAudit(req.user?.user?.id, 'UPDATE', 'personal', req.params.id, anterior, data);
         res.json({ status: 'Personal actualizado con éxito' });
     } catch (err) {
         console.error('Error:', err);
@@ -75,7 +75,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
         if (!anterior) return res.status(404).json({ msg: 'Personal no encontrado' });
 
         await getDB().run('DELETE FROM personal WHERE id = ?', [req.params.id]);
-        await logAudit(req.user?.id, 'DELETE', 'personal', req.params.id, anterior, null);
+        await logAudit(req.user?.user?.id, 'DELETE', 'personal', req.params.id, anterior, null);
         res.json({ status: 'Personal eliminado con éxito' });
     } catch (err) {
         console.error('Error:', err);
