@@ -9,6 +9,7 @@ import React, { useState, useMemo } from 'react';
 import { Trees, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
+import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
@@ -20,6 +21,9 @@ import { generateMaderaReport, generateExcelReport } from '../utils/reportGenera
  * Componente Principal de Gestión de Madera
  */
 const Madera = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.rol === 'admin';
+
   // Hook CRUD para gestionar madera
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
     dataService.getMadera,
@@ -48,7 +52,7 @@ const Madera = () => {
     ancho: '',
     espesor: '',
     volumen: '',
-    cantidad: '',
+    piezas: '',
     peso_estimado: '',
 
     // Sección: Calidad y Condición
@@ -120,7 +124,7 @@ const Madera = () => {
     const errors = {};
     if (!formData.especie.trim()) errors.especie = 'Especie requerida';
     if (!formData.volumen.toString().trim()) errors.volumen = 'Volumen requerido';
-    if (!formData.cantidad || formData.cantidad < 1) errors.cantidad = 'Cantidad debe ser mayor a 0';
+    if (!formData.piezas || formData.piezas < 1) errors.piezas = 'Cantidad debe ser mayor a 0';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -131,7 +135,7 @@ const Madera = () => {
   const resetFormData = () => {
     setFormData({
       especie: '', nombre_comun: '', nombre_cientifico: '', procedencia: '', destino: '', tipo_corte: '',
-      largo: '', ancho: '', espesor: '', volumen: '', cantidad: '', peso_estimado: '',
+      largo: '', ancho: '', espesor: '', volumen: '', piezas: '', peso_estimado: '',
       grado_calidad: '', estado_conservacion: '', humedad: '', defectos: '',
       campamento: '', ubicacion_exacta: '', fecha_recepcion: '', fecha_aserrado: '',
       precio_unitario: '', valor_total: '', notas: ''
@@ -288,9 +292,11 @@ const Madera = () => {
                   <button onClick={() => handleEdit(m)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
 

@@ -16,4 +16,15 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-module.exports = { verifyToken };
+// allowRoles('admin') o allowRoles('admin', 'secretaria') -> exige que req.user.rol
+// (poblado por verifyToken a partir del JWT) esté en la lista de roles permitidos.
+// Debe usarse siempre después de verifyToken. No depende del frontend: aunque el
+// menú oculte una opción, la ruta rechaza la petición igual si el rol no califica.
+const allowRoles = (...roles) => (req, res, next) => {
+  if (!roles.includes(req.user?.rol)) {
+    return res.status(403).json({ msg: 'No tiene permisos para realizar esta acción' });
+  }
+  next();
+};
+
+module.exports = { verifyToken, allowRoles };

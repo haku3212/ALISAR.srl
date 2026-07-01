@@ -10,6 +10,7 @@ import React, { useState, useMemo } from 'react';
 import { FileText, Plus, Edit2, Trash2, Download, AlertCircle } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
+import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
@@ -28,6 +29,9 @@ import { generateExcelReport } from '../utils/reportGenerator';
  * - Eliminación de registros
  */
 const Documentos = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.rol === 'admin';
+
   // Hook CRUD para gestionar documentos
   const {
     data,
@@ -377,9 +381,11 @@ const Documentos = () => {
                     <button onClick={() => handleEdit(d)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
                       <Edit2 size={18} />
                     </button>
-                    <button onClick={() => deleteItem(d.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
-                      <Trash2 size={18} />
-                    </button>
+                    {isAdmin && (
+                      <button onClick={() => deleteItem(d.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

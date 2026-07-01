@@ -9,6 +9,7 @@ import React, { useState, useMemo } from 'react';
 import { Drill, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
+import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
@@ -20,6 +21,9 @@ import { generateMaquinariaReport, generateExcelReport } from '../utils/reportGe
  * Componente Principal de Gestión de Maquinaria
  */
 const Maquinaria = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.rol === 'admin';
+
   // Hook CRUD para gestionar maquinaria
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
     dataService.getMaquinaria,
@@ -55,7 +59,7 @@ const Maquinaria = () => {
     estado: 'Operativo',
     horas_operacion: '',
     mantenimiento_proximo: '',
-    ultima_revision: '',
+    ultimaRevision: '',
     operador_asignado: '',
     costo_mantenimiento_anual: '',
 
@@ -131,7 +135,7 @@ const Maquinaria = () => {
       nombre: '', tipo: '', modelo: '', anio: '', numero_serie: '', placa: '',
       potencia: '', capacidad_carga: '', consumo_combustible: '', tipo_combustible: '',
       ancho_trabajo: '', profundidad_maxima: '',
-      estado: 'Operativo', horas_operacion: '', mantenimiento_proximo: '', ultima_revision: '',
+      estado: 'Operativo', horas_operacion: '', mantenimiento_proximo: '', ultimaRevision: '',
       operador_asignado: '', costo_mantenimiento_anual: '',
       numero_garantia: '', fecha_vencimiento_garantia: '', documento_adquisicion: '', notas: ''
     });
@@ -299,9 +303,11 @@ const Maquinaria = () => {
                   <button onClick={() => handleEdit(m)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
                     <Edit2 size={18} />
                   </button>
-                  <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
-                    <Trash2 size={18} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => deleteItem(m.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
+                      <Trash2 size={18} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

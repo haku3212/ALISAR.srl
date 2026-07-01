@@ -8,6 +8,7 @@ import React, { useState, useMemo } from 'react';
 import { HardHat, MapPin, Plus, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
+import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
@@ -19,6 +20,9 @@ import { generateObrasReport, generateExcelReport } from '../utils/reportGenerat
  * Componente Principal de Gestión de Obras
  */
 const Obras = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.rol === 'admin';
+
   // Hook CRUD para gestionar obras
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem } = useCRUD(
     dataService.getObras,
@@ -268,9 +272,11 @@ const Obras = () => {
                   <button onClick={() => handleEdit(obra)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer' }}>
                     <Edit2 size={18} />
                   </button>
-                  <button onClick={() => deleteItem(obra.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
-                    <Trash2 size={18} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => deleteItem(obra.id)} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}>
+                      <Trash2 size={18} />
+                    </button>
+                  )}
                 </div>
               </div>
 

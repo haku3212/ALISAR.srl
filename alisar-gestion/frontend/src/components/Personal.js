@@ -9,6 +9,7 @@ import React, { useState, useMemo } from 'react';
 import { Users, UserPlus, Phone, Edit2, Trash2, Download, FileText } from 'lucide-react';
 import { dataService } from '../services/api';
 import { useCRUD } from '../hooks/useCRUD';
+import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './common/LoadingSpinner';
 import ErrorMessage from './common/ErrorMessage';
 import Modal from './common/Modal';
@@ -26,6 +27,9 @@ import { generatePersonalReport, generateExcelReport } from '../utils/reportGene
  * - Eliminación de registros
  */
 const Personal = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.rol === 'admin';
+
   // Hook personalizado que maneja toda la lógica CRUD
   // Proporciona: data (lista), loading, error, métodos (create, update, delete)
   const { data, loading, error, editingId, setEditingId, create, update, delete: deleteItem, refresh } = useCRUD(
@@ -293,14 +297,14 @@ const Personal = () => {
                 }}>
                   <Edit2 size={18} />
                 </button>
-                <button onClick={() => deleteItem(p.id)} style={{
+                {isAdmin && <button onClick={() => deleteItem(p.id)} style={{
                   background: 'transparent',
                   border: 'none',
                   color: '#f87171',
                   cursor: 'pointer'
                 }}>
                   <Trash2 size={18} />
-                </button>
+                </button>}
               </div>
             </div>
           ))

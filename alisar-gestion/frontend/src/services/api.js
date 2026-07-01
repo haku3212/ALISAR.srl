@@ -68,12 +68,30 @@ export const dataService = {
   updateMadera: (id, data) => api.put(`/madera/${id}`, data),
   deleteMadera: (id) => api.delete(`/madera/${id}`),
 
+  // Rodeos
+  getRodeos: () => api.get('/rodeos'),
+  createRodeo: (data) => api.post('/rodeos', data),
+  updateRodeo: (id, data) => api.put(`/rodeos/${id}`, data),
+  deleteRodeo: (id) => api.delete(`/rodeos/${id}`),
+
+  // Documentos
+  getDocumentos: () => api.get('/documentos'),
+  createDocumento: (data) => api.post('/documentos', data),
+  updateDocumento: (id, data) => api.put(`/documentos/${id}`, data),
+  deleteDocumento: (id) => api.delete(`/documentos/${id}`),
+
   // Auditoría
   getAuditLogs: () => api.get('/audit'),
 
   // Configuración
   getConfig: () => api.get('/config'),
-  updateConfig: (clave, valor) => api.put(`/config/${clave}`, { valor })
+  updateConfig: (clave, valor) => api.put(`/config/${clave}`, { valor }),
+
+  // Usuarios (solo admin)
+  getUsers: () => api.get('/users'),
+  createUser: (data) => api.post('/users', data),
+  updateUser: (id, data) => api.put(`/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/users/${id}`)
 };
 
 export default api;
