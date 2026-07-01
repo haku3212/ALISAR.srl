@@ -39,6 +39,17 @@ const ProtectedRoute = ({ children }) => {
 };
 
 /**
+ * Componente AdminRoute
+ * Además de requerir autenticación, exige rol 'admin'.
+ * Usuarios con otros roles (ej. secretaria) son redirigidos al dashboard.
+ */
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/" />;
+  return user?.rol === 'admin' ? children : <Navigate to="/dashboard" />;
+};
+
+/**
  * Componente AppRoutes
  * Define todas las rutas de la aplicación
  * La página de login (/) es pública
@@ -70,8 +81,8 @@ function AppRoutes() {
       <Route path="/madera" element={<ProtectedRoute><Dashboard content={<Madera />} /></ProtectedRoute>} />
       <Route path="/rodeos" element={<ProtectedRoute><Dashboard content={<Rodeos />} /></ProtectedRoute>} />
       <Route path="/documentos" element={<ProtectedRoute><Dashboard content={<Documentos />} /></ProtectedRoute>} />
-      <Route path="/historial" element={<ProtectedRoute><Dashboard content={<ChangeHistory />} /></ProtectedRoute>} />
-      <Route path="/configuracion" element={<ProtectedRoute><Dashboard content={<Settings />} /></ProtectedRoute>} />
+      <Route path="/historial" element={<AdminRoute><Dashboard content={<ChangeHistory />} /></AdminRoute>} />
+      <Route path="/configuracion" element={<AdminRoute><Dashboard content={<Settings />} /></AdminRoute>} />
 
       {/* Ruta comodín: Redirige a login si la ruta no existe */}
       <Route path="*" element={<Navigate to="/" />} />

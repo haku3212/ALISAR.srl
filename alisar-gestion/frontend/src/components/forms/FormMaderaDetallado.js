@@ -309,9 +309,9 @@ const FormMaderaDetallado = ({ formData, onChange, errors = {}, submitting = fal
             <FormInput
               label="Cantidad de Piezas"
               type="number"
-              value={formData.cantidad || ''}
-              onChange={(e) => handleChange('cantidad', e.target.value)}
-              error={errors.cantidad}
+              value={formData.piezas || ''}
+              onChange={(e) => handleChange('piezas', e.target.value)}
+              error={errors.piezas}
               disabled={submitting}
               required
               placeholder="Ej: 50"

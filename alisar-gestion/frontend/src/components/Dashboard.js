@@ -523,15 +523,19 @@ const Dashboard = ({ content }) => {
             <FileText size={18} /> Documentos
           </div>
 
-          {/* Separador */}
-          <div style={{ height: '1px', background: '#1f241f', margin: '16px 0' }} />
+          {/* Historial y Configuración: solo visibles para administradores */}
+          {user?.rol === 'admin' && (
+            <>
+              <div style={{ height: '1px', background: '#1f241f', margin: '16px 0' }} />
 
-          <div style={styles.navItem('/historial')} onClick={() => navigate('/historial')}>
-            <History size={18} /> Historial
-          </div>
-          <div style={styles.navItem('/configuracion')} onClick={() => navigate('/configuracion')}>
-            <SettingsIcon size={18} /> Configuración
-          </div>
+              <div style={styles.navItem('/historial')} onClick={() => navigate('/historial')}>
+                <History size={18} /> Historial
+              </div>
+              <div style={styles.navItem('/configuracion')} onClick={() => navigate('/configuracion')}>
+                <SettingsIcon size={18} /> Configuración
+              </div>
+            </>
+          )}
         </nav>
         <div style={{ ...styles.navItem('/logout'), color: '#f87171', marginTop: 'auto' }} onClick={handleLogout}>
           <LogOut size={18} /> Salir
