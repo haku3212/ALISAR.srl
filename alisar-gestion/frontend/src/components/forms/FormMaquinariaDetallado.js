@@ -397,8 +397,8 @@ const FormMaquinariaDetallado = ({ formData, onChange, errors = {}, submitting =
             <FormInput
               label="Última Revisión Técnica"
               type="date"
-              value={formData.ultima_revision || ''}
-              onChange={(e) => handleChange('ultima_revision', e.target.value)}
+              value={formData.ultimaRevision || ''}
+              onChange={(e) => handleChange('ultimaRevision', e.target.value)}
               disabled={submitting}
             />
 

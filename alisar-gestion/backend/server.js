@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(cors());
@@ -76,6 +77,17 @@ let db;
             actualizado DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     `);
+
+    // Crear usuario administrador por defecto si no existe ninguno
+    const checkAdmin = await db.get("SELECT id FROM users WHERE usuario = 'admin'");
+    if (!checkAdmin) {
+        const hashedPassword = await bcrypt.hash('123456', 10);
+        await db.run(
+            'INSERT INTO users (nombre, usuario, password, rol, estado) VALUES (?, ?, ?, ?, ?)',
+            ['Administrador', 'admin', hashedPassword, 'admin', 'activo']
+        );
+        console.log("🌱 Usuario administrador por defecto creado (admin / 123456).");
+    }
 
     // Inserción de datos semilla para Personal si la tabla está vacía
     const checkPersonal = await db.get('SELECT COUNT(*) as total FROM personal');

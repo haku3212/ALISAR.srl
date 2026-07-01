@@ -55,7 +55,7 @@ const Maquinaria = () => {
     estado: 'Operativo',
     horas_operacion: '',
     mantenimiento_proximo: '',
-    ultima_revision: '',
+    ultimaRevision: '',
     operador_asignado: '',
     costo_mantenimiento_anual: '',
 
@@ -131,7 +131,7 @@ const Maquinaria = () => {
       nombre: '', tipo: '', modelo: '', anio: '', numero_serie: '', placa: '',
       potencia: '', capacidad_carga: '', consumo_combustible: '', tipo_combustible: '',
       ancho_trabajo: '', profundidad_maxima: '',
-      estado: 'Operativo', horas_operacion: '', mantenimiento_proximo: '', ultima_revision: '',
+      estado: 'Operativo', horas_operacion: '', mantenimiento_proximo: '', ultimaRevision: '',
       operador_asignado: '', costo_mantenimiento_anual: '',
       numero_garantia: '', fecha_vencimiento_garantia: '', documento_adquisicion: '', notas: ''
     });
