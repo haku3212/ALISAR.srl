@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 const createAuthRoutes = require('./routes/auth');
-const { verifyToken, requireAdmin } = require('./middleware/auth');
+const { verifyToken, allowRoles } = require('./middleware/auth');
 
 let db;
 
@@ -284,7 +284,7 @@ app.post('/api/personal', verifyToken, async (req, res) => {
     }
 });
 
-app.delete('/api/obras/:id', verifyToken, requireAdmin, async (req, res) => {
+app.delete('/api/obras/:id', verifyToken, allowRoles('admin'), async (req, res) => {
     try {
         await db.run('DELETE FROM obras WHERE id = ?', [req.params.id]);
         res.json({ status: "Obra eliminada con éxito" });
@@ -294,7 +294,7 @@ app.delete('/api/obras/:id', verifyToken, requireAdmin, async (req, res) => {
     }
 });
 
-app.delete('/api/personal/:id', verifyToken, requireAdmin, async (req, res) => {
+app.delete('/api/personal/:id', verifyToken, allowRoles('admin'), async (req, res) => {
     try {
         await db.run('DELETE FROM personal WHERE id = ?', [req.params.id]);
         res.json({ status: "Personal eliminado con éxito" });
@@ -304,7 +304,7 @@ app.delete('/api/personal/:id', verifyToken, requireAdmin, async (req, res) => {
     }
 });
 
-app.delete('/api/maquinaria/:id', verifyToken, requireAdmin, async (req, res) => {
+app.delete('/api/maquinaria/:id', verifyToken, allowRoles('admin'), async (req, res) => {
     try {
         await db.run('DELETE FROM maquinaria WHERE id = ?', [req.params.id]);
         res.json({ status: "Maquinaria eliminada con éxito" });
@@ -433,7 +433,7 @@ app.put('/api/madera/:id', verifyToken, async (req, res) => {
     }
 });
 
-app.delete('/api/madera/:id', verifyToken, requireAdmin, async (req, res) => {
+app.delete('/api/madera/:id', verifyToken, allowRoles('admin'), async (req, res) => {
     try {
         await db.run('DELETE FROM madera WHERE id = ?', [req.params.id]);
         res.json({ status: "Rodeo eliminado con éxito" });
@@ -534,7 +534,7 @@ app.put('/api/rodeos/:id', verifyToken, async (req, res) => {
     }
 });
 
-app.delete('/api/rodeos/:id', verifyToken, requireAdmin, async (req, res) => {
+app.delete('/api/rodeos/:id', verifyToken, allowRoles('admin'), async (req, res) => {
     try {
         await db.run('DELETE FROM rodeos WHERE id = ?', [req.params.id]);
         res.json({ status: "Rodeo eliminado con éxito" });
@@ -624,7 +624,7 @@ app.put('/api/documentos/:id', verifyToken, async (req, res) => {
     }
 });
 
-app.delete('/api/documentos/:id', verifyToken, requireAdmin, async (req, res) => {
+app.delete('/api/documentos/:id', verifyToken, allowRoles('admin'), async (req, res) => {
     try {
         await db.run('DELETE FROM documentos WHERE id = ?', [req.params.id]);
         res.json({ status: "Documento eliminado con éxito" });
@@ -635,7 +635,7 @@ app.delete('/api/documentos/:id', verifyToken, requireAdmin, async (req, res) =>
 });
 
 // --- Módulo: Auditoría ---
-app.get('/api/audit', verifyToken, requireAdmin, async (req, res) => {
+app.get('/api/audit', verifyToken, allowRoles('admin'), async (req, res) => {
     try {
         const logs = await db.all('SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 100');
         res.json(logs);
@@ -646,7 +646,7 @@ app.get('/api/audit', verifyToken, requireAdmin, async (req, res) => {
 });
 
 // --- Módulo: Configuración ---
-app.get('/api/config', verifyToken, requireAdmin, async (req, res) => {
+app.get('/api/config', verifyToken, allowRoles('admin'), async (req, res) => {
     try {
         const configs = await db.all('SELECT * FROM config');
         const result = {};
@@ -660,7 +660,7 @@ app.get('/api/config', verifyToken, requireAdmin, async (req, res) => {
     }
 });
 
-app.put('/api/config/:clave', verifyToken, requireAdmin, async (req, res) => {
+app.put('/api/config/:clave', verifyToken, allowRoles('admin'), async (req, res) => {
     const { valor } = req.body;
     const { clave } = req.params;
 
@@ -674,6 +674,98 @@ app.put('/api/config/:clave', verifyToken, requireAdmin, async (req, res) => {
             [clave, valor]
         );
         res.json({ status: "Configuración actualizada con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+// --- Módulo: Gestión de Usuarios (solo admin) ---
+app.get('/api/users', verifyToken, allowRoles('admin'), async (req, res) => {
+    try {
+        const rows = await db.all('SELECT id, nombre, usuario, rol, estado, fechaCreacion FROM users');
+        res.json(rows);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.post('/api/users', verifyToken, allowRoles('admin'), async (req, res) => {
+    const { nombre, usuario, password, rol } = req.body;
+
+    if (!nombre || !usuario || !password) {
+        return res.status(400).json({ msg: 'Campos requeridos: nombre, usuario, password' });
+    }
+
+    if (!['admin', 'secretaria'].includes(rol)) {
+        return res.status(400).json({ msg: "El rol debe ser 'admin' o 'secretaria'" });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await db.run(
+            'INSERT INTO users (nombre, usuario, password, rol, estado) VALUES (?, ?, ?, ?, ?)',
+            [nombre, usuario, hashedPassword, rol, 'activo']
+        );
+        res.json({ status: "Usuario creado con éxito" });
+    } catch (err) {
+        if (err.message?.includes('UNIQUE')) {
+            return res.status(400).json({ msg: 'Ese nombre de usuario ya existe' });
+        }
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.put('/api/users/:id', verifyToken, allowRoles('admin'), async (req, res) => {
+    const { nombre, rol, estado, password } = req.body;
+
+    if (!nombre || !rol) {
+        return res.status(400).json({ msg: 'Campos requeridos: nombre, rol' });
+    }
+
+    if (!['admin', 'secretaria'].includes(rol)) {
+        return res.status(400).json({ msg: "El rol debe ser 'admin' o 'secretaria'" });
+    }
+
+    try {
+        // Evita que el propio administrador se quite el rol de admin (bloqueo accidental)
+        if (Number(req.params.id) === req.user.id && rol !== 'admin') {
+            return res.status(400).json({ msg: 'No puede quitarse a sí mismo el rol de administrador' });
+        }
+
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await db.run('UPDATE users SET nombre = ?, rol = ?, estado = ?, password = ? WHERE id = ?',
+                [nombre, rol, estado || 'activo', hashedPassword, req.params.id]);
+        } else {
+            await db.run('UPDATE users SET nombre = ?, rol = ?, estado = ? WHERE id = ?',
+                [nombre, rol, estado || 'activo', req.params.id]);
+        }
+        res.json({ status: "Usuario actualizado con éxito" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.delete('/api/users/:id', verifyToken, allowRoles('admin'), async (req, res) => {
+    try {
+        if (Number(req.params.id) === req.user.id) {
+            return res.status(400).json({ msg: 'No puede eliminar su propio usuario' });
+        }
+
+        const target = await db.get('SELECT rol FROM users WHERE id = ?', [req.params.id]);
+        if (target?.rol === 'admin') {
+            const { total } = await db.get("SELECT COUNT(*) as total FROM users WHERE rol = 'admin'");
+            if (total <= 1) {
+                return res.status(400).json({ msg: 'No puede eliminar al único administrador del sistema' });
+            }
+        }
+
+        await db.run('DELETE FROM users WHERE id = ?', [req.params.id]);
+        res.json({ status: "Usuario eliminado con éxito" });
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: 'Error al procesar solicitud' });

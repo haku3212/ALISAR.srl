@@ -85,7 +85,13 @@ export const dataService = {
 
   // Configuración
   getConfig: () => api.get('/config'),
-  updateConfig: (clave, valor) => api.put(`/config/${clave}`, { valor })
+  updateConfig: (clave, valor) => api.put(`/config/${clave}`, { valor }),
+
+  // Usuarios (solo admin)
+  getUsers: () => api.get('/users'),
+  createUser: (data) => api.post('/users', data),
+  updateUser: (id, data) => api.put(`/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/users/${id}`)
 };
 
 export default api;
