@@ -5,6 +5,11 @@ import * as db from './db';
 
 let mainWindow: BrowserWindow | null = null;
 
+// Permite aislar los datos en pruebas automatizadas
+if (process.env.MCP_USER_DATA) {
+  app.setPath('userData', process.env.MCP_USER_DATA);
+}
+
 function backupDir(): string {
   return path.join(app.getPath('userData'), 'respaldos');
 }
