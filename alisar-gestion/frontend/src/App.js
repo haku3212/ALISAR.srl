@@ -15,13 +15,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/common/ToastContainer';
+import './styles/theme.css';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Maquinaria from './components/Maquinaria';
-import Obras from './components/Obras';
+import Proyectos from './components/Proyectos';
 import Personal from './components/Personal';
-import Madera from './components/Madera';
-import Rodeos from './components/Rodeos';
 import Documentos from './components/Documentos';
 import ChangeHistory from './components/ChangeHistory';
 import Settings from './components/Settings';
@@ -49,8 +48,8 @@ const ProtectedRoute = ({ children }) => {
  * - /dashboard: Dashboard principal
  * - /personal: Módulo de recursos humanos
  * - /maquinaria: Módulo de gestión de equipos
- * - /obras: Módulo de gestión de proyectos
- * - /madera: Módulo de inventario de madera
+ * - /proyectos: Módulo de análisis financiero de proyectos
+ * - /documentos: Módulo de gestión legal
  * - /historial: Módulo de auditoría y cambios
  * - /configuracion: Módulo de configuración del sistema
  *
@@ -65,10 +64,8 @@ function AppRoutes() {
       {/* Rutas protegidas: Dashboard y módulos */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/maquinaria" element={<ProtectedRoute><Dashboard content={<Maquinaria />} /></ProtectedRoute>} />
-      <Route path="/obras" element={<ProtectedRoute><Dashboard content={<Obras />} /></ProtectedRoute>} />
+      <Route path="/proyectos" element={<ProtectedRoute><Dashboard content={<Proyectos />} /></ProtectedRoute>} />
       <Route path="/personal" element={<ProtectedRoute><Dashboard content={<Personal />} /></ProtectedRoute>} />
-      <Route path="/madera" element={<ProtectedRoute><Dashboard content={<Madera />} /></ProtectedRoute>} />
-      <Route path="/rodeos" element={<ProtectedRoute><Dashboard content={<Rodeos />} /></ProtectedRoute>} />
       <Route path="/documentos" element={<ProtectedRoute><Dashboard content={<Documentos />} /></ProtectedRoute>} />
       <Route path="/historial" element={<ProtectedRoute><Dashboard content={<ChangeHistory />} /></ProtectedRoute>} />
       <Route path="/configuracion" element={<ProtectedRoute><Dashboard content={<Settings />} /></ProtectedRoute>} />

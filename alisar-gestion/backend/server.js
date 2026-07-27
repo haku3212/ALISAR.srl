@@ -41,8 +41,46 @@ let db;
         CREATE TABLE IF NOT EXISTS obras (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
+            descripcion TEXT,
             avance INTEGER DEFAULT 0,
-            presupuesto TEXT
+            presupuesto TEXT,
+            presupuesto_bruto DECIMAL(12,2),
+            presupuesto_neto DECIMAL(12,2),
+            gasto_diesel DECIMAL(12,2) DEFAULT 0,
+            gasto_personal DECIMAL(12,2) DEFAULT 0,
+            gasto_comida DECIMAL(12,2) DEFAULT 0,
+            gasto_mantenimiento DECIMAL(12,2) DEFAULT 0,
+            gasto_otros DECIMAL(12,2) DEFAULT 0,
+            gasto_total DECIMAL(12,2) DEFAULT 0,
+            ganancia_neta DECIMAL(12,2) DEFAULT 0,
+            margen_ganancia DECIMAL(5,2) DEFAULT 0,
+            kilometros_totales INT,
+            duracion_dias INT,
+            estado TEXT DEFAULT 'planeado',
+            tipo_presupuesto TEXT DEFAULT 'fijo',
+            presupuesto_adjudicado DECIMAL(12,2),
+            fecha_inicio DATE,
+            fecha_fin DATE,
+            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            ultimaActualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS proyecto_maquinaria (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            proyecto_id INTEGER NOT NULL,
+            maquinaria_id INTEGER NOT NULL,
+            dias_utilizados INTEGER DEFAULT 0,
+            FOREIGN KEY (proyecto_id) REFERENCES obras(id),
+            FOREIGN KEY (maquinaria_id) REFERENCES maquinaria(id)
+        );
+        CREATE TABLE IF NOT EXISTS proyecto_personal (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            proyecto_id INTEGER NOT NULL,
+            personal_id INTEGER NOT NULL,
+            rol TEXT,
+            dias_trabajados INTEGER DEFAULT 0,
+            salario_dia DECIMAL(12,2) DEFAULT 0,
+            FOREIGN KEY (proyecto_id) REFERENCES obras(id),
+            FOREIGN KEY (personal_id) REFERENCES personal(id)
         );
         CREATE TABLE IF NOT EXISTS personal (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,13 +88,6 @@ let db;
             cargo TEXT,
             celular TEXT,
             estado TEXT DEFAULT 'Activo'
-        );
-        CREATE TABLE IF NOT EXISTS madera (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            especie TEXT NOT NULL,
-            piezas INTEGER,
-            volumen TEXT,
-            campamento TEXT
         );
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,7 +106,60 @@ let db;
             tipo TEXT DEFAULT 'string',
             actualizado DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+        CREATE TABLE IF NOT EXISTS madera (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            especie TEXT NOT NULL,
+            piezas INTEGER,
+            volumen TEXT,
+            campamento TEXT,
+            fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     `);
+
+    // 🔧 MIGRACIÓN: Agregar columnas faltantes si no existen
+    try {
+        // Obtener información de todas las columnas de la tabla obras
+        const tableInfo = await db.all("PRAGMA table_info(obras)");
+        const existingColumns = tableInfo.map(col => col.name);
+
+        // Lista de columnas requeridas
+        const columnasRequeridas = {
+            'descripcion': 'TEXT',
+            'presupuesto_bruto': 'DECIMAL(12,2) DEFAULT 0',
+            'presupuesto_neto': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_diesel': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_personal': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_comida': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_mantenimiento': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_otros': 'DECIMAL(12,2) DEFAULT 0',
+            'gasto_total': 'DECIMAL(12,2) DEFAULT 0',
+            'ganancia_neta': 'DECIMAL(12,2) DEFAULT 0',
+            'margen_ganancia': 'DECIMAL(5,2) DEFAULT 0',
+            'kilometros_totales': 'INTEGER DEFAULT 0',
+            'duracion_dias': 'INTEGER DEFAULT 0',
+            'tipo_presupuesto': "TEXT DEFAULT 'fijo'",
+            'presupuesto_adjudicado': 'DECIMAL(12,2)',
+            'fecha_inicio': 'DATE',
+            'fecha_fin': 'DATE'
+        };
+
+        // Agregar columnas faltantes
+        let columnasAgregadas = 0;
+        for (const [columna, tipo] of Object.entries(columnasRequeridas)) {
+            if (!existingColumns.includes(columna)) {
+                console.log(`🔧 Agregando columna ${columna} a tabla obras...`);
+                await db.run(`ALTER TABLE obras ADD COLUMN ${columna} ${tipo}`);
+                columnasAgregadas++;
+                console.log(`✅ Columna ${columna} agregada exitosamente`);
+            }
+        }
+
+        if (columnasAgregadas > 0) {
+            console.log(`\n✨ Se agregaron ${columnasAgregadas} columnas a la tabla obras\n`);
+        }
+    } catch (err) {
+        console.warn('⚠️ Error durante migración:', err.message);
+    }
 
     // Inserción de datos semilla para Personal si la tabla está vacía
     const checkPersonal = await db.get('SELECT COUNT(*) as total FROM personal');
@@ -165,23 +249,116 @@ app.get('/api/obras', verifyToken, async (req, res) => {
     }
 });
 
-app.post('/api/obras', verifyToken, async (req, res) => {
-    const { nombre, avance, presupuesto } = req.body;
-
-    if (!nombre || avance === undefined || !presupuesto) {
-        return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
-    }
-
-    if (isNaN(avance) || avance < 0 || avance > 100) {
-        return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
-    }
-
+// Obtener maquinaria asignada a un proyecto
+app.get('/api/obras/:id/maquinaria', verifyToken, async (req, res) => {
     try {
-        await db.run('INSERT INTO obras (nombre, avance, presupuesto) VALUES (?, ?, ?)', [nombre, avance, presupuesto]);
-        res.json({ status: "Obra registrada con éxito" });
+        const rows = await db.all(
+            `SELECT m.* FROM maquinaria m
+            INNER JOIN proyecto_maquinaria pm ON m.id = pm.maquinaria_id
+            WHERE pm.proyecto_id = ?`,
+            [req.params.id]
+        );
+        res.json(rows);
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+// Obtener personal asignado a un proyecto
+app.get('/api/obras/:id/personal', verifyToken, async (req, res) => {
+    try {
+        const rows = await db.all(
+            `SELECT p.* FROM personal p
+            INNER JOIN proyecto_personal pp ON p.id = pp.personal_id
+            WHERE pp.proyecto_id = ?`,
+            [req.params.id]
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Error al procesar solicitud' });
+    }
+});
+
+app.post('/api/obras', verifyToken, async (req, res) => {
+    const {
+        nombre,
+        descripcion,
+        estado,
+        tipo_presupuesto,
+        presupuesto_adjudicado,
+        presupuesto_bruto,
+        presupuesto_neto,
+        kilometros_totales,
+        duracion_dias,
+        fecha_inicio,
+        fecha_fin,
+        gasto_diesel,
+        gasto_personal,
+        gasto_comida,
+        gasto_mantenimiento,
+        gasto_otros,
+        gasto_total,
+        ganancia_neta,
+        margen_ganancia,
+        maquinaria_asignada,
+        personal_asignado
+    } = req.body;
+
+    if (!nombre) {
+        return res.status(400).json({ msg: 'Campo requerido: nombre' });
+    }
+
+    try {
+        const result = await db.run(
+            `INSERT INTO obras (
+                nombre, descripcion, estado, tipo_presupuesto, presupuesto_adjudicado,
+                presupuesto_bruto, presupuesto_neto, kilometros_totales, duracion_dias,
+                fecha_inicio, fecha_fin, gasto_diesel, gasto_personal, gasto_comida,
+                gasto_mantenimiento, gasto_otros, gasto_total, ganancia_neta, margen_ganancia
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                nombre, descripcion, estado || 'planeado', tipo_presupuesto || 'fijo', presupuesto_adjudicado || 0,
+                presupuesto_bruto || 0, presupuesto_neto || 0, kilometros_totales || 0, duracion_dias || 0,
+                fecha_inicio || null, fecha_fin || null, gasto_diesel || 0, gasto_personal || 0, gasto_comida || 0,
+                gasto_mantenimiento || 0, gasto_otros || 0, gasto_total || 0, ganancia_neta || 0, margen_ganancia || 0
+            ]
+        );
+
+        const obraId = result.lastID;
+
+        // Guardar maquinaria asignada
+        if (Array.isArray(maquinaria_asignada) && maquinaria_asignada.length > 0) {
+            for (const maquinariaId of maquinaria_asignada) {
+                if (maquinariaId || maquinariaId === 0) {
+                    await db.run(
+                        'INSERT INTO proyecto_maquinaria (proyecto_id, maquinaria_id) VALUES (?, ?)',
+                        [obraId, maquinariaId]
+                    );
+                }
+            }
+        }
+
+        // Guardar personal asignado
+        if (Array.isArray(personal_asignado) && personal_asignado.length > 0) {
+            for (const personalId of personal_asignado) {
+                if (personalId || personalId === 0) {
+                    await db.run(
+                        'INSERT INTO proyecto_personal (proyecto_id, personal_id) VALUES (?, ?)',
+                        [obraId, personalId]
+                    );
+                }
+            }
+        }
+
+        res.json({ status: "Proyecto registrado con éxito", id: obraId });
+    } catch (err) {
+        console.error('Error al crear proyecto:', err);
+        res.status(500).json({
+            error: `Error al procesar solicitud: ${err.message}`,
+            details: err.toString()
+        });
     }
 });
 
@@ -214,8 +391,18 @@ app.post('/api/personal', verifyToken, async (req, res) => {
 
 app.delete('/api/obras/:id', verifyToken, async (req, res) => {
     try {
-        await db.run('DELETE FROM obras WHERE id = ?', [req.params.id]);
-        res.json({ status: "Obra eliminada con éxito" });
+        const obraId = req.params.id;
+
+        // Eliminar relaciones de maquinaria
+        await db.run('DELETE FROM proyecto_maquinaria WHERE proyecto_id = ?', [obraId]);
+
+        // Eliminar relaciones de personal
+        await db.run('DELETE FROM proyecto_personal WHERE proyecto_id = ?', [obraId]);
+
+        // Eliminar la obra
+        await db.run('DELETE FROM obras WHERE id = ?', [obraId]);
+
+        res.json({ status: "Proyecto eliminado con éxito" });
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: 'Error al procesar solicitud' });
@@ -261,20 +448,85 @@ app.put('/api/personal/:id', verifyToken, async (req, res) => {
 });
 
 app.put('/api/obras/:id', verifyToken, async (req, res) => {
-    const { nombre, avance, presupuesto } = req.body;
+    const {
+        nombre,
+        descripcion,
+        estado,
+        tipo_presupuesto,
+        presupuesto_adjudicado,
+        presupuesto_bruto,
+        presupuesto_neto,
+        kilometros_totales,
+        duracion_dias,
+        fecha_inicio,
+        fecha_fin,
+        gasto_diesel,
+        gasto_personal,
+        gasto_comida,
+        gasto_mantenimiento,
+        gasto_otros,
+        gasto_total,
+        ganancia_neta,
+        margen_ganancia,
+        maquinaria_asignada,
+        personal_asignado
+    } = req.body;
 
-    if (!nombre || avance === undefined || !presupuesto) {
-        return res.status(400).json({ msg: 'Campos requeridos: nombre, avance, presupuesto' });
-    }
-
-    if (isNaN(avance) || avance < 0 || avance > 100) {
-        return res.status(400).json({ msg: 'El avance debe ser un número entre 0 y 100' });
+    if (!nombre) {
+        return res.status(400).json({ msg: 'Campo requerido: nombre' });
     }
 
     try {
-        await db.run('UPDATE obras SET nombre = ?, avance = ?, presupuesto = ? WHERE id = ?',
-            [nombre, avance, presupuesto, req.params.id]);
-        res.json({ status: "Obra actualizada con éxito" });
+        await db.run(
+            `UPDATE obras SET
+                nombre = ?, descripcion = ?, estado = ?, tipo_presupuesto = ?, presupuesto_adjudicado = ?,
+                presupuesto_bruto = ?, presupuesto_neto = ?, kilometros_totales = ?, duracion_dias = ?,
+                fecha_inicio = ?, fecha_fin = ?, gasto_diesel = ?, gasto_personal = ?, gasto_comida = ?,
+                gasto_mantenimiento = ?, gasto_otros = ?, gasto_total = ?, ganancia_neta = ?, margen_ganancia = ?,
+                ultimaActualizacion = CURRENT_TIMESTAMP
+            WHERE id = ?`,
+            [
+                nombre, descripcion, estado || 'planeado', tipo_presupuesto || 'fijo', presupuesto_adjudicado || 0,
+                presupuesto_bruto || 0, presupuesto_neto || 0, kilometros_totales || 0, duracion_dias || 0,
+                fecha_inicio || null, fecha_fin || null, gasto_diesel || 0, gasto_personal || 0, gasto_comida || 0,
+                gasto_mantenimiento || 0, gasto_otros || 0, gasto_total || 0, ganancia_neta || 0, margen_ganancia || 0,
+                req.params.id
+            ]
+        );
+
+        const obraId = req.params.id;
+
+        // Actualizar maquinaria asignada (eliminar existentes y agregar nuevos)
+        if (Array.isArray(maquinaria_asignada)) {
+            await db.run('DELETE FROM proyecto_maquinaria WHERE proyecto_id = ?', [obraId]);
+            if (maquinaria_asignada.length > 0) {
+                for (const maquinariaId of maquinaria_asignada) {
+                    if (maquinariaId || maquinariaId === 0) {
+                        await db.run(
+                            'INSERT INTO proyecto_maquinaria (proyecto_id, maquinaria_id) VALUES (?, ?)',
+                            [obraId, maquinariaId]
+                        );
+                    }
+                }
+            }
+        }
+
+        // Actualizar personal asignado (eliminar existentes y agregar nuevos)
+        if (Array.isArray(personal_asignado)) {
+            await db.run('DELETE FROM proyecto_personal WHERE proyecto_id = ?', [obraId]);
+            if (personal_asignado.length > 0) {
+                for (const personalId of personal_asignado) {
+                    if (personalId || personalId === 0) {
+                        await db.run(
+                            'INSERT INTO proyecto_personal (proyecto_id, personal_id) VALUES (?, ?)',
+                            [obraId, personalId]
+                        );
+                    }
+                }
+            }
+        }
+
+        res.json({ status: "Proyecto actualizado con éxito" });
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: 'Error al procesar solicitud' });
@@ -310,61 +562,6 @@ app.post('/api/maquinaria', verifyToken, async (req, res) => {
         await db.run('INSERT INTO maquinaria (nombre, tipo, estado, ultimaRevision) VALUES (?, ?, ?, ?)',
             [nombre, tipo, estado, ultimaRevision]);
         res.json({ status: "Maquinaria registrada con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-// --- Módulo: Madera ---
-app.get('/api/madera', verifyToken, async (req, res) => {
-    try {
-        const rows = await db.all('SELECT * FROM madera');
-        res.json(rows);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.post('/api/madera', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
-
-    if (!especie || !piezas || !volumen || !campamento) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
-    }
-
-    try {
-        await db.run('INSERT INTO madera (especie, piezas, volumen, campamento) VALUES (?, ?, ?, ?)',
-            [especie, piezas, volumen, campamento]);
-        res.json({ status: "Rodeo registrado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.put('/api/madera/:id', verifyToken, async (req, res) => {
-    const { especie, piezas, volumen, campamento } = req.body;
-
-    if (!especie || !piezas || !volumen || !campamento) {
-        return res.status(400).json({ msg: 'Campos requeridos: especie, piezas, volumen, campamento' });
-    }
-
-    try {
-        await db.run('UPDATE madera SET especie = ?, piezas = ?, volumen = ?, campamento = ? WHERE id = ?',
-            [especie, piezas, volumen, campamento, req.params.id]);
-        res.json({ status: "Rodeo actualizado con éxito" });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Error al procesar solicitud' });
-    }
-});
-
-app.delete('/api/madera/:id', verifyToken, async (req, res) => {
-    try {
-        await db.run('DELETE FROM madera WHERE id = ?', [req.params.id]);
-        res.json({ status: "Rodeo eliminado con éxito" });
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: 'Error al procesar solicitud' });

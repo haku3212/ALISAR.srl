@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, HardHat, Drill, Users, Trees, LogOut, Menu, X, AlertCircle, CheckCircle, Clock, History, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, HardHat, Drill, Users, LogOut, Menu, X, AlertCircle, CheckCircle, Clock, History, Settings as SettingsIcon } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { dataService } from '../services/api';
 import LoadingSpinner from './common/LoadingSpinner';
@@ -20,7 +20,7 @@ const Dashboard = ({ content }) => {
   const location = useLocation();
   const { logout, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [stats, setStats] = useState({ obras: 0, maquinaria: 0, personal: 0, madera: 0 });
+  const [stats, setStats] = useState({ obras: 0, maquinaria: 0, personal: 0 });
   const [lastObras, setLastObras] = useState([]);
   const [maintenanceNeeded, setMaintenanceNeeded] = useState([]);
   const [personalByRole, setPersonalByRole] = useState([]);
@@ -30,24 +30,21 @@ const Dashboard = ({ content }) => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const [obraRes, maquinariaRes, personalRes, maderaRes] = await Promise.all([
+        const [obraRes, maquinariaRes, personalRes] = await Promise.all([
           dataService.getObras(),
           dataService.getMaquinaria(),
-          dataService.getPersonal(),
-          dataService.getMadera()
+          dataService.getPersonal()
         ]);
 
         const obras = obraRes.data || [];
         const maquinaria = maquinariaRes.data || [];
         const personal = personalRes.data || [];
-        const madera = maderaRes.data || [];
 
         // Actualizar estadísticas
         setStats({
           obras: obras.length,
           maquinaria: maquinaria.length,
-          personal: personal.length,
-          madera: madera.reduce((sum, m) => sum + (m.piezas || 0), 0)
+          personal: personal.length
         });
 
         // Últimas 5 obras
@@ -129,8 +126,6 @@ const Dashboard = ({ content }) => {
     pdf.text(`• Equipos de Maquinaria: ${stats.maquinaria}`, 25, yPos);
     yPos += 7;
     pdf.text(`• Personal Total: ${stats.personal}`, 25, yPos);
-    yPos += 7;
-    pdf.text(`• Piezas de Madera: ${stats.madera}`, 25, yPos);
     yPos += 15;
 
     // Últimas obras
@@ -283,8 +278,7 @@ const Dashboard = ({ content }) => {
         {[
           { label: 'Obras Activas', value: stats.obras, icon: '🔨', color: '#FFD700' },
           { label: 'Maquinaria', value: stats.maquinaria, icon: '⚙️', color: '#60a5fa' },
-          { label: 'Personal', value: stats.personal, icon: '👥', color: '#a78bfa' },
-          { label: 'Piezas Madera', value: stats.madera, icon: '📦', color: '#f97316' }
+          { label: 'Personal', value: stats.personal, icon: '👥', color: '#a78bfa' }
         ].map((stat, i) => (
           <div key={i} style={{
             background: '#111411',
@@ -480,16 +474,6 @@ const Dashboard = ({ content }) => {
               <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Revisión de Personal</p>
               <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Evaluaciones programadas</p>
             </div>
-            <div style={{
-              background: '#1a1d1a',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #1f241f',
-              borderLeft: '4px solid #60a5fa'
-            }}>
-              <p style={{ color: '#e0e0e0', margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600' }}>Control de Madera</p>
-              <p style={{ color: '#666', margin: 0, fontSize: '12px' }}>Inventario a finales de mes</p>
-            </div>
           </div>
         </div>
       </div>
@@ -504,20 +488,14 @@ const Dashboard = ({ content }) => {
           <div style={styles.navItem('/dashboard')} onClick={() => navigate('/dashboard')}>
             <LayoutDashboard size={18} /> Dashboard
           </div>
-          <div style={styles.navItem('/obras')} onClick={() => navigate('/obras')}>
-            <HardHat size={18} /> Obras
+          <div style={styles.navItem('/proyectos')} onClick={() => navigate('/proyectos')}>
+            <HardHat size={18} /> Proyectos
           </div>
           <div style={styles.navItem('/maquinaria')} onClick={() => navigate('/maquinaria')}>
             <Drill size={18} /> Maquinaria
           </div>
           <div style={styles.navItem('/personal')} onClick={() => navigate('/personal')}>
             <Users size={18} /> Personal
-          </div>
-          <div style={styles.navItem('/madera')} onClick={() => navigate('/madera')}>
-            <Trees size={18} /> Madera
-          </div>
-          <div style={styles.navItem('/rodeos')} onClick={() => navigate('/rodeos')}>
-            <Trees size={18} /> Rodeos
           </div>
           <div style={styles.navItem('/documentos')} onClick={() => navigate('/documentos')}>
             <FileText size={18} /> Documentos
